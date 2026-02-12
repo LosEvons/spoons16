@@ -8,6 +8,7 @@ from .views.overview import OverviewView
 from .views.protections import ProtectionsView
 from .views.strings_view import StringsView
 from .views.imports_exports import ImportsExportsView
+from .views.r2_view import R2View
 
 
 class CaspoonApp(App):
@@ -31,6 +32,8 @@ class CaspoonApp(App):
                 yield StringsView(id="strings_view")
             with TabPane("Imports / Exports"):
                 yield ImportsExportsView(id="imp_exp")
+            with TabPane("R2 Analysis"):
+                yield R2View(id="r2_view")
 
         yield Footer()
 
@@ -46,3 +49,4 @@ class CaspoonApp(App):
         self.query_one("#protections", ProtectionsView).update_data(report)
         self.query_one("#strings_view", StringsView).update_data(report)
         self.query_one("#imp_exp", ImportsExportsView).update_data(report)
+        self.query_one("#r2_view", R2View).update_data(report)
