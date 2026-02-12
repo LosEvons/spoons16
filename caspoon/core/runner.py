@@ -18,4 +18,6 @@ class ReconRunner:
         report = ExecutableReport(path=path)
 
         for step in self.steps:
+            print("DEBUG: Running: ", step.name)
             report = step.run(path, report)
+            print("DEBUG: step returned: ", type(report))
