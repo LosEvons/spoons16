@@ -3,15 +3,16 @@ import json
 import sys
 
 def main():
-  if len(sys.argv) < 2:
-    print("Usage: python -m caspoon <binary>")
-    sys.exit(1)
+    if "--ui" in sys.argv:
+        from caspoon.ui.app import CaspoonApp
+        CaspoonApp().run()
+        return
 
-  path = sys.argv[1]
-  runner = ReconRunner()
-  report = runner.run(path)
+    if len(sys.argv) < 2:
+        print("Usage: python -m caspoon <binary>  or  python -m caspoon --ui")
+        return
 
-  print(json.dumps(report.pretty(), indent=2))
-
-if __name__ == "__main__":
-  main()
+    path = sys.argv[1]
+    runner = ReconRunner()
+    report = runner.run(path)
+    print(json.dumps(report.pretty(), indent=2))
