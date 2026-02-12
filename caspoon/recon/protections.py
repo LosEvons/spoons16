@@ -1,4 +1,3 @@
-
 import subprocess
 from ..core.models import ExecutableReport, ProtectionInfo
 

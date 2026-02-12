@@ -1,4 +1,3 @@
-
 from .models import ExecutableReport
 from ..recon.file_info import FileInfoRecon
 from ..recon.protections import ProtectionsRecon
