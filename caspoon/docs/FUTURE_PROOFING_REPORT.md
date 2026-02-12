@@ -13,9 +13,10 @@ This report evaluates the current implementation of the Caspoon reverse engineer
 - ⚠️ **UI Library (Textual)**: Has limitations for advanced features, but workable
 - ✅ **Analysis Libraries**: Appropriate choices for current needs
 - ⚠️ **Version Pinning**: Dependencies lack version constraints (risk)
+- ⚠️ **Testing Infrastructure**: Currently missing, critical for future-proofing
 - ✅ **Python Version**: Modern Python 3.10+ requirement is appropriate
 
-**Recommendation**: Proceed with implementation plans, but consider UI library alternatives for advanced visualization features and add version constraints to dependencies.
+**Recommendation**: Proceed with implementation plans, but prioritize establishing comprehensive testing infrastructure, add version constraints to dependencies, and consider UI library alternatives for advanced visualization features.
 
 ---
 
@@ -598,73 +599,928 @@ Keep Textual for TUI, add complementary interfaces:
 
 ---
 
-## 8. Code Quality & Testing
+## 8. Testing Strategy & Infrastructure
 
-### 8.1 Current State
+### 9.1 Current State: Critical Gap
+
+**Status**: ❌ **NO TESTING INFRASTRUCTURE**
 
 **Observations**:
-- ✅ Clean code structure
-- ✅ Good documentation
-- ⚠️ No visible test suite
-- ⚠️ No CI/CD configuration
-- ⚠️ No type checking
+- ❌ No test directory structure
+- ❌ No unit tests
+- ❌ No integration tests
+- ❌ No CI/CD pipeline
+- ❌ No test coverage tracking
+- ❌ No automated testing on commits/PRs
 
-### 8.2 Recommendations
+**Risk Level**: 🔴 **CRITICAL**
 
-**1. Add Testing Framework**:
+Without tests, future development risks:
+- Introducing regressions with new features
+- Breaking existing functionality unknowingly
+- Difficulty refactoring code safely
+- Unable to verify bug fixes
+- Reduced confidence in releases
+- Harder to onboard contributors
+
+### 9.2 Recommended Testing Architecture
+
+#### 9.2.1 Test Directory Structure
+
+```
+caspoon/
+├── caspoon/              # Source code
+│   ├── core/
+│   ├── recon/
+│   ├── backends/
+│   ├── ui/
+│   └── ...
+├── tests/                # Test suite (CREATE THIS)
+│   ├── __init__.py
+│   ├── conftest.py       # Shared fixtures
+│   ├── unit/             # Unit tests
+│   │   ├── __init__.py
+│   │   ├── test_models.py
+│   │   ├── core/
+│   │   │   ├── test_runner.py
+│   │   │   └── test_models.py
+│   │   ├── recon/
+│   │   │   ├── test_file_info.py
+│   │   │   ├── test_protections.py
+│   │   │   ├── test_strings.py
+│   │   │   └── test_imports_exports.py
+│   │   ├── backends/
+│   │   │   ├── test_r2_analyzer.py
+│   │   │   └── test_r2_recon.py
+│   │   └── ui/
+│   │       ├── test_app.py
+│   │       └── views/
+│   │           ├── test_overview.py
+│   │           ├── test_protections.py
+│   │           └── test_r2_view.py
+│   ├── integration/      # Integration tests
+│   │   ├── __init__.py
+│   │   ├── test_full_pipeline.py
+│   │   ├── test_recon_chain.py
+│   │   └── test_ui_workflows.py
+│   ├── fixtures/         # Test binaries and data
+│   │   ├── binaries/
+│   │   │   ├── test_hello_x64     # Simple x64 binary
+│   │   │   ├── test_hello_x86     # 32-bit binary
+│   │   │   ├── test_stripped      # Stripped binary
+│   │   │   ├── test_with_pie      # PIE enabled
+│   │   │   └── README.md          # Fixture documentation
+│   │   └── expected/
+│   │       └── test_hello_x64.json  # Expected analysis output
+│   ├── performance/      # Performance tests
+│   │   ├── __init__.py
+│   │   ├── test_large_binary.py
+│   │   └── benchmarks.py
+│   └── e2e/              # End-to-end tests
+│       ├── __init__.py
+│       ├── test_cli.py
+│       └── test_tui.py
+├── .github/
+│   └── workflows/
+│       ├── test.yml      # CI for tests
+│       ├── coverage.yml  # Coverage reporting
+│       └── release.yml   # Release testing
+└── pytest.ini or pyproject.toml  # Pytest configuration
+```
+
+#### 9.2.2 Unit Testing Strategy
+
+**Priority**: 🔴 **CRITICAL - Implement First**
+
+**Goal**: Test individual components in isolation
+
+**Example: Testing File Info Recon**
 ```python
-# tests/test_file_info.py
+# tests/unit/recon/test_file_info.py
 import pytest
+from pathlib import Path
 from caspoon.recon.file_info import FileInfoRecon
 from caspoon.core.models import ExecutableReport
 
-def test_file_info_x64():
-    recon = FileInfoRecon()
-    report = ExecutableReport(path="/bin/ls")
-    result = recon.run("/bin/ls", report)
+class TestFileInfoRecon:
+    """Test FileInfoRecon module."""
     
-    assert result.arch == "x86-64"
-    assert result.bits == 64
-
-# Run with: pytest
+    @pytest.fixture
+    def recon(self):
+        """Create FileInfoRecon instance."""
+        return FileInfoRecon()
+    
+    @pytest.fixture
+    def test_binary(self, tmp_path):
+        """Create a simple test binary."""
+        # Copy test binary from fixtures
+        import shutil
+        src = Path("tests/fixtures/binaries/test_hello_x64")
+        dst = tmp_path / "test_binary"
+        shutil.copy(src, dst)
+        return str(dst)
+    
+    def test_analyze_x64_binary(self, recon, test_binary):
+        """Test analysis of x64 binary."""
+        report = ExecutableReport(path=test_binary)
+        result = recon.run(test_binary, report)
+        
+        assert result.arch == "x86-64"
+        assert result.bits == 64
+        assert result.file_type != ""
+    
+    def test_analyze_stripped_binary(self, recon):
+        """Test detection of stripped binary."""
+        binary_path = "tests/fixtures/binaries/test_stripped"
+        report = ExecutableReport(path=binary_path)
+        result = recon.run(binary_path, report)
+        
+        assert result.stripped == True
+    
+    def test_nonexistent_file(self, recon):
+        """Test handling of nonexistent file."""
+        report = ExecutableReport(path="/nonexistent/file")
+        result = recon.run("/nonexistent/file", report)
+        
+        # Should handle gracefully, not crash
+        assert result is not None
+    
+    def test_invalid_binary(self, recon, tmp_path):
+        """Test handling of invalid binary."""
+        # Create a text file, not a binary
+        invalid = tmp_path / "not_a_binary.txt"
+        invalid.write_text("Hello World")
+        
+        report = ExecutableReport(path=str(invalid))
+        result = recon.run(str(invalid), report)
+        
+        # Should handle gracefully
+        assert result is not None
 ```
 
-**2. Add Type Checking**:
+**Example: Testing Data Models**
+```python
+# tests/unit/core/test_models.py
+import pytest
+from caspoon.core.models import (
+    ExecutableReport, ProtectionInfo, FunctionInfo
+)
+
+class TestExecutableReport:
+    """Test ExecutableReport dataclass."""
+    
+    def test_create_empty_report(self):
+        """Test creating empty report."""
+        report = ExecutableReport(path="/test/binary")
+        
+        assert report.path == "/test/binary"
+        assert report.arch == ""
+        assert report.bits is None
+        assert len(report.strings) == 0
+        assert len(report.imports) == 0
+        assert len(report.exports) == 0
+    
+    def test_create_full_report(self):
+        """Test creating report with all fields."""
+        protections = ProtectionInfo(pie=True, nx=True, canary=True, relro="full")
+        report = ExecutableReport(
+            path="/test/binary",
+            arch="x86-64",
+            bits=64,
+            stripped=False,
+            protections=protections,
+            strings=["hello", "world"],
+            imports=["printf", "exit"]
+        )
+        
+        assert report.arch == "x86-64"
+        assert report.bits == 64
+        assert report.protections.pie == True
+        assert len(report.strings) == 2
+    
+    def test_pretty_output(self):
+        """Test pretty() method returns dict."""
+        report = ExecutableReport(path="/test", arch="x86-64", bits=64)
+        pretty = report.pretty()
+        
+        assert isinstance(pretty, dict)
+        assert pretty["path"] == "/test"
+        assert pretty["arch"] == "x86-64"
+        assert pretty["bits"] == 64
+
+class TestProtectionInfo:
+    """Test ProtectionInfo dataclass."""
+    
+    def test_default_protections(self):
+        """Test default protection values."""
+        pi = ProtectionInfo()
+        
+        assert pi.pie == False
+        assert pi.nx == False
+        assert pi.canary == False
+        assert pi.relro == "Unknown"
+    
+    def test_full_protections(self):
+        """Test fully protected binary."""
+        pi = ProtectionInfo(pie=True, nx=True, canary=True, relro="full")
+        
+        assert pi.pie == True
+        assert pi.nx == True
+        assert pi.canary == True
+        assert pi.relro == "full"
+```
+
+**Example: Testing Backend**
+```python
+# tests/unit/backends/test_r2_analyzer.py
+import pytest
+from unittest.mock import Mock, patch, MagicMock
+from caspoon.backends.r2_analyzer import analyze_with_r2
+
+class TestR2Analyzer:
+    """Test radare2 analyzer backend."""
+    
+    @pytest.fixture
+    def mock_r2pipe(self):
+        """Mock r2pipe module."""
+        with patch('caspoon.backends.r2_analyzer.r2pipe') as mock:
+            yield mock
+    
+    def test_analyze_with_r2_success(self, mock_r2pipe):
+        """Test successful r2 analysis."""
+        # Setup mock
+        mock_r2 = MagicMock()
+        mock_r2.cmd.side_effect = [
+            None,  # aa command
+            '[{"offset": 4194304, "name": "main"}]',  # aflj
+            '[{"name": "printf"}]',  # isj
+            '[{"string": "Hello"}]',  # izj
+            '[{"offset": 4194304, "opcode": "push rbp"}]'  # pdj
+        ]
+        mock_r2pipe.open.return_value = mock_r2
+        
+        # Run analysis
+        result = analyze_with_r2("/test/binary")
+        
+        # Verify results
+        assert 'functions' in result
+        assert 'imports' in result
+        assert 'strings' in result
+        assert 'main_ops' in result
+        assert len(result['functions']) == 1
+        assert result['functions'][0]['name'] == 'main'
+    
+    def test_analyze_with_r2_json_error(self, mock_r2pipe):
+        """Test handling of JSON parsing errors."""
+        mock_r2 = MagicMock()
+        mock_r2.cmd.side_effect = [
+            None,  # aa command
+            'invalid json{',  # aflj - bad JSON
+            '[]',  # isj
+            '[]',  # izj
+            '[]'   # pdj
+        ]
+        mock_r2pipe.open.return_value = mock_r2
+        
+        # Should handle gracefully
+        result = analyze_with_r2("/test/binary")
+        
+        assert 'functions' in result
+        assert len(result['functions']) == 0  # Empty due to parse error
+    
+    @pytest.mark.skipif(
+        not pytest.importorskip("r2pipe"),
+        reason="r2pipe not installed"
+    )
+    def test_real_binary_analysis(self):
+        """Integration test with real r2 (if available)."""
+        # This test requires actual radare2 installation
+        result = analyze_with_r2("tests/fixtures/binaries/test_hello_x64")
+        
+        assert 'functions' in result
+        assert 'imports' in result
+        # At minimum, should find main function
+        assert any(f.get('name') == 'main' for f in result['functions'])
+```
+
+#### 9.2.3 Integration Testing Strategy
+
+**Priority**: 🟡 **HIGH - Implement After Unit Tests**
+
+**Goal**: Test component interactions and full pipeline
+
+**Example: Testing Full Pipeline**
+```python
+# tests/integration/test_full_pipeline.py
+import pytest
+from caspoon.core.runner import ReconRunner
+from caspoon.core.models import ExecutableReport
+
+class TestFullPipeline:
+    """Test complete analysis pipeline."""
+    
+    @pytest.fixture
+    def runner(self):
+        """Create ReconRunner instance."""
+        return ReconRunner()
+    
+    def test_analyze_simple_binary(self, runner):
+        """Test full analysis of simple binary."""
+        binary_path = "tests/fixtures/binaries/test_hello_x64"
+        report = runner.run(binary_path)
+        
+        # Verify all recon modules ran
+        assert report.path == binary_path
+        assert report.arch != ""  # FileInfoRecon ran
+        assert report.protections is not None  # ProtectionsRecon ran
+        assert len(report.strings) > 0  # StringsRecon ran
+        assert len(report.imports) > 0  # ImportExportRecon ran
+        assert 'r2' in report.raw_backend_data  # R2BackendRecon ran
+    
+    def test_analyze_stripped_binary(self, runner):
+        """Test analysis of stripped binary."""
+        binary_path = "tests/fixtures/binaries/test_stripped"
+        report = runner.run(binary_path)
+        
+        assert report.stripped == True
+        # Stripped binaries should still provide some analysis
+        assert report.arch != ""
+        assert report.protections is not None
+    
+    def test_analyze_pie_binary(self, runner):
+        """Test analysis of PIE-enabled binary."""
+        binary_path = "tests/fixtures/binaries/test_with_pie"
+        report = runner.run(binary_path)
+        
+        assert report.protections.pie == True
+    
+    def test_recon_modules_order(self, runner):
+        """Test that recon modules run in correct order."""
+        # Verify module order
+        module_names = [step.name for step in runner.steps]
+        
+        # FileInfo should be first (provides basic info)
+        assert module_names[0] == "file_info"
+        # Protections should be early
+        assert "protections" in module_names
+        # R2 backend should be last (most expensive)
+        assert module_names[-1] == "r2_backend"
+```
+
+**Example: Testing Recon Chain**
+```python
+# tests/integration/test_recon_chain.py
+import pytest
+from caspoon.core.models import ExecutableReport
+from caspoon.recon.file_info import FileInfoRecon
+from caspoon.recon.protections import ProtectionsRecon
+from caspoon.recon.strings_mod import StringsRecon
+
+class TestReconChain:
+    """Test recon modules work together."""
+    
+    def test_sequential_enrichment(self):
+        """Test that report is enriched through chain."""
+        binary_path = "tests/fixtures/binaries/test_hello_x64"
+        report = ExecutableReport(path=binary_path)
+        
+        # Initially empty
+        assert report.arch == ""
+        assert report.protections is None
+        assert len(report.strings) == 0
+        
+        # FileInfo enriches arch/bits
+        report = FileInfoRecon().run(binary_path, report)
+        assert report.arch != ""
+        assert report.bits is not None
+        
+        # Protections enriches security info
+        report = ProtectionsRecon().run(binary_path, report)
+        assert report.protections is not None
+        
+        # Strings enriches string list
+        report = StringsRecon().run(binary_path, report)
+        assert len(report.strings) > 0
+```
+
+#### 9.2.4 UI Testing Strategy
+
+**Priority**: 🟡 **MEDIUM - After Core Tests**
+
+**Goal**: Test UI components and interactions
+
+**Example: Testing UI Views**
+```python
+# tests/unit/ui/views/test_overview.py
+import pytest
+from caspoon.ui.views.overview import OverviewView
+from caspoon.core.models import ExecutableReport
+
+class TestOverviewView:
+    """Test OverviewView component."""
+    
+    def test_update_with_full_report(self):
+        """Test updating view with complete report."""
+        view = OverviewView()
+        report = ExecutableReport(
+            path="/test/binary",
+            arch="x86-64",
+            bits=64,
+            stripped=False,
+            file_type="ELF 64-bit LSB executable"
+        )
+        
+        # Should not raise exception
+        view.update_data(report)
+    
+    def test_update_with_minimal_report(self):
+        """Test updating view with minimal data."""
+        view = OverviewView()
+        report = ExecutableReport(path="/test/binary")
+        
+        # Should handle missing data gracefully
+        view.update_data(report)
+```
+
+**Example: Testing TUI with Textual's pilot**
+```python
+# tests/e2e/test_tui.py
+import pytest
+from textual.pilot import Pilot
+from caspoon.ui.app import CaspoonApp
+
+@pytest.mark.asyncio
+async def test_app_launches():
+    """Test that app launches without errors."""
+    app = CaspoonApp()
+    async with app.run_test() as pilot:
+        # App should be running
+        assert app.is_running
+        
+        # Should have expected widgets
+        assert pilot.app.query_one("#path_input") is not None
+
+@pytest.mark.asyncio
+async def test_load_binary(tmpdir):
+    """Test loading a binary through the UI."""
+    app = CaspoonApp()
+    async with app.run_test() as pilot:
+        # Enter path and submit
+        await pilot.click("#path_input")
+        await pilot.press("t", "e", "s", "t")
+        await pilot.press("enter")
+        
+        # Should see status update
+        # (actual verification depends on implementation)
+```
+
+#### 9.2.5 Performance Testing Strategy
+
+**Priority**: 🟢 **LOW - After Feature Complete**
+
+**Goal**: Ensure performance doesn't degrade
+
+**Example: Performance Tests**
+```python
+# tests/performance/benchmarks.py
+import pytest
+import time
+from caspoon.core.runner import ReconRunner
+
+class TestPerformance:
+    """Performance benchmarks."""
+    
+    @pytest.mark.benchmark
+    def test_small_binary_analysis_time(self, benchmark):
+        """Benchmark analysis of small binary (<1MB)."""
+        runner = ReconRunner()
+        binary = "tests/fixtures/binaries/test_hello_x64"
+        
+        result = benchmark(runner.run, binary)
+        
+        # Should complete in reasonable time
+        assert result is not None
+    
+    @pytest.mark.slow
+    def test_large_binary_analysis(self):
+        """Test analysis of large binary (10MB+)."""
+        runner = ReconRunner()
+        # Create or use large test binary
+        
+        start = time.time()
+        report = runner.run("tests/fixtures/binaries/large_binary")
+        elapsed = time.time() - start
+        
+        # Should complete within timeout
+        assert elapsed < 60  # 60 seconds max
+    
+    def test_memory_usage_bounded(self):
+        """Test memory usage doesn't exceed limits."""
+        import psutil
+        import os
+        
+        process = psutil.Process(os.getpid())
+        initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+        
+        runner = ReconRunner()
+        runner.run("tests/fixtures/binaries/test_hello_x64")
+        
+        final_memory = process.memory_info().rss / 1024 / 1024
+        memory_increase = final_memory - initial_memory
+        
+        # Should not use excessive memory
+        assert memory_increase < 500  # < 500MB increase
+```
+
+#### 9.2.6 Test Fixtures & Data Management
+
+**Priority**: 🔴 **CRITICAL**
+
+**Goal**: Maintain consistent test data
+
+**Strategy**:
+1. **Source-controlled test binaries**: Small, purpose-built binaries
+2. **Documented fixtures**: README explaining each test binary
+3. **Expected outputs**: JSON files with expected analysis results
+4. **Build scripts**: Scripts to regenerate test binaries if needed
+
+**Example: Fixture Documentation**
+```markdown
+# tests/fixtures/binaries/README.md
+
+## Test Binary Fixtures
+
+### test_hello_x64
+- **Architecture**: x86-64
+- **Size**: ~16KB
+- **Source**: hello_world.c compiled with GCC
+- **Features**: Standard ELF, not stripped, PIE disabled
+- **Purpose**: Basic functionality testing
+
+### test_hello_x86
+- **Architecture**: x86 (32-bit)
+- **Size**: ~14KB
+- **Source**: hello_world.c compiled with GCC -m32
+- **Features**: 32-bit ELF
+- **Purpose**: Test 32-bit support
+
+### test_stripped
+- **Architecture**: x86-64
+- **Size**: ~14KB
+- **Source**: hello_world.c compiled with GCC -s
+- **Features**: Symbols stripped
+- **Purpose**: Test stripped binary detection
+
+### test_with_pie
+- **Architecture**: x86-64
+- **Features**: PIE enabled, stack canary, NX, full RELRO
+- **Purpose**: Test security feature detection
+
+### Regenerating Binaries
+
 ```bash
-# Add mypy configuration
-# pyproject.toml
-[tool.mypy]
-python_version = "3.10"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
+# Regenerate test binaries
+cd tests/fixtures/binaries/src
+make clean
+make all
+```
 ```
 
-**3. Add Linting**:
-```bash
-# Use ruff for fast linting
-ruff check caspoon/
-black caspoon/
+**Example: Build Script**
+```makefile
+# tests/fixtures/binaries/src/Makefile
+CC=gcc
+CFLAGS=-Wall
+
+all: test_hello_x64 test_hello_x86 test_stripped test_with_pie
+
+test_hello_x64: hello_world.c
+	$(CC) $(CFLAGS) -o ../test_hello_x64 hello_world.c
+
+test_hello_x86: hello_world.c
+	$(CC) $(CFLAGS) -m32 -o ../test_hello_x86 hello_world.c
+
+test_stripped: hello_world.c
+	$(CC) $(CFLAGS) -s -o ../test_stripped hello_world.c
+
+test_with_pie: hello_world.c
+	$(CC) $(CFLAGS) -fPIE -pie -fstack-protector-all -Wl,-z,relro,-z,now \
+		-o ../test_with_pie hello_world.c
+
+clean:
+	rm -f ../test_hello_x64 ../test_hello_x86 ../test_stripped ../test_with_pie
 ```
 
-**4. Add CI/CD**:
+#### 9.2.7 Continuous Integration Setup
+
+**Priority**: 🔴 **CRITICAL**
+
+**Goal**: Automated testing on every commit
+
+**GitHub Actions Configuration**:
 ```yaml
 # .github/workflows/test.yml
-name: Test
-on: [push, pull_request]
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
 jobs:
   test:
+    name: Test Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+    
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - run: pip install -e .[dev]
-      - run: pytest
-      - run: mypy caspoon/
-      - run: ruff check caspoon/
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y radare2 binutils
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[dev]
+    
+    - name: Run linters
+      run: |
+        ruff check caspoon/
+        black --check caspoon/
+    
+    - name: Run type checker
+      run: |
+        mypy caspoon/ --ignore-missing-imports
+    
+    - name: Run unit tests
+      run: |
+        pytest tests/unit -v --cov=caspoon --cov-report=xml
+    
+    - name: Run integration tests
+      run: |
+        pytest tests/integration -v
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: true
+
+  test-e2e:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y radare2
+        pip install -e .[dev]
+    
+    - name: Run E2E tests
+      run: |
+        pytest tests/e2e -v
+
+  test-performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        sudo apt-get install -y radare2
+        pip install -e .[dev]
+        pip install pytest-benchmark
+    
+    - name: Run performance tests
+      run: |
+        pytest tests/performance -v --benchmark-only
 ```
+
+#### 9.2.8 Test Coverage Goals
+
+**Priority**: 🟡 **HIGH**
+
+**Target Coverage Levels**:
+- **Core modules** (models, runner): 95%+ coverage
+- **Recon modules**: 85%+ coverage
+- **Backend integrations**: 70%+ coverage (due to external dependencies)
+- **UI components**: 60%+ coverage (UI testing is harder)
+- **Overall project**: 75%+ coverage
+
+**Coverage Tracking**:
+```bash
+# Generate coverage report
+pytest --cov=caspoon --cov-report=html --cov-report=term
+
+# View in browser
+open htmlcov/index.html
+```
+
+**Coverage Configuration**:
+```ini
+# .coveragerc or pyproject.toml
+[tool.coverage.run]
+source = ["caspoon"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__main__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+```
+
+#### 9.2.9 Testing Best Practices for Future Development
+
+**For All New Features**:
+1. ✅ **Write tests first** (TDD when possible)
+2. ✅ **Aim for 80%+ coverage** for new code
+3. ✅ **Include edge cases** in tests
+4. ✅ **Mock external dependencies** (r2pipe, file system)
+5. ✅ **Test error conditions** not just happy paths
+6. ✅ **Use fixtures** for consistent test data
+7. ✅ **Keep tests fast** (<1 second per unit test)
+8. ✅ **Make tests deterministic** (no random behavior)
+
+**Testing Checklist for PRs**:
+```markdown
+- [ ] Unit tests added for new functions/classes
+- [ ] Integration tests updated if workflow changed
+- [ ] Tests pass locally
+- [ ] Coverage doesn't decrease
+- [ ] Performance tests pass (if applicable)
+- [ ] CI pipeline passes
+- [ ] Edge cases covered
+- [ ] Error handling tested
+```
+
+#### 9.2.10 Test Maintenance Strategy
+
+**Regular Maintenance**:
+1. **Review test suite monthly** for:
+   - Flaky tests (intermittent failures)
+   - Slow tests (>5 seconds)
+   - Outdated fixtures
+   - Redundant tests
+
+2. **Update test binaries** when:
+   - Toolchain versions change
+   - New architectures added
+   - Security features evolve
+
+3. **Refactor tests** when:
+   - Multiple tests have duplicate code
+   - Fixtures become complex
+   - Test readability suffers
+
+**Test Documentation**:
+```python
+# Good test documentation example
+def test_analyze_malformed_elf(self, runner):
+    """Test analysis of malformed ELF binary.
+    
+    This tests the error handling when encountering a binary with:
+    - Invalid ELF magic number
+    - Corrupted section headers
+    
+    Expected behavior:
+    - Should not crash
+    - Should return report with error information
+    - Should continue with other analysis steps
+    
+    Related issue: #42
+    """
+    # Test implementation
+```
+
+### 9.3 Testing Tool Recommendations
+
+**Core Testing Stack**:
+- ✅ **pytest**: Test framework (industry standard)
+- ✅ **pytest-cov**: Coverage reporting
+- ✅ **pytest-asyncio**: For async tests
+- ✅ **pytest-mock**: Mocking utilities
+- ✅ **pytest-benchmark**: Performance testing
+
+**Additional Tools**:
+- **hypothesis**: Property-based testing
+- **tox**: Test across Python versions
+- **pytest-xdist**: Parallel test execution
+- **pytest-timeout**: Prevent hanging tests
+
+**Update dependencies**:
+```toml
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0.0",
+  "pytest-cov>=4.0.0",
+  "pytest-asyncio>=0.21.0",
+  "pytest-mock>=3.10.0",
+  "pytest-benchmark>=4.0.0",
+  "pytest-xdist>=3.0.0",  # Parallel testing
+  "pytest-timeout>=2.1.0",  # Test timeouts
+  "hypothesis>=6.0.0",  # Property-based testing
+  "tox>=4.0.0",  # Multi-version testing
+  "black>=23.0.0",
+  "mypy>=1.0.0",
+  "ruff>=0.1.0",
+  "types-pyelftools",
+]
+```
+
+### 9.4 Testing Implementation Roadmap
+
+**Phase 1: Foundation (Week 1-2)**
+- [ ] Create test directory structure
+- [ ] Set up pytest configuration
+- [ ] Create test fixtures (binaries)
+- [ ] Set up CI pipeline (GitHub Actions)
+- [ ] Add coverage tracking
+
+**Phase 2: Core Tests (Week 2-4)**
+- [ ] Write unit tests for models
+- [ ] Write unit tests for core/runner
+- [ ] Write unit tests for each recon module
+- [ ] Aim for 70%+ coverage of core
+
+**Phase 3: Integration Tests (Week 4-5)**
+- [ ] Test full pipeline
+- [ ] Test module interactions
+- [ ] Test error propagation
+
+**Phase 4: UI Tests (Week 5-6)**
+- [ ] Test view components
+- [ ] Test app integration
+- [ ] Basic E2E tests
+
+**Phase 5: Advanced Testing (Week 6+)**
+- [ ] Performance benchmarks
+- [ ] Property-based tests
+- [ ] Fuzz testing for parsers
+
+**Minimum Viable Test Suite** (for starting implementation):
+1. ✅ Unit tests for ExecutableReport
+2. ✅ Unit tests for FileInfoRecon
+3. ✅ Integration test for basic pipeline
+4. ✅ CI pipeline running on PRs
+5. ✅ Coverage reporting
+
+### 9.5 Testing Anti-Patterns to Avoid
+
+❌ **Don't**:
+- Write tests that depend on external services
+- Test implementation details instead of behavior
+- Make tests dependent on execution order
+- Use sleep() for timing (use proper mocking)
+- Commit commented-out tests
+- Skip tests without explanation
+- Test external library behavior
+
+✅ **Do**:
+- Test public interfaces and contracts
+- Make tests independent and isolated
+- Use clear, descriptive test names
+- Mock external dependencies
+- Keep tests maintainable and readable
+- Document why tests are skipped
+- Focus on your code's behavior
 
 ---
 
@@ -712,18 +1568,20 @@ caspoon/docs/
 ### 10.1 Immediate Actions (Before Implementation)
 
 1. **Add version constraints** to dependencies ⚠️ HIGH PRIORITY
-2. **Set up testing framework** (pytest)
-3. **Add basic CI/CD** (GitHub Actions)
-4. **Create INSTALLATION.md** with setup instructions
+2. **Set up testing framework** (pytest) 🔴 CRITICAL PRIORITY
+3. **Create test fixtures** and basic test suite 🔴 CRITICAL PRIORITY
+4. **Add basic CI/CD** (GitHub Actions) 🔴 CRITICAL PRIORITY
 5. **Abstract r2pipe** behind interface for future flexibility
 
 ### 10.2 During Implementation
 
-1. **Monitor Textual** for new features that could help
-2. **Implement pagination** early for all views
-3. **Add caching** for analysis results
-4. **Create HTML export** for complex visualizations
-5. **Add optional dependencies** as features are implemented
+1. **Write tests first** for all new features (TDD approach)
+2. **Monitor Textual** for new features that could help
+3. **Implement pagination** early for all views
+4. **Add caching** for analysis results
+5. **Create HTML export** for complex visualizations
+6. **Add optional dependencies** as features are implemented
+7. **Maintain 75%+ test coverage** throughout development
 
 ### 10.3 Future Considerations (Post-Plans 1-3)
 
@@ -737,8 +1595,10 @@ caspoon/docs/
 
 | Risk | Priority | Action |
 |------|----------|--------|
+| No testing infrastructure | CRITICAL | Implement comprehensive test suite |
 | Textual performance with large data | HIGH | Implement pagination/lazy loading |
 | Dependency version conflicts | HIGH | Add version constraints |
+| Test coverage gaps | HIGH | Aim for 75%+ coverage |
 | radare2 API changes | MEDIUM | Abstract r2 interactions |
 | Large binary analysis | MEDIUM | Add resource limits, caching |
 | Security issues | MEDIUM | Document best practices |
@@ -748,9 +1608,9 @@ caspoon/docs/
 
 ## 11. Conclusion
 
-**Overall Assessment**: ✅ **READY TO PROCEED**
+**Overall Assessment**: ✅ **READY TO PROCEED WITH CAUTION**
 
-The current caspoon architecture and dependencies are well-suited for the planned enhancements with minor adjustments:
+The current caspoon architecture and dependencies are well-suited for the planned enhancements, but **testing infrastructure must be established first**:
 
 **Strengths**:
 - ✅ Solid modular architecture
@@ -758,20 +1618,76 @@ The current caspoon architecture and dependencies are well-suited for the planne
 - ✅ Modern Python practices
 - ✅ Clean, maintainable code
 
+**Critical Gaps**:
+- 🔴 **No testing infrastructure** - MUST BE ADDRESSED FIRST
+- ⚠️ No dependency version constraints
+- ⚠️ No CI/CD pipeline
+- ⚠️ No type checking
+
 **Areas for Improvement**:
 - ⚠️ Add dependency version constraints (CRITICAL)
-- ⚠️ Implement testing and CI/CD (HIGH PRIORITY)
+- ⚠️ Implement testing and CI/CD (CRITICAL - BLOCKING)
 - ⚠️ Plan for UI performance (pagination, lazy loading)
 - ⚠️ Consider HTML export for complex visualizations
 
 **Recommendation**: 
-Proceed with implementation of Plans 1-3, addressing the immediate actions (version constraints, testing) first. The chosen dependencies will support the planned features with the caveats noted for advanced visualization (which can be addressed via HTML export).
 
-The modular architecture allows for easy addition of new features without major refactoring. Keep monitoring Textual's development as it's rapidly improving and may gain features that help with advanced use cases.
+**STOP** - Do not proceed with feature implementation until basic testing infrastructure is in place. The following must be completed first:
+
+1. **Week 1**: Set up testing infrastructure
+   - Create test directory structure
+   - Add pytest configuration
+   - Set up CI/CD pipeline
+   - Create initial test fixtures
+
+2. **Week 2**: Create minimum viable test suite
+   - Unit tests for core models
+   - Unit tests for at least one recon module
+   - One integration test for basic pipeline
+   - Achieve 50%+ coverage baseline
+
+3. **Week 3+**: Proceed with feature implementation
+   - Use TDD for all new features
+   - Maintain/improve test coverage
+   - Add integration tests for each major feature
+
+Without testing, the risk of introducing regressions and breaking changes is too high. The modular architecture is excellent, but it needs test coverage to ensure that modularity is maintained as features are added.
+
+**Bottom Line**: The architectural foundation is solid, but testing infrastructure is the critical missing piece that will enable confident, sustainable development of the planned features.
 
 ---
 
-## Appendix: Recommended pyproject.toml Updates
+## Appendix A: Testing Implementation Checklist
+
+**Before Starting Any Feature Implementation**:
+- [ ] Create `tests/` directory structure
+- [ ] Set up `pytest.ini` or pytest config in `pyproject.toml`
+- [ ] Create test fixtures directory with sample binaries
+- [ ] Set up GitHub Actions CI workflow
+- [ ] Add coverage reporting with codecov
+- [ ] Write first unit test (even if trivial)
+- [ ] Verify CI pipeline runs successfully
+- [ ] Document testing practices in CONTRIBUTING.md
+
+**Minimum Test Suite (MVP)**:
+- [ ] Test ExecutableReport creation and methods
+- [ ] Test ProtectionInfo dataclass
+- [ ] Test FileInfoRecon with sample binary
+- [ ] Test ReconRunner basic pipeline
+- [ ] One integration test for full analysis
+- [ ] Achieve 50%+ code coverage
+- [ ] All tests pass in CI
+
+**Once MVP Testing is Complete**:
+- [ ] Add tests for remaining recon modules
+- [ ] Add UI component tests
+- [ ] Add performance benchmarks
+- [ ] Achieve 75%+ code coverage
+- [ ] Ready to proceed with feature implementation
+
+---
+
+## Appendix B: Recommended pyproject.toml Updates
 
 ```toml
 [project]
