@@ -34,7 +34,7 @@ class ExecutableReport:
       "bits": self.bits,
       "file_type": self.file_type,
       "stripped": self.stripped,
-      "protections": self.protections,
+      "protections": self.protections.__dict__ if self.protections else None,
       "imports": self.imports,
       "exports": self.exports,
       "strings_count": len(self.strings),
