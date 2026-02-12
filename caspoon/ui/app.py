@@ -58,3 +58,7 @@ class CaspoonApp(App):
         self.query_one("#strings_view", StringsView).update_data(report)
         self.query_one("#imp_exp", ImportsExportsView).update_data(report)
         self.query_one("#r2_view", R2View).update_data(report)
+        
+    def set_status(self, text: str):
+        footer = self.query_one(Footer)
+        footer.update(text)
