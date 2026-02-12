@@ -61,4 +61,4 @@ class CaspoonApp(App):
         
     def set_status(self, text: str):
         footer = self.query_one(Footer)
-        footer.renderable = text  # Update the Footer's content by setting its renderable attribute
+        footer.renderable = text
