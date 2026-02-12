@@ -9,11 +9,15 @@ from .views.protections import ProtectionsView
 from .views.strings_view import StringsView
 from .views.imports_exports import ImportsExportsView
 from .views.r2_view import R2View
+from .widgets.file_picker import FilePicker
 
 
 class CaspoonApp(App):
     TITLE = "Caspoon Reverse Engineering Toolkit"
     SUB_TITLE = "Executable Recon Viewer"
+    BINDINGS = [
+        ("o", "open_file_picker", "Open File"),
+    ]
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -36,6 +40,14 @@ class CaspoonApp(App):
                 yield R2View(id="r2_view")
 
         yield Footer()
+        
+    def action_open_file_picker(self):
+        def on_select(path):
+            runner = ReconRunner()
+            report = runner.run(path)
+            self.display_report(report)
+        picker = FilePicker(start_path=".", on_select=on_select)
+        self.mount(picker)
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
         path = message.value.strip()
@@ -44,7 +56,9 @@ class CaspoonApp(App):
 
         runner = ReconRunner()
         report = runner.run(path)
+        self.display_report(report)
 
+    def display_report(self, report):
         self.query_one("#overview", OverviewView).update_data(report)
         self.query_one("#protections", ProtectionsView).update_data(report)
         self.query_one("#strings_view", StringsView).update_data(report)
