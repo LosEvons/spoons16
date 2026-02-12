@@ -1,4 +1,7 @@
-# caspoon/ui/app.py
+"""Textual-based terminal UI for Caspoon."""
+
+import logging
+import os
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Input, TabbedContent, TabPane
@@ -11,11 +14,25 @@ from .views.strings_view import StringsView
 from .views.imports_exports import ImportsExportsView
 from .views.r2_view import R2View
 
+logger = logging.getLogger(__name__)
+
+
 class CaspoonApp(App):
+    """Main Textual application for interactive binary analysis.
+    
+    Provides a tabbed interface for viewing different aspects of
+    executable analysis results.
+    """
+    
     TITLE = "Caspoon Reverse Engineering Toolkit"
     SUB_TITLE = "Executable Recon Viewer"
 
     def compose(self) -> ComposeResult:
+        """Compose the UI layout.
+        
+        Yields:
+            UI components for the application
+        """
         yield Header()
 
         yield Input(
@@ -43,22 +60,63 @@ class CaspoonApp(App):
         yield Footer()
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
+        """Handle input submission when user enters a file path.
+        
+        Args:
+            message: Input submission event
+        """
         path = message.value.strip()
         if not path:
+            self.set_status("Error: Please enter a path")
+            return
+        
+        # Validate file path
+        if not os.path.exists(path):
+            self.set_status(f"Error: File not found - {path}")
+            return
+            
+        if not os.path.isfile(path):
+            self.set_status(f"Error: Not a file - {path}")
+            return
+            
+        if not os.access(path, os.R_OK):
+            self.set_status(f"Error: File not readable - {path}")
             return
 
-        runner = ReconRunner()
-        report = runner.run(path)
-        self.display_report(report)
-        self.set_status(f"Loaded: {path}")
+        try:
+            self.set_status(f"Analyzing: {path}...")
+            runner = ReconRunner()
+            report = runner.run(path)
+            self.display_report(report)
+            self.set_status(f"Loaded: {path}")
+        except Exception as e:
+            logger.error(f"Error analyzing file: {e}")
+            self.set_status(f"Error: {str(e)}")
 
-    def display_report(self, report):
-        self.query_one("#overview", OverviewView).update_data(report)
-        self.query_one("#protections", ProtectionsView).update_data(report)
-        self.query_one("#strings_view", StringsView).update_data(report)
-        self.query_one("#imp_exp", ImportsExportsView).update_data(report)
-        self.query_one("#r2_view", R2View).update_data(report)
+    def display_report(self, report) -> None:
+        """Display analysis report across all views.
         
-    def set_status(self, text: str):
-        footer = self.query_one(Footer)
-        footer.renderable = text
+        Args:
+            report: ExecutableReport to display
+        """
+        try:
+            self.query_one("#overview", OverviewView).update_data(report)
+            self.query_one("#protections", ProtectionsView).update_data(report)
+            self.query_one("#strings_view", StringsView).update_data(report)
+            self.query_one("#imp_exp", ImportsExportsView).update_data(report)
+            self.query_one("#r2_view", R2View).update_data(report)
+        except Exception as e:
+            logger.error(f"Error updating views: {e}")
+            self.set_status(f"Error displaying report: {str(e)}")
+        
+    def set_status(self, text: str) -> None:
+        """Update the footer status message.
+        
+        Args:
+            text: Status message to display
+        """
+        try:
+            footer = self.query_one(Footer)
+            footer.renderable = text
+        except Exception as e:
+            logger.error(f"Error setting status: {e}")
