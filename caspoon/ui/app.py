@@ -2,6 +2,7 @@
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Input, TabbedContent, TabPane
+from textual.containers import ScrollableContainer
 from caspoon.core.runner import ReconRunner
 
 from .views.overview import OverviewView
@@ -24,15 +25,20 @@ class CaspoonApp(App):
 
         with TabbedContent():
             with TabPane("Overview"):
-                yield OverviewView(id="overview")
+                with ScrollableContainer():
+                    yield OverviewView(id="overview")
             with TabPane("Protections"):
-                yield ProtectionsView(id="protections")
+                with ScrollableContainer():
+                    yield ProtectionsView(id="protections")
             with TabPane("Strings"):
-                yield StringsView(id="strings_view")
+                with ScrollableContainer():
+                    yield StringsView(id="strings_view")
             with TabPane("Imports / Exports"):
-                yield ImportsExportsView(id="imp_exp")
+                with ScrollableContainer():
+                    yield ImportsExportsView(id="imp_exp")
             with TabPane("R2 Analysis"):
-                yield R2View(id="r2_view")
+                with ScrollableContainer():
+                    yield R2View(id="r2_view")
 
         yield Footer()
 
@@ -44,6 +50,7 @@ class CaspoonApp(App):
         runner = ReconRunner()
         report = runner.run(path)
         self.display_report(report)
+        self.set_status(f"Loaded: {path}")
 
     def display_report(self, report):
         self.query_one("#overview", OverviewView).update_data(report)
