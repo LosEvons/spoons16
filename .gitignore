@@ -1,2 +1,9 @@
 casino
-__pycache__
+__pycache__/
+*.pyc
+.venv/
+.textual/
+dist/
+build/
+*egg-info/
+
