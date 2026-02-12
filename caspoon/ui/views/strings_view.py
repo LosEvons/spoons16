@@ -29,10 +29,12 @@ class StringsView(Static):
 
         # Limit the number of displayed strings to prevent UI slowdown
         strings_to_show = report.strings[:MAX_DISPLAY_STRINGS]
+        text_elements = [Text(s) for s in strings_to_show]
         
+        # Add truncation notice if needed
         if len(report.strings) > MAX_DISPLAY_STRINGS:
-            # Add a notice if strings were truncated
-            strings_to_show.append(f"... {len(report.strings) - MAX_DISPLAY_STRINGS} more strings (truncated)")
+            truncated_count = len(report.strings) - MAX_DISPLAY_STRINGS
+            text_elements.append(Text(f"... {truncated_count} more strings (truncated for display)", style="italic yellow"))
 
-        group = Group(*[Text(s) for s in strings_to_show])
+        group = Group(*text_elements)
         self.update(group)

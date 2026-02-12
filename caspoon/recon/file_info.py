@@ -79,7 +79,7 @@ class FileInfoRecon:
             elif "32-bit" in output:
                 report.bits = 32
             else:
-                report.bits = 0  # Unknown
+                report.bits = None  # Unknown bit width
                 
             # Check if stripped
             report.stripped = "not stripped" not in output.lower()

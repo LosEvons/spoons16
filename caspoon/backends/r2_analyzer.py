@@ -8,7 +8,7 @@ import r2pipe
 
 logger = logging.getLogger(__name__)
 
-# Configuration
+# Configuration - Limits to prevent excessive memory usage and long parsing times
 MAX_MAIN_INSTRUCTIONS = 200  # Limit instructions to analyze in main
 ANALYSIS_TIMEOUT = 60  # Timeout for r2 commands in seconds
 

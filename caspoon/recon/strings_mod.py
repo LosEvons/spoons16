@@ -50,6 +50,8 @@ class StringsRecon:
             if len(strings_list) > MAX_STRINGS:
                 logger.warning(f"String count ({len(strings_list)}) exceeds limit. Truncating to {MAX_STRINGS}")
                 strings_list = strings_list[:MAX_STRINGS]
+                # Store count of truncated strings in raw data for reference
+                report.raw_backend_data["strings_truncated"] = len(strings_list) - MAX_STRINGS
             
             report.strings = strings_list
             

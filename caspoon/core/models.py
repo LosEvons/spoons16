@@ -41,7 +41,7 @@ class ExecutableReport:
     Attributes:
         path: Path to the analyzed executable
         arch: Architecture (e.g., x86_64, ARM)
-        bits: Bit width (32 or 64)
+        bits: Bit width (32 or 64), or None if unknown
         file_type: File type description from 'file' command
         stripped: Whether debug symbols are stripped
         protections: Security protection information
@@ -52,7 +52,7 @@ class ExecutableReport:
     """
     path: str
     arch: str = ""
-    bits: int = 0
+    bits: Optional[int] = None
     file_type: str = ""
     stripped: bool = False
     protections: Optional[ProtectionInfo] = None
@@ -70,7 +70,7 @@ class ExecutableReport:
         return {
             "path": self.path,
             "arch": self.arch,
-            "bits": self.bits,
+            "bits": self.bits if self.bits is not None else "unknown",
             "file_type": self.file_type,
             "stripped": self.stripped,
             "protections": self.protections.__dict__ if self.protections else None,
