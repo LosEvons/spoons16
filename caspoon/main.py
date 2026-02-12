@@ -1,5 +1,5 @@
 # retool/main.py
-from core.runner import ReconRunner
+from .core.runner import ReconRunner
 import json
 import sys
 
