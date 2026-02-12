@@ -15,4 +15,5 @@ def main():
     path = sys.argv[1]
     runner = ReconRunner()
     report = runner.run(path)
-    print(json.dumps(report.pretty(), indent=2))
+    #print(json.dumps(report.pretty(), indent=2))
+    print(json.dumps(report.raw_backend_data.get("r2", {}), indent=2))
