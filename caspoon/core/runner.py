@@ -5,18 +5,17 @@ from ..recon.strings_mod import StringsRecon
 from ..recon.imports_exports import ImportExportRecon
 
 class ReconRunner:
-    def __init__(self):
-        self.steps = [
-            FileInfoRecon(),
-            ProtectionsRecon(),
-            StringsRecon(),
-            ImportExportRecon(),
-        ]
+  def __init__(self):
+    self.steps = [
+      FileInfoRecon(),
+      ProtectionsRecon(),
+      StringsRecon(),
+      ImportExportRecon(),
+    ]
 
-    def run(self, path: str) -> ExecutableReport:
-        report = ExecutableReport(path=path)
+  def run(self, path: str) -> ExecutableReport:
+    report = ExecutableReport(path=path)
 
-        for step in self.steps:
-            print("DEBUG: Running: ", step.name)
-            report = step.run(path, report)
-            print("DEBUG: step returned: ", type(report))
+    for step in self.steps:
+      report = step.run(path, report)
+    return report
