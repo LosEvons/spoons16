@@ -59,7 +59,7 @@ class CaspoonApp(App):
         self.display_report(report)
 
         message.input.blur()
-        self.query_one(TabbedContent).focus()
+        self.set_focus(None)
 
     def display_report(self, report):
         self.query_one("#overview", OverviewView).update_data(report)
@@ -69,5 +69,7 @@ class CaspoonApp(App):
         self.query_one("#r2_view", R2View).update_data(report)
         
     def on_mouse_down(self, event):
-        if not isinstance(event.sender, Input):
+        input_widget = self.query_one("#path_input")
+        if input_widget.has_focus:
+            input_widget.blur()
             self.set_focus(None)
