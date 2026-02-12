@@ -12,7 +12,6 @@ class OverviewView(Static):
         table.add_row("Bits", str(report.bits or "unknown"))
         table.add_row("Stripped", "Yes" if report.stripped else "No")
 
-        # Show only the first part of file_type to avoid huge lines
         short_ft = report.file_type.split(",")[0] if report.file_type else "unknown"
         table.add_row("File Type", short_ft)
 
