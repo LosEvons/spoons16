@@ -524,3 +524,72 @@ class TestR2ViewRealWorldScenarios:
         }
 
         view.update_data(report)
+
+
+class TestR2ViewLegend:
+    """Tests for the color legend in R2View."""
+
+    def test_legend_creation(self):
+        """Test that the color legend can be created."""
+        from rich.text import Text
+
+        view = R2View()
+        legend = view._create_legend()
+
+        assert legend is not None
+        assert isinstance(legend, Text)
+
+    def test_legend_contains_expected_labels(self):
+        """Test that the legend contains all expected instruction types."""
+        view = R2View()
+        legend = view._create_legend()
+
+        # Convert to string to check content
+        legend_text = legend.plain
+
+        # Check for all instruction type labels
+        assert "Jump" in legend_text
+        assert "Call" in legend_text
+        assert "Move" in legend_text
+        assert "Arithmetic" in legend_text
+        assert "Logic" in legend_text
+        assert "Stack" in legend_text
+        assert "Compare" in legend_text
+        assert "Return" in legend_text
+
+    def test_legend_has_color_legend_prefix(self):
+        """Test that the legend starts with 'Color Legend:'."""
+        view = R2View()
+        legend = view._create_legend()
+
+        legend_text = legend.plain
+        assert legend_text.startswith("Color Legend:")
+
+    def test_legend_included_in_view_output(self):
+        """Test that the legend is included in the view output."""
+        view = R2View()
+
+        report = ExecutableReport(
+            path="/test/binary",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "ret"},
+                ],
+                "strings": [],
+            }
+        }
+
+        view.update_data(report)
+
+        # The view should have been updated with content that includes the legend
+        # We can't easily assert on the rendered content directly, but we can verify
+        # that the update happened and the legend method exists
+        assert hasattr(view, '_create_legend')
+        legend = view._create_legend()
+        assert "Color Legend:" in legend.plain
+

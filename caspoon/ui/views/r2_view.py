@@ -6,6 +6,7 @@ from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 from caspoon.ui.syntax import AsmHighlighter
+from caspoon.ui.syntax.schemes import get_default_scheme
 
 # Display limits to prevent UI slowdown
 MAX_FUNCTIONS = 50
@@ -24,6 +25,35 @@ class R2View(Static):
         """Initialize R2View with syntax highlighter."""
         super().__init__(*args, **kwargs)
         self._highlighter = AsmHighlighter()
+
+    def _create_legend(self) -> Text:
+        """Create a color legend showing instruction type colors.
+
+        Returns:
+            A Rich Text object containing the formatted legend.
+        """
+        scheme = get_default_scheme()
+        legend = Text("Color Legend: ", style="bold")
+        
+        # Define legend items with their colors
+        items = [
+            ("Jump", scheme.jump),
+            ("Call", scheme.call),
+            ("Move", scheme.move),
+            ("Arithmetic", scheme.arithmetic),
+            ("Logic", scheme.logic),
+            ("Stack", scheme.stack),
+            ("Compare", scheme.compare),
+            ("Return", scheme.return_),
+        ]
+        
+        # Add each item with its color
+        for i, (label, color) in enumerate(items):
+            if i > 0:
+                legend.append(" | ", style="dim")
+            legend.append(label, style=color)
+        
+        return legend
 
     def update_data(self, report: ExecutableReport) -> None:
         """Update the view with new report data.
@@ -57,6 +87,11 @@ class R2View(Static):
         # Main disassembly
         main_ops = r2.get("main_ops", [])
         parts.append(Text("\nMain Function Disassembly:", style="bold magenta"))
+        
+        # Add the color legend right before the disassembly
+        parts.append(self._create_legend())
+        parts.append(Text())  # Add a blank line for spacing
+        
         displayed_ops = main_ops[:MAX_DISASM_OPS]
         for op in displayed_ops:
             offset = hex(op.get("offset", 0))
