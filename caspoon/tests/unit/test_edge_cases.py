@@ -121,8 +121,8 @@ class TestEdgeCases:
             # Should handle permission errors gracefully
             assert isinstance(report, ExecutableReport)
         finally:
-            # Restore permissions for cleanup
-            os.chmod(no_perm, 0o644)
+            # Restore permissions for cleanup (owner read/write only)
+            os.chmod(no_perm, 0o600)
 
     def test_unicode_in_path(self, tmp_path):
         """Test handling of unicode characters in path."""
