@@ -53,15 +53,20 @@ jobs:
         make || echo "⚠️  Failed to build some test binaries - some tests may be skipped"
         cd ../../../../..
     
+    - name: Clean old coverage data
+      run: |
+        cd caspoon
+        rm -f .coverage coverage.xml
+    
     - name: Run unit tests with coverage
       run: |
         cd caspoon
         pytest tests/unit -v --cov=caspoon --cov-report=xml --cov-report=term
     
-    - name: Run integration tests
+    - name: Run integration tests with coverage
       run: |
         cd caspoon
-        pytest tests/integration -v
+        pytest tests/integration -v --cov=caspoon --cov-append --cov-report=xml --cov-report=term
     
     - name: Upload coverage to Codecov
       # Only upload coverage once (from Python 3.10 on ubuntu-latest)
