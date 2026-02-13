@@ -5,6 +5,7 @@ from rich.text import Text
 from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
+from caspoon.ui.syntax import AsmHighlighter
 
 # Display limits to prevent UI slowdown
 MAX_FUNCTIONS = 50
@@ -18,6 +19,11 @@ class R2View(Static):
     Shows functions, disassembly of main, and strings discovered
     by radare2's analysis engine, with limits to prevent UI slowdown.
     """
+
+    def __init__(self, *args, **kwargs):
+        """Initialize R2View with syntax highlighter."""
+        super().__init__(*args, **kwargs)
+        self._highlighter = AsmHighlighter()
 
     def update_data(self, report: ExecutableReport) -> None:
         """Update the view with new report data.
@@ -55,7 +61,12 @@ class R2View(Static):
         for op in displayed_ops:
             offset = hex(op.get("offset", 0))
             opcode = op.get("opcode", "")
-            parts.append(Text(f"  {offset}: {opcode}"))
+            # Apply syntax highlighting to disassembly
+            highlighted = self._highlighter.highlight_instruction(opcode, offset)
+            # Add indentation
+            indented = Text("  ")
+            indented.append_text(highlighted)
+            parts.append(indented)
 
         if len(main_ops) > MAX_DISASM_OPS:
             parts.append(
