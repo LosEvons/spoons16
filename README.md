@@ -5,11 +5,10 @@
 [![Tests](https://img.shields.io/badge/tests-107%20passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)]()
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
-[![License](https://img.shields.io/badge/license-MIT-blue)]()
 
 A modular, defensive binary analysis toolkit for reverse engineers and security researchers.
 
-[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation) • [Contributing](#contributing)
+[Features](#features) • [Quick Start](#quick-start) • [Documentation](#documentation)
 
 </div>
 
@@ -221,35 +220,6 @@ pytest -m golden                # Golden/regression tests
 ```
 
 See **[TESTING.md](caspoon/docs/guides/TESTING.md)** for detailed testing documentation.
-
----
-
-## Contributing
-
-We welcome contributions! Whether you're fixing bugs, adding features, or improving documentation, your help is appreciated.
-
-### Quick Contribution Guide
-
-1. **Fork and clone** the repository
-2. **Create a branch** for your changes: `git checkout -b feature/my-feature`
-3. **Write tests** for your changes
-4. **Run tests** to ensure everything passes: `pytest -m "not slow"`
-5. **Submit a pull request** with a clear description
-
-### Development Guidelines
-
-- **Code style**: Follow PEP8 conventions, use type hints
-- **Testing**: Write tests for all new features (80%+ coverage required)
-- **Documentation**: Update docs for user-facing changes
-- **Commit messages**: Use clear, descriptive messages
-
-### Areas for Contribution
-
-- 🔧 **New Analysis Modules**: Add support for new binary formats, architectures, or analysis techniques
-- 🐛 **Bug Fixes**: Fix issues or improve error handling
-- 📚 **Documentation**: Improve guides, add examples, fix typos
-- ✅ **Tests**: Increase test coverage or add edge case tests
-- 🎨 **UI Improvements**: Enhance the TUI or add new visualization views
 
 ---
 
