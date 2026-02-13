@@ -317,11 +317,36 @@ self.query_one("#my_view", MyView).update_data(report)
 - Provide fallback values when tools are unavailable
 
 ### Testing Approach
-- Test each recon module independently
-- Use sample binaries with known characteristics
+
+Caspoon has comprehensive test coverage (84%, 107 tests). See **[TESTING.md](../../../TESTING.md)** for detailed testing documentation.
+
+**Quick testing commands:**
+```bash
+# Run all fast tests
+pytest -m "not slow"
+
+# Run with coverage
+pytest --cov=caspoon --cov-report=html
+
+# Run specific test category
+pytest tests/unit/              # Unit tests
+pytest tests/integration/       # Integration tests
+pytest -m golden                # Regression tests
+```
+
+**Testing principles:**
+- Test each recon module independently with mocked dependencies
+- Use sample binaries with known characteristics for integration tests
 - Verify report enrichment at each pipeline stage
-- Test both stripped and non-stripped binaries
-- Test across different architectures (x86, x64, ARM, etc.)
+- Test error paths (missing tools, timeouts, corrupted files)
+- Test across different binary types (stripped, protected, etc.)
+- Maintain 80%+ coverage on all new code
+- Use golden tests to detect unintended behavior changes
+
+For detailed testing guidelines, see:
+- **[TESTING.md](../../../TESTING.md)** - Comprehensive testing guide
+- **[CONTRIBUTING.md](../../../CONTRIBUTING.md)** - Contribution guidelines including testing requirements
+- **[tests/README.md](../../tests/README.md)** - Test suite overview
 
 ## Future Enhancement Areas
 
@@ -354,7 +379,11 @@ Check repository root for license information.
 
 When contributing new modules or features:
 1. Follow the existing architecture patterns
-2. Document new recon modules and backends
-3. Update this overview document
-4. Ensure backward compatibility with ExecutableReport model
-5. Add appropriate error handling
+2. Write tests for all new code (see [CONTRIBUTING.md](../../../CONTRIBUTING.md))
+3. Document new recon modules and backends
+4. Update this overview document
+5. Ensure backward compatibility with ExecutableReport model
+6. Add appropriate error handling
+7. Maintain 80%+ test coverage
+
+See **[CONTRIBUTING.md](../../../CONTRIBUTING.md)** for detailed contribution guidelines.
