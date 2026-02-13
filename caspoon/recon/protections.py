@@ -28,7 +28,7 @@ class ProtectionsRecon:
         """
         try:
             result = subprocess.run(
-                ["checksec", "--file", path], capture_output=True, text=True, timeout=10
+                ["checksec", f"--file={path}"], capture_output=True, text=True, timeout=10
             )
 
             if result.returncode != 0:

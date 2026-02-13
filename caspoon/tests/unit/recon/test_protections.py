@@ -114,6 +114,28 @@ No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RU
             assert result.protections is not None
             assert "error:" in result.protections.relro.lower()
 
+    def test_checksec_command_format(self, recon):
+        """Test that checksec is called with correct argument format.
+        
+        checksec requires --file=<path> not --file <path> as separate arguments.
+        This test verifies the command is properly formatted.
+        """
+        with patch("subprocess.run") as mock_run:
+            mock_run.return_value = Mock(returncode=0, stdout="Full RELRO")
+            
+            report = ExecutableReport(path="/test/binary")
+            recon.run("/test/binary", report)
+            
+            # Verify subprocess.run was called with correct format
+            mock_run.assert_called_once()
+            call_args = mock_run.call_args[0][0]  # Get the command list
+            
+            # Should be ["checksec", "--file=/test/binary"], not ["checksec", "--file", "/test/binary"]
+            assert len(call_args) == 2, f"Expected 2 arguments, got {len(call_args)}: {call_args}"
+            assert call_args[0] == "checksec"
+            assert call_args[1].startswith("--file="), f"Expected --file=<path>, got {call_args[1]}"
+            assert call_args[1] == "--file=/test/binary"
+
     @pytest.mark.integration
     def test_real_test_binary_no_pie(self, recon, test_binaries_dir):
         """Test with real test_hello_x64 binary (no PIE)."""
