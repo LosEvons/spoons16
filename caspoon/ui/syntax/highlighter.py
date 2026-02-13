@@ -1,6 +1,7 @@
 """Assembly instruction syntax highlighter."""
 
 import re
+from typing import Callable
 
 from rich.text import Text
 
@@ -13,20 +14,30 @@ class AsmHighlighter:
     """Syntax highlighter for assembly code.
 
     Classifies instructions by type and applies color highlighting
-    using Rich's Text API.
+    using Rich's Text API. Supports multiple architectures (x86/x64, ARM, MIPS).
     """
 
-    def __init__(self, color_scheme: ColorScheme | None = None, enable_operand_parsing: bool = True):
+    def __init__(
+        self, 
+        color_scheme: ColorScheme | None = None, 
+        enable_operand_parsing: bool = True,
+        instruction_classifier: Callable[[str], InstructionType] | None = None
+    ):
         """Initialize the highlighter.
 
         Args:
             color_scheme: Optional color scheme. If None, uses the default scheme.
             enable_operand_parsing: If True, parse and highlight operands separately.
                                    If False, use legacy behavior (highlight entire instruction).
+            instruction_classifier: Optional function to classify instructions by mnemonic.
+                                   If None, uses the default x86/x64 classifier.
+                                   Should be a function that takes a mnemonic string
+                                   and returns an InstructionType.
         """
         self.scheme = color_scheme or get_default_scheme()
         self.enable_operand_parsing = enable_operand_parsing
         self.operand_parser = OperandParser() if enable_operand_parsing else None
+        self.instruction_classifier = instruction_classifier or get_instruction_type
 
         # Pattern to parse instruction lines
         # Handles formats like:
@@ -58,8 +69,8 @@ class AsmHighlighter:
         if not opcode_lower:
             return InstructionType.OTHER
 
-        # Use the instruction database for classification
-        return get_instruction_type(opcode_lower)
+        # Use the provided instruction classifier
+        return self.instruction_classifier(opcode_lower)
 
     def highlight_instruction(self, opcode: str, address: str = "") -> Text:
         """Create a highlighted Text object for an assembly instruction.

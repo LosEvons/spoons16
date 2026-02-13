@@ -160,7 +160,6 @@ class TestR2ViewHighlighting:
         # Mock the highlighter to track calls
         mock_highlighter = Mock(spec=AsmHighlighter)
         mock_highlighter.highlight_instruction.return_value = Text("mock output")
-        view._highlighter = mock_highlighter
 
         report = ExecutableReport(
             path="/test/binary",
@@ -178,7 +177,11 @@ class TestR2ViewHighlighting:
             }
         }
 
-        view.update_data(report)
+        # Patch architecture detection to prevent replacing our mock
+        with patch('caspoon.ui.views.r2_view.detect_architecture'):
+            with patch('caspoon.ui.views.r2_view.get_instruction_classifier'):
+                with patch('caspoon.ui.views.r2_view.AsmHighlighter', return_value=mock_highlighter):
+                    view.update_data(report)
 
         # Verify the highlighter was called for each instruction
         assert mock_highlighter.highlight_instruction.call_count == 2
@@ -279,7 +282,6 @@ class TestR2ViewDisplayLimits:
         # Mock the highlighter to track how many times it's called
         mock_highlighter = Mock(spec=AsmHighlighter)
         mock_highlighter.highlight_instruction.return_value = Text("mock")
-        view._highlighter = mock_highlighter
 
         # Create more operations than the limit
         many_ops = [
@@ -300,7 +302,11 @@ class TestR2ViewDisplayLimits:
             }
         }
 
-        view.update_data(report)
+        # Patch architecture detection to prevent replacing our mock
+        with patch('caspoon.ui.views.r2_view.detect_architecture'):
+            with patch('caspoon.ui.views.r2_view.get_instruction_classifier'):
+                with patch('caspoon.ui.views.r2_view.AsmHighlighter', return_value=mock_highlighter):
+                    view.update_data(report)
 
         # Verify the highlighter was only called MAX_DISASM_OPS times
         assert mock_highlighter.highlight_instruction.call_count == MAX_DISASM_OPS

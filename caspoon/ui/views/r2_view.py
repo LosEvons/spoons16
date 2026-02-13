@@ -6,6 +6,8 @@ from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 from caspoon.ui.syntax import AsmHighlighter
+from caspoon.ui.syntax.arch_detector import detect_architecture
+from caspoon.ui.syntax.arch_manager import get_instruction_classifier
 from caspoon.ui.syntax.schemes import get_default_scheme
 
 # Display limits to prevent UI slowdown
@@ -19,11 +21,13 @@ class R2View(Static):
 
     Shows functions, disassembly of main, and strings discovered
     by radare2's analysis engine, with limits to prevent UI slowdown.
+    Automatically detects architecture and uses appropriate syntax highlighting.
     """
 
     def __init__(self, *args, **kwargs):
-        """Initialize R2View with syntax highlighter."""
+        """Initialize R2View with default syntax highlighter."""
         super().__init__(*args, **kwargs)
+        # Default highlighter for x86_64, will be updated per report
         self._highlighter = AsmHighlighter()
 
     def _create_legend(self) -> Text:
@@ -61,6 +65,11 @@ class R2View(Static):
         Args:
             report: ExecutableReport containing analysis results
         """
+        # Detect architecture and create appropriate highlighter
+        arch = detect_architecture(report)
+        classifier = get_instruction_classifier(arch)
+        self._highlighter = AsmHighlighter(instruction_classifier=classifier)
+        
         r2 = report.raw_backend_data.get("r2", {})
         if not r2:
             r2_error = report.raw_backend_data.get("r2_error")
