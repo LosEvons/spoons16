@@ -2,9 +2,10 @@
 
 <div align="center">
 
-[![Tests](https://img.shields.io/badge/tests-107%20passing-brightgreen)]()
-[![Coverage](https://img.shields.io/badge/coverage-84%25-brightgreen)]()
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)]()
+[![Test Suite](https://github.com/LosEvons/spoons16/actions/workflows/test.yml/badge.svg)](https://github.com/LosEvons/spoons16/actions/workflows/test.yml)
+[![Code Quality](https://github.com/LosEvons/spoons16/actions/workflows/lint.yml/badge.svg)](https://github.com/LosEvons/spoons16/actions/workflows/lint.yml)
+[![codecov](https://codecov.io/gh/LosEvons/spoons16/branch/main/graph/badge.svg)](https://codecov.io/gh/LosEvons/spoons16)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
 A modular, defensive binary analysis toolkit for reverse engineers and security researchers.
 
@@ -245,6 +246,33 @@ Caspoon is actively developed and maintained. Current status:
 - ✅ Multi-backend integration (file, checksec, strings, radare2)
 - 🚧 Additional backends planned (Ghidra, Binary Ninja)
 - 🚧 Advanced visualizations in development
+
+---
+
+## Contributing
+
+We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
+
+- Setting up your development environment
+- Running tests and code quality checks
+- Submitting pull requests
+- Coding standards and best practices
+
+Quick start for contributors:
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/spoons16.git
+cd spoons16/caspoon
+
+# Install in development mode
+pip install -e ".[dev]"
+
+# Run tests
+pytest
+
+# See CONTRIBUTING.md for more details
+```
 
 ---
 

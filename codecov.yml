@@ -1,0 +1,28 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 50%  # Require 50% coverage overall
+        threshold: 5%  # Allow 5% decrease before failing
+    patch:
+      default:
+        target: 50%  # New code should have 50% coverage
+
+# Ignore files that don't need coverage
+ignore:
+  - "caspoon/tests/"
+  - "caspoon/**/__main__.py"
+  - "caspoon/main.py"
+  - "caspoon/ui/"
+  - "setup.py"
+
+# Configure PR comments
+comment:
+  layout: "header, diff, files"
+  behavior: default
+  require_changes: false
+  
+# Report format
+codecov:
+  notify:
+    require_ci_to_pass: yes

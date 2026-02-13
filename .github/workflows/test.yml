@@ -1,0 +1,82 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [ main, develop, copilot/** ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    # Grant minimal required permissions (principle of least privilege)
+    permissions:
+      contents: read
+    
+    strategy:
+      fail-fast: false  # Continue testing other versions even if one fails
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.10', '3.11', '3.12']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'  # Cache pip dependencies for faster builds
+        cache-dependency-path: 'caspoon/pyproject.toml'
+    
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        # Install required system tools
+        sudo apt-get install -y binutils file gcc make
+        # Try to install radare2 (optional), don't fail if unavailable
+        sudo apt-get install -y radare2 || echo "⚠️  radare2 not available - some tests may be skipped"
+    
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        cd caspoon
+        pip install -e ".[dev]"
+    
+    - name: Build test fixtures
+      run: |
+        cd caspoon/tests/fixtures/binaries/src
+        make || echo "⚠️  Failed to build some test binaries - some tests may be skipped"
+        cd ../../../../..
+    
+    - name: Run unit tests with coverage
+      run: |
+        cd caspoon
+        pytest tests/unit -v --cov=caspoon --cov-report=xml --cov-report=term
+    
+    - name: Run integration tests
+      run: |
+        cd caspoon
+        pytest tests/integration -v
+    
+    - name: Upload coverage to Codecov
+      # Only upload coverage once (from Python 3.10 on ubuntu-latest)
+      if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./caspoon/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false  # Don't fail CI if codecov upload fails
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Check coverage threshold
+      run: |
+        cd caspoon
+        # Require minimum 50% coverage (will be increased in future)
+        coverage report --fail-under=50
