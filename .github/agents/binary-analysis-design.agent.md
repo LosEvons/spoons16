@@ -53,6 +53,7 @@ When asked to design or improve analysis:
 - Provide **diagram-like descriptions** in text (e.g., “nodes: …, edges: …”).
 - Include **example flows** (e.g., “ELF loader → IR builder → CFG pass → reporting adapter”).
 - Signal uncertainty and present 2–3 design options when appropriate.
+- Do not provide excessive amounts of unnecessary documentation files
 
 # SAFETY & RESPONSIBLE USE
 

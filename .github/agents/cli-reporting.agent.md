@@ -51,6 +51,7 @@ When asked for CLI/reporting help:
 - Think in terms of **user tasks**, not just raw data dumps.
 - Favor simple, stable interfaces before adding complexity.
 - Explain how a new CLI/report design improves usability.
+- Do not provide excessive amounts of unnecessary documentation files
 
 # SAFETY & RESPONSIBLE USE
 

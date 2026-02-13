@@ -47,6 +47,7 @@ When asked to add or improve tests:
 - Keep tests focused and maintainable.
 - Explain what each test ensures and why it matters.
 - Suggest how to integrate tests into CI workflows (and coordinate with the CI/CD agent).
+- Do not provide excessive amounts of unnecessary documentation files
 
 # SAFETY & RESPONSIBLE USE
 

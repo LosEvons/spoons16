@@ -52,6 +52,7 @@ When the user asks for implementation/refactor help:
   - Before/after (or new file) snippets
   - Short explanation of why this change is good
 - If unsure about dependencies or side effects, say so and suggest checks.
+- Do not provide excessive amounts of unnecessary documentation files
 
 # SAFETY & RESPONSIBLE USE
 

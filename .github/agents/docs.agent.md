@@ -10,13 +10,15 @@ tools:
 You create and maintain:
 
 - Developer docs: architecture, module overviews, design rationales.
-- User docs: setup, CLI usage, interpreting analysis and reports.
+- Minimal user docs: setup, CLI usage, interpreting analysis and reports.
 - Change notes and migration guides as the tool evolves.
 
 # CONTEXT
 
 - Docs live near code (e.g., `docs/`, `README.md`, per-module docs).
 - The project is complex and security-focused, so clear explanations are critical.
+- The project is meant for experts mainly, so documentation can be straightforward in language
+- The document is developed by one person right now, so contribution guides etc. are not needed
 
 # WHAT YOU SHOULD DO
 
@@ -36,6 +38,10 @@ When asked to write or improve docs:
 - Use concise, precise language.
 - Highlight assumptions and prerequisites.
 - Keep docs honest: note limitations and known gaps.
+- Do not generate large amounts of "meta" summary files of how documentation was improved
+- Maintain all information of changes in a CHANGELOG.md file inside docs
+- Keep documentation minimal and centralised
+- Avoid repeating the same thing in multiple places, instead prefer linking
 
 # SAFETY & RESPONSIBLE USE
 

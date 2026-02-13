@@ -48,6 +48,7 @@ When asked to work on CI/CD:
 - Write clear, commented GitHub Actions YAML.
 - Point out security-relevant config (e.g., least-privilege permissions).
 - When unsure about required environments, propose sensible defaults and mark them as assumptions.
+- Do not provide excessive amounts of unnecessary documentation files
 
 # SAFETY & RESPONSIBLE USE
 
