@@ -8,6 +8,7 @@ import pytest
 
 from caspoon.backends.r2_analyzer import (
     MAX_MAIN_INSTRUCTIONS,
+    MAX_XREF_FUNCTIONS,
     analyze_with_r2,
 )
 
@@ -47,6 +48,12 @@ class TestAnalyzeWithR2:
             json.dumps(strings_data),  # izj
             None,  # s main
             json.dumps(main_ops_data),  # pdj
+            # Xrefs for main (0x1000)
+            "[]",  # axtj @ 0x1000
+            "[]",  # axfj @ 0x1000
+            # Xrefs for helper (0x2000)
+            "[]",  # axtj @ 0x2000
+            "[]",  # axfj @ 0x2000
         ]
 
         # Execute
@@ -57,6 +64,9 @@ class TestAnalyzeWithR2:
         assert result["imports"] == imports_data
         assert result["strings"] == strings_data
         assert result["main_ops"] == main_ops_data
+        assert "xrefs" in result
+        assert "to" in result["xrefs"]
+        assert "from" in result["xrefs"]
 
         # Verify r2pipe was called correctly
         mock_r2pipe.open.assert_called_once_with("/path/to/binary", flags=["-2"])
@@ -357,3 +367,321 @@ class TestAnalyzeWithR2:
         s_main_idx = calls.index("s main")
         pdj_idx = calls.index(f"pdj {MAX_MAIN_INSTRUCTIONS}")
         assert s_main_idx < pdj_idx
+
+
+class TestXrefExtraction:
+    """Tests for cross-reference extraction functionality."""
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xrefs_extracted_successfully(self, mock_r2pipe):
+        """Test that xrefs are extracted and structured correctly."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [
+            {"name": "main", "offset": 0x1000},
+            {"name": "helper", "offset": 0x2000},
+        ]
+
+        # Xrefs TO main (who calls main)
+        xrefs_to_main = [
+            {"from": 0x100, "type": "CALL", "opcode": "call main"},
+        ]
+
+        # Xrefs FROM main (what main calls)
+        xrefs_from_main = [
+            {"to": 0x2000, "type": "CALL", "opcode": "call helper"},
+        ]
+
+        # Xrefs TO helper
+        xrefs_to_helper = [
+            {"from": 0x1000, "type": "CALL", "opcode": "call helper"},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            # Xrefs for main
+            json.dumps(xrefs_to_main),  # axtj @ 0x1000
+            json.dumps(xrefs_from_main),  # axfj @ 0x1000
+            # Xrefs for helper
+            json.dumps(xrefs_to_helper),  # axtj @ 0x2000
+            "[]",  # axfj @ 0x2000 (no xrefs from helper)
+        ]
+
+        result = analyze_with_r2("/path/to/binary")
+
+        # Verify xrefs structure exists
+        assert "xrefs" in result
+        assert "to" in result["xrefs"]
+        assert "from" in result["xrefs"]
+
+        # Verify xrefs for main
+        assert "0x1000" in result["xrefs"]["to"]
+        assert result["xrefs"]["to"]["0x1000"] == xrefs_to_main
+        assert "0x1000" in result["xrefs"]["from"]
+        assert result["xrefs"]["from"]["0x1000"] == xrefs_from_main
+
+        # Verify xrefs for helper
+        assert "0x2000" in result["xrefs"]["to"]
+        assert result["xrefs"]["to"]["0x2000"] == xrefs_to_helper
+        # helper has no xrefs from, so it shouldn't be in the dict
+        assert "0x2000" not in result["xrefs"]["from"]
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xrefs_with_no_references(self, mock_r2pipe):
+        """Test xref extraction when functions have no cross-references."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [{"name": "isolated", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            "",  # axtj @ 0x1000 (no xrefs to)
+            "",  # axfj @ 0x1000 (no xrefs from)
+        ]
+
+        result = analyze_with_r2("/path/to/binary")
+
+        # Verify xrefs structure exists but is empty
+        assert "xrefs" in result
+        assert result["xrefs"]["to"] == {}
+        assert result["xrefs"]["from"] == {}
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_json_parse_error_to(self, mock_r2pipe, caplog):
+        """Test handling of JSON parse error for xrefs-to."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [{"name": "func", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            "invalid json{",  # axtj @ 0x1000 (invalid JSON)
+            "[]",  # axfj @ 0x1000
+        ]
+
+        with caplog.at_level(logging.WARNING):
+            result = analyze_with_r2("/path/to/binary")
+
+        # Verify warning was logged
+        assert "Failed to parse xrefs-to JSON for 0x1000" in caplog.text
+
+        # Verify xrefs structure exists but doesn't include the failed parse
+        assert "xrefs" in result
+        assert "0x1000" not in result["xrefs"]["to"]
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_json_parse_error_from(self, mock_r2pipe, caplog):
+        """Test handling of JSON parse error for xrefs-from."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [{"name": "func", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            "[]",  # axtj @ 0x1000
+            "{bad json",  # axfj @ 0x1000 (invalid JSON)
+        ]
+
+        with caplog.at_level(logging.WARNING):
+            result = analyze_with_r2("/path/to/binary")
+
+        # Verify warning was logged
+        assert "Failed to parse xrefs-from JSON for 0x1000" in caplog.text
+
+        # Verify xrefs structure exists but doesn't include the failed parse
+        assert "xrefs" in result
+        assert "0x1000" not in result["xrefs"]["from"]
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_command_exception(self, mock_r2pipe, caplog):
+        """Test handling of exception during xref command execution."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [{"name": "func", "offset": 0x1000}]
+
+        def cmd_side_effect(cmd):
+            if "aflj" in cmd:
+                return json.dumps(functions_data)
+            elif "axtj" in cmd:
+                raise RuntimeError("r2 command failed")
+            elif cmd in ["aa", "s main"]:
+                return None
+            else:
+                return "[]"
+
+        mock_r2.cmd.side_effect = cmd_side_effect
+
+        with caplog.at_level(logging.WARNING, logger="caspoon.backends.r2_analyzer"):
+            result = analyze_with_r2("/path/to/binary")
+
+        # Verify error was logged
+        assert "Error extracting xrefs-to for 0x1000" in caplog.text
+
+        # Analysis should still complete
+        assert "xrefs" in result
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_max_functions_limit(self, mock_r2pipe):
+        """Test that xref extraction respects MAX_XREF_FUNCTIONS limit."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        # Create more functions than MAX_XREF_FUNCTIONS
+        num_functions = MAX_XREF_FUNCTIONS + 10
+        functions_data = [
+            {"name": f"func_{i}", "offset": 0x1000 + i * 0x100}
+            for i in range(num_functions)
+        ]
+
+        # Track how many xref commands are executed
+        xref_commands = []
+
+        def cmd_side_effect(cmd):
+            if "axtj" in cmd or "axfj" in cmd:
+                xref_commands.append(cmd)
+            if cmd == "aflj":
+                return json.dumps(functions_data)
+            return "[]" if cmd not in ["aa", "s main"] else None
+
+        mock_r2.cmd.side_effect = cmd_side_effect
+
+        analyze_with_r2("/path/to/binary")
+
+        # Should only extract xrefs for MAX_XREF_FUNCTIONS
+        # Each function gets 2 commands (axtj and axfj)
+        assert len(xref_commands) == MAX_XREF_FUNCTIONS * 2
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_hex_address_format(self, mock_r2pipe):
+        """Test that xref addresses are stored in hex format."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [
+            {"name": "func", "offset": 4096},  # Decimal offset
+        ]
+
+        xrefs_to = [{"from": 0x100, "type": "CALL"}]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            json.dumps(xrefs_to),  # axtj @ 4096
+            "[]",  # axfj @ 4096
+        ]
+
+        result = analyze_with_r2("/path/to/binary")
+
+        # Verify address is stored as hex string
+        assert "0x1000" in result["xrefs"]["to"]  # 4096 in decimal = 0x1000 in hex
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_with_missing_offset(self, mock_r2pipe):
+        """Test that functions with missing offset are skipped in xref extraction."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [
+            {"name": "valid", "offset": 0x1000},
+            {"name": "no_offset"},  # Missing offset
+            {"name": "valid2", "offset": 0x2000},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            json.dumps(functions_data),  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            "[]",  # pdj
+            # Only 2 functions should have xrefs extracted
+            "[]",  # axtj @ 0x1000
+            "[]",  # axfj @ 0x1000
+            "[]",  # axtj @ 0x2000
+            "[]",  # axfj @ 0x2000
+        ]
+
+        result = analyze_with_r2("/path/to/binary")
+
+        # Should complete successfully
+        assert "xrefs" in result
+
+        # Verify r2 commands - should only have xref commands for 2 functions
+        xref_calls = [call for call in mock_r2.cmd.call_args_list if "axtj" in str(call) or "axfj" in str(call)]
+        assert len(xref_calls) == 4  # 2 functions × 2 commands each
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_xref_logging(self, mock_r2pipe, caplog):
+        """Test that xref extraction produces appropriate log messages."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        functions_data = [{"name": "func", "offset": 0x1000}]
+        xrefs_to = [{"from": 0x100, "type": "CALL"}]
+
+        mock_r2.cmd.side_effect = [
+            None,
+            json.dumps(functions_data),
+            "[]",
+            "[]",
+            None,
+            "[]",
+            json.dumps(xrefs_to),
+            "[]",
+        ]
+
+        with caplog.at_level(logging.DEBUG):
+            analyze_with_r2("/path/to/binary")
+
+        # Verify xref extraction is logged
+        assert "Extracting cross-references for functions" in caplog.text
+        assert "1 xrefs-to" in caplog.text
+        assert "0 xrefs-from" in caplog.text
+
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_return_structure_includes_xrefs(self, mock_r2pipe):
+        """Test that the return dictionary includes xrefs with correct structure."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        mock_r2.cmd.side_effect = [None, "[]", "[]", "[]", None, "[]"]
+
+        result = analyze_with_r2("/path")
+
+        # Verify xrefs key exists with correct structure
+        assert "xrefs" in result
+        assert isinstance(result["xrefs"], dict)
+        assert "to" in result["xrefs"]
+        assert "from" in result["xrefs"]
+        assert isinstance(result["xrefs"]["to"], dict)
+        assert isinstance(result["xrefs"]["from"], dict)
+
