@@ -3,7 +3,7 @@
 **Created**: 2026-02-12  
 **Updated**: 2026-02-13  
 **Plan ID**: 04-futureproofing  
-**Status**: In Progress (Subtasks 1-4 ✅ Complete)  
+**Status**: ✅ COMPLETE (All 7 Subtasks Complete)  
 
 ---
 
@@ -67,9 +67,26 @@ caspoon/docs/plans/04-futureproofing/
 
 ### Remaining Subtasks
 
-- **[ ] Subtask 5: Code Quality Tools** (1.5 hours)
-- **[ ] Subtask 6: Documentation** (Optional - 3 hours)
-- **[ ] Subtask 7: Optional Dependencies** (Optional - 2 hours)
+- **[x] Subtask 5: Code Quality Tools** (Completed 2026-02-13)
+  - Black, Ruff, and Mypy configured in pyproject.toml
+  - Quality check script created (scripts/check_quality.sh)
+  - All code formatted and passing linting
+  - CODE_QUALITY.md documentation created
+  - 38 files formatted, 67 linting issues fixed
+
+- **[x] Subtask 6: Documentation** (Completed 2026-02-13)
+  - Assessed documentation as sufficient
+  - All essential developer docs exist
+  - Created minimal CHANGELOG.md (90 lines)
+  - Skipped verbose user guides per user request
+  - Documentation appropriately minimal and concise
+
+- **[x] Subtask 7: Optional Dependencies** (Completed 2026-02-13)
+  - Structure already complete from Subtask 3
+  - Created minimal capability detection system
+  - Added `caspoon --capabilities` CLI flag
+  - 8 comprehensive tests for capability detection
+  - Kept implementation minimal (LOW priority feature)
 
 ---
 
