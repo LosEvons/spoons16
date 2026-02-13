@@ -213,9 +213,9 @@ class InteractiveDisasmView(Static):
         else:
             line.append("  ")
 
-        # Highlighted instruction (with address for context, using simple hex format)
-        addr_for_highlighter = hex(offset)  # Simple format for highlighter
-        highlighted = self.highlighter.highlight_instruction(opcode, addr_for_highlighter)
+        # Highlighted instruction (without address, we display it separately)
+        # Don't pass address to highlighter to avoid duplication
+        highlighted = self.highlighter.highlight_instruction(opcode, address="")
         line.append_text(highlighted)
 
         # Add background highlight for selected line
@@ -406,4 +406,6 @@ class InteractiveDisasmView(Static):
         Returns:
             True to enable keyboard focus
         """
+        # Widget should be focusable to receive keyboard input for navigation
+        # The parent ScrollableContainer will still handle scroll events
         return True

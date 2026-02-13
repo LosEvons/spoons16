@@ -186,12 +186,13 @@ class TestR2ViewHighlighting:
         # Verify the highlighter was called for each instruction
         assert mock_highlighter.highlight_instruction.call_count == 2
 
-        # Verify it was called with correct arguments
+        # Verify it was called with correct arguments (without address now)
         calls = mock_highlighter.highlight_instruction.call_args_list
         assert calls[0][0][0] == "push rbp"  # First arg of first call
-        assert calls[0][0][1] == hex(0x1000)  # Second arg (address)
+        # Address is now displayed separately, not passed to highlighter
+        assert calls[0][1].get('address', '') == ""  # No address passed
         assert calls[1][0][0] == "mov rbp, rsp"
-        assert calls[1][0][1] == hex(0x1001)
+        assert calls[1][1].get('address', '') == ""  # No address passed
 
     def test_highlighter_handles_invalid_offset(self):
         """Test that highlighter handles invalid offsets gracefully."""

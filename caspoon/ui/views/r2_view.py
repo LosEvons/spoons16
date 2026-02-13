@@ -54,8 +54,9 @@ class R2View(Container):
         )
 
         # Add widgets to container
-        self._header_widget.styles.height = "auto"
-        self._interactive_disasm.styles.height = "auto"
+        # Remove explicit height to allow proper scrolling
+        # self._header_widget.styles.height = "auto"
+        # self._interactive_disasm.styles.height = "auto"
 
     def compose(self):
         """Compose the R2View with header and interactive disassembly."""
