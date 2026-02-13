@@ -97,7 +97,10 @@ markers = [
     "requires_r2: marks tests that require radare2",
     "requires_checksec: marks tests that require checksec tool",
     "requires_strings: marks tests that require strings tool",
+    "asyncio: marks tests as async tests (pytest-asyncio)",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["caspoon"]

@@ -45,10 +45,15 @@ tests/
 │   │   ├── test_protections.py
 │   │   ├── test_strings_mod.py
 │   │   └── test_imports_exports.py
+│   ├── ui/                 # UI component tests
+│   │   └── views/
+│   │       └── test_r2_view.py  # R2View component tests (incl. binding conflict checks)
 │   └── test_edge_cases.py  # Robustness tests
 └── integration/             # Integration tests
     ├── test_pipeline.py     # Full pipeline tests
-    └── test_golden.py       # Regression tests
+    ├── test_golden.py       # Regression tests
+    ├── test_interactive_navigation.py  # Navigation workflow tests
+    └── test_r2_view_scrolling.py       # R2View scrolling behavior tests
 ```
 
 ## Test Statistics
@@ -88,6 +93,21 @@ Robustness and defensive testing:
 - Error conditions (permissions, timeouts)
 - Special cases (unicode, symlinks, concurrent)
 
+### UI Integration Tests (8 tests)
+Test UI components in full application context:
+- **Scrolling behavior**: R2View inside ScrollableContainer
+  - Binding conflict detection (static check)
+  - Scroll key propagation (up/down/pageup/pagedown)
+  - Selection vs. scrolling separation (j/k vs. arrow keys)
+  - Focus behavior for proper event routing
+- **Interactive navigation**: Cross-reference jumping, history management
+
+> **Why UI integration tests matter:**
+> - Unit tests check components in isolation
+> - Integration tests verify behavior in full widget hierarchy
+> - Example: R2View scrolling bug was undetectable by unit tests alone
+> - See `tests/integration/test_r2_view_scrolling.py` for comprehensive examples
+
 ### Property Tests (2 tests)
 Invariant verification:
 - Path consistency
@@ -120,6 +140,12 @@ pytest tests/unit/
 
 # Integration tests
 pytest tests/integration/
+
+# UI integration tests (R2View scrolling, navigation)
+pytest tests/integration/test_r2_view_scrolling.py -v
+
+# Check for binding conflicts (static check)
+pytest tests/unit/ui/views/test_r2_view.py::TestR2ViewKeyboardBindings::test_no_binding_conflicts_with_scrollable_container -v
 
 # Exclude slow tests
 pytest -m "not slow"

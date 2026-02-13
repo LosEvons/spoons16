@@ -612,6 +612,50 @@ class TestR2ViewKeyboardBindings:
         assert hasattr(view, 'BINDINGS')
         assert len(view.BINDINGS) > 0
 
+    def test_no_binding_conflicts_with_scrollable_container(self):
+        """Verify R2View bindings don't conflict with ScrollableContainer scroll keys.
+        
+        ScrollableContainer uses up/down/pageup/pagedown/home/end for scrolling.
+        R2View should NOT bind these keys to avoid intercepting scroll events.
+        
+        This test prevents regressions of the scrolling bug where R2View was
+        binding arrow keys and preventing the parent ScrollableContainer from
+        handling scroll events properly.
+        
+        Related Issue: R2 Analysis tab scrolling bug
+        - Root cause: R2View was binding up/down keys
+        - Fix: Changed to j/k (vim-style) for line selection
+        - This test: Ensures no future conflicts with scroll keys
+        """
+        from textual.containers import ScrollableContainer
+        
+        # Get scroll keys from ScrollableContainer
+        scroll_keys = {binding.key for binding in ScrollableContainer.BINDINGS}
+        
+        # Get keys from R2View
+        r2view_keys = set()
+        for binding in R2View.BINDINGS:
+            if isinstance(binding, tuple):
+                key = binding[0]
+            else:
+                key = binding.key
+            # Handle compound keys (e.g., "ctrl+h,alt+left")
+            for k in key.split(','):
+                r2view_keys.add(k.strip())
+        
+        # Check for conflicts
+        conflicts = scroll_keys & r2view_keys
+        
+        assert not conflicts, (
+            f"R2View has binding conflicts with ScrollableContainer: {conflicts}\n"
+            f"These keys are needed for scrolling and should not be bound in R2View.\n"
+            f"ScrollableContainer binds: {sorted(scroll_keys)}\n"
+            f"R2View binds: {sorted(r2view_keys)}\n"
+            f"\n"
+            f"Use alternative keys like j/k (vim-style) for line selection to avoid "
+            f"conflicts with scroll keys."
+        )
+
     def test_interactive_disasm_widget_cannot_take_focus(self):
         """Test that the InteractiveDisasmView widget is non-focusable.
         
