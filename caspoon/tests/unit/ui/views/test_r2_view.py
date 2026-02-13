@@ -3,6 +3,7 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 from caspoon.ui.syntax import AsmHighlighter
@@ -186,13 +187,10 @@ class TestR2ViewHighlighting:
         # Verify the highlighter was called for each instruction
         assert mock_highlighter.highlight_instruction.call_count == 2
 
-        # Verify it was called with correct arguments (without address now)
+        # Verify it was called with correct arguments
         calls = mock_highlighter.highlight_instruction.call_args_list
         assert calls[0][0][0] == "push rbp"  # First arg of first call
-        # Address is now displayed separately, not passed to highlighter
-        assert calls[0][1].get('address', '') == ""  # No address passed
         assert calls[1][0][0] == "mov rbp, rsp"
-        assert calls[1][1].get('address', '') == ""  # No address passed
 
     def test_highlighter_handles_invalid_offset(self):
         """Test that highlighter handles invalid offsets gracefully."""
@@ -601,120 +599,37 @@ class TestR2ViewLegend:
         assert "Color Legend:" in legend.plain
 
 
-class TestR2ViewKeyboardBindings:
-    """Tests for R2View keyboard bindings and action handling."""
+class TestR2ViewSimplified:
+    """Tests for simplified R2View (VerticalScroll-based)."""
 
-    def test_r2view_has_bindings(self):
-        """Test that R2View defines keyboard bindings."""
+    def test_r2view_inherits_from_verticalscroll(self):
+        """Test that R2View now inherits from VerticalScroll."""
+        from textual.containers import VerticalScroll
+        
+        view = R2View()
+        assert isinstance(view, VerticalScroll)
+
+    def test_r2view_has_content_widget(self):
+        """Test that R2View has a single content widget."""
         view = R2View()
         
-        # Check that BINDINGS is defined
-        assert hasattr(view, 'BINDINGS')
-        assert len(view.BINDINGS) > 0
+        assert hasattr(view, '_content_widget')
+        assert view._content_widget is not None
+        assert isinstance(view._content_widget, Static)
 
-    def test_no_binding_conflicts_with_scrollable_container(self):
-        """Verify R2View bindings don't conflict with ScrollableContainer scroll keys.
+    def test_scrolling_handled_by_verticalscroll(self):
+        """Test that scrolling is now handled by VerticalScroll parent class.
         
-        ScrollableContainer uses up/down/pageup/pagedown/home/end for scrolling.
-        R2View should NOT bind these keys to avoid intercepting scroll events.
-        
-        This test prevents regressions of the scrolling bug where R2View was
-        binding arrow keys and preventing the parent ScrollableContainer from
-        handling scroll events properly.
-        
-        Related Issue: R2 Analysis tab scrolling bug
-        - Root cause: R2View was binding up/down keys
-        - Fix: Changed to j/k (vim-style) for line selection
-        - This test: Ensures no future conflicts with scroll keys
+        This is the key fix - VerticalScroll handles all scrolling automatically
+        without custom widget interactions that were causing the bug.
         """
-        from textual.containers import ScrollableContainer
+        from textual.containers import VerticalScroll
         
-        # Get scroll keys from ScrollableContainer
-        scroll_keys = {binding.key for binding in ScrollableContainer.BINDINGS}
-        
-        # Get keys from R2View
-        r2view_keys = set()
-        for binding in R2View.BINDINGS:
-            if isinstance(binding, tuple):
-                key = binding[0]
-            else:
-                key = binding.key
-            # Handle compound keys (e.g., "ctrl+h,alt+left")
-            for k in key.split(','):
-                r2view_keys.add(k.strip())
-        
-        # Check for conflicts
-        conflicts = scroll_keys & r2view_keys
-        
-        assert not conflicts, (
-            f"R2View has binding conflicts with ScrollableContainer: {conflicts}\n"
-            f"These keys are needed for scrolling and should not be bound in R2View.\n"
-            f"ScrollableContainer binds: {sorted(scroll_keys)}\n"
-            f"R2View binds: {sorted(r2view_keys)}\n"
-            f"\n"
-            f"Use alternative keys like j/k (vim-style) for line selection to avoid "
-            f"conflicts with scroll keys."
-        )
-
-    def test_interactive_disasm_widget_cannot_take_focus(self):
-        """Test that the InteractiveDisasmView widget is non-focusable.
-        
-        This ensures the parent ScrollableContainer can handle scroll events.
-        """
         view = R2View()
         
-        assert view._interactive_disasm.can_take_focus() is False
-
-    def test_r2view_action_move_selection_calls_widget(self):
-        """Test that action_move_selection calls the widget's method."""
-        view = R2View()
-        
-        # Mock the interactive widget's _move_selection method
-        view._interactive_disasm._move_selection = Mock()
-        
-        # Call the action
-        view.action_move_selection(1)
-        
-        # Verify the method was called
-        view._interactive_disasm._move_selection.assert_called_once_with(1)
-    
-    def test_r2view_action_navigate_current_calls_widget(self):
-        """Test that action_navigate_current calls the widget's method."""
-        view = R2View()
-        
-        # Mock the interactive widget's _navigate_to_current_line method
-        view._interactive_disasm._navigate_to_current_line = Mock()
-        
-        # Call the action
-        view.action_navigate_current()
-        
-        # Verify the method was called
-        view._interactive_disasm._navigate_to_current_line.assert_called_once()
-    
-    def test_r2view_action_go_back_calls_widget(self):
-        """Test that action_go_back calls the widget's method."""
-        view = R2View()
-        
-        # Mock the interactive widget's _go_back method
-        view._interactive_disasm._go_back = Mock()
-        
-        # Call the action
-        view.action_go_back()
-        
-        # Verify the method was called
-        view._interactive_disasm._go_back.assert_called_once()
-    
-    def test_r2view_action_go_forward_calls_widget(self):
-        """Test that action_go_forward calls the widget's method."""
-        view = R2View()
-        
-        # Mock the interactive widget's _go_forward method
-        view._interactive_disasm._go_forward = Mock()
-        
-        # Call the action
-        view.action_go_forward()
-        
-        # Verify the method was called
-        view._interactive_disasm._go_forward.assert_called_once()
+        # Verify it inherits VerticalScroll's scrolling capabilities
+        assert isinstance(view, VerticalScroll)
+        assert hasattr(view, 'scroll_to')
+        assert hasattr(view, 'scroll_visible')
 
 
