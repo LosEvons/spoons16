@@ -113,6 +113,33 @@ sudo apt-get install radare2  # optional
 sudo apt-get install gcc       # for test fixtures
 ```
 
+## Dependency Lock Files
+
+For reproducible builds, dependency lock files are provided:
+
+### Using Lock Files
+```bash
+# Install exact versions from lock file (recommended for CI/production)
+pip install -r requirements.lock
+
+# Install dev dependencies with exact versions
+pip install -r requirements-dev.lock
+```
+
+### Updating Lock Files
+When updating dependencies in `pyproject.toml`, regenerate lock files:
+
+```bash
+# Install pip-tools
+pip install pip-tools
+
+# Regenerate lock files
+pip-compile pyproject.toml -o requirements.lock
+pip-compile --extra=dev pyproject.toml -o requirements-dev.lock
+```
+
+**Note**: Lock files ensure all developers and CI environments use identical dependency versions, preventing "works on my machine" issues.
+
 ## Troubleshooting
 
 ### Issue: r2pipe fails to import
