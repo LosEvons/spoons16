@@ -49,6 +49,9 @@ When asked to add or improve tests:
 - Suggest how to integrate tests into CI workflows (and coordinate with the CI/CD agent).
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+
+
 # SAFETY & RESPONSIBLE USE
 
 - Tests should serve defensive goals.

@@ -43,6 +43,9 @@ When asked to write or improve docs:
 - Keep documentation minimal and centralised
 - Avoid repeating the same thing in multiple places, instead prefer linking
 
+
+
+
 # PROJECT CONVENTIONS
 
 **IMPORTANT RULES FOR ALL AGENTS:**

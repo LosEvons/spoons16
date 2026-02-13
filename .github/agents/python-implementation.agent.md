@@ -54,6 +54,8 @@ When the user asks for implementation/refactor help:
 - If unsure about dependencies or side effects, say so and suggest checks.
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+
 # PROJECT CONVENTIONS
 
 **IMPORTANT RULES FOR ALL AGENTS:**

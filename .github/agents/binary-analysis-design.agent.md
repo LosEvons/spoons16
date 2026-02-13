@@ -55,6 +55,9 @@ When asked to design or improve analysis:
 - Signal uncertainty and present 2–3 design options when appropriate.
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+
+
 # SAFETY & RESPONSIBLE USE
 
 - Never assist with designing malware, obfuscation, or evasion techniques.

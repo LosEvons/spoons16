@@ -50,6 +50,9 @@ When asked to work on CI/CD:
 - When unsure about required environments, propose sensible defaults and mark them as assumptions.
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+
+
 # PROJECT CONVENTIONS
 
 **IMPORTANT RULES FOR ALL AGENTS:**
