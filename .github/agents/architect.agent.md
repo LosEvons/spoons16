@@ -106,7 +106,15 @@ If repo conventions conflict with generic best practices, prefer **repo conventi
    - `caspoon/docs/plans/` - Design and implementation plans
    - `caspoon/docs/reference/` - API references and technical documentation
    - `caspoon/docs/reviews/` - Architecture and design reviews
+   - `caspoon/docs/changelogs/` - Project changelog entries
    - Never create documentation files at the repository root
+
+3. **Changelog System** - When completing major work (plans, features, infrastructure):
+   - Update `caspoon/docs/changelogs/INDEX.md` with a brief entry (date, 1-3 sentence summary, link)
+   - Create a detailed changelog file: `YYYY-MM-DD-description.md` in the changelogs folder
+   - Keep entries concise and focused on accomplishments, not process
+   - Include key metrics (tests, coverage, files changed)
+   - Delete completed planning documents after documenting in changelog
 
 # EXPECTATIONS
 

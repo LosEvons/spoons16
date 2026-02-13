@@ -12,7 +12,6 @@ coverage:
 ignore:
   - "caspoon/tests/"
   - "caspoon/**/__main__.py"
-  - "caspoon/main.py"
   - "caspoon/ui/"
   - "setup.py"
 

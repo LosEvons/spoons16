@@ -4,41 +4,39 @@ import logging
 import os
 
 from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Input, TabbedContent, TabPane
 from textual.containers import ScrollableContainer
+from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
+
 from caspoon.core.runner import ReconRunner
 
+from .views.imports_exports import ImportsExportsView
 from .views.overview import OverviewView
 from .views.protections import ProtectionsView
-from .views.strings_view import StringsView
-from .views.imports_exports import ImportsExportsView
 from .views.r2_view import R2View
+from .views.strings_view import StringsView
 
 logger = logging.getLogger(__name__)
 
 
 class CaspoonApp(App):
     """Main Textual application for interactive binary analysis.
-    
+
     Provides a tabbed interface for viewing different aspects of
     executable analysis results.
     """
-    
+
     TITLE = "Caspoon Reverse Engineering Toolkit"
     SUB_TITLE = "Executable Recon Viewer"
 
     def compose(self) -> ComposeResult:
         """Compose the UI layout.
-        
+
         Yields:
             UI components for the application
         """
         yield Header()
 
-        yield Input(
-            placeholder="Enter path to binary and press Enter...",
-            id="path_input"
-        )
+        yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
 
         with TabbedContent():
             with TabPane("Overview"):
@@ -61,7 +59,7 @@ class CaspoonApp(App):
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
         """Handle input submission when user enters a file path.
-        
+
         Args:
             message: Input submission event
         """
@@ -69,16 +67,16 @@ class CaspoonApp(App):
         if not path:
             self.set_status("Error: Please enter a path")
             return
-        
+
         # Validate file path
         if not os.path.exists(path):
             self.set_status(f"Error: File not found - {path}")
             return
-            
+
         if not os.path.isfile(path):
             self.set_status(f"Error: Not a file - {path}")
             return
-            
+
         if not os.access(path, os.R_OK):
             self.set_status(f"Error: File not readable - {path}")
             return
@@ -95,7 +93,7 @@ class CaspoonApp(App):
 
     def display_report(self, report) -> None:
         """Display analysis report across all views.
-        
+
         Args:
             report: ExecutableReport to display
         """
@@ -108,15 +106,15 @@ class CaspoonApp(App):
         except Exception as e:
             logger.error(f"Error updating views: {e}")
             self.set_status(f"Error displaying report: {str(e)}")
-        
+
     def set_status(self, text: str) -> None:
         """Update the footer status message.
-        
+
         Args:
             text: Status message to display
         """
         try:
             footer = self.query_one(Footer)
-            footer.renderable = text
+            footer.renderable = text  # type: ignore[attr-defined]
         except Exception as e:
             logger.error(f"Error setting status: {e}")

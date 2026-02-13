@@ -2,16 +2,14 @@
 
 import logging
 import os
-import re
 import subprocess
-from typing import Dict
 
 from ..core.models import ExecutableReport
 
 logger = logging.getLogger(__name__)
 
 # Architecture patterns for detection
-ARCH_PATTERNS: Dict[str, str] = {
+ARCH_PATTERNS: dict[str, str] = {
     "x86-64": "x86_64",
     "x86_64": "x86_64",
     "amd64": "x86_64",
@@ -27,20 +25,20 @@ ARCH_PATTERNS: Dict[str, str] = {
 
 class FileInfoRecon:
     """Extracts basic file information using the 'file' command.
-    
+
     Analyzes the executable to determine architecture, bit width,
     file type, and whether debug symbols are stripped.
     """
-    
+
     name = "file_info"
 
     def run(self, path: str, report: ExecutableReport) -> ExecutableReport:
         """Run file information reconnaissance.
-        
+
         Args:
             path: Path to the executable file
             report: ExecutableReport to enrich with file information
-            
+
         Returns:
             Updated ExecutableReport with file information
         """
@@ -48,31 +46,26 @@ class FileInfoRecon:
             logger.error(f"File not found: {path}")
             report.file_type = "Error: File not found"
             return report
-            
+
         if not os.path.isfile(path):
             logger.error(f"Path is not a file: {path}")
             report.file_type = "Error: Not a file"
             return report
 
         try:
-            result = subprocess.run(
-                ["file", path],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            
+            result = subprocess.run(["file", path], capture_output=True, text=True, timeout=10)
+
             if result.returncode != 0:
                 logger.error(f"'file' command failed with return code {result.returncode}")
-                report.file_type = f"Error: file command failed"
+                report.file_type = "Error: file command failed"
                 return report
-                
+
             output = result.stdout.strip()
             report.file_type = output
 
             # Detect architecture more robustly
             report.arch = self._detect_architecture(output)
-            
+
             # Detect bit width
             if "64-bit" in output:
                 report.bits = 64
@@ -80,7 +73,7 @@ class FileInfoRecon:
                 report.bits = 32
             else:
                 report.bits = None  # Unknown bit width
-                
+
             # Check if stripped
             report.stripped = "not stripped" not in output.lower()
 
@@ -95,21 +88,21 @@ class FileInfoRecon:
             report.file_type = f"Error: {str(e)}"
 
         return report
-    
+
     def _detect_architecture(self, file_output: str) -> str:
         """Detect architecture from file command output.
-        
+
         Args:
             file_output: Output from the 'file' command
-            
+
         Returns:
             Detected architecture name or "Unknown"
         """
         file_lower = file_output.lower()
-        
+
         for pattern, arch in ARCH_PATTERNS.items():
             if pattern.lower() in file_lower:
                 return arch
-                
+
         logger.warning(f"Could not detect architecture from: {file_output}")
         return "Unknown"
