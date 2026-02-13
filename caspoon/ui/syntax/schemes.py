@@ -23,8 +23,10 @@ class ColorScheme:
     """Color scheme for syntax highlighting.
 
     Maps instruction types to Rich style strings (color names or styles).
+    Also includes styles for operand types.
     """
 
+    # Instruction type colors
     jump: str = "cyan"
     call: str = "bright_blue"
     move: str = "green"
@@ -34,7 +36,17 @@ class ColorScheme:
     compare: str = "yellow"
     return_: str = "bright_cyan"  # Use return_ to avoid keyword conflict
     other: str = "white"
+    
+    # Operand type colors
+    register: str = "bold cyan"
+    immediate: str = "bright_yellow"
+    memory: str = "bright_white"
+    symbol: str = "bright_green"
+    
+    # Other syntax elements
     address: str = "dim"
+    comment: str = "dim italic"
+    separator: str = "white"  # For commas between operands
 
     def get_style(self, instr_type: InstructionType) -> str:
         """Get the style for a given instruction type.
