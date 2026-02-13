@@ -152,7 +152,7 @@ class InteractiveDisasmView(Static):
 
         # Add navigation hints
         hints = Text("Navigation: ", style="dim")
-        hints.append("↑↓", style="bold")
+        hints.append("j/k", style="bold")
         hints.append(" Select | ", style="dim")
         hints.append("Enter", style="bold")
         hints.append(" Jump | ", style="dim")
@@ -161,7 +161,9 @@ class InteractiveDisasmView(Static):
         hints.append("g", style="bold")
         hints.append(" Go to | ", style="dim")
         hints.append("x", style="bold")
-        hints.append(" Xrefs", style="dim")
+        hints.append(" Xrefs | ", style="dim")
+        hints.append("↑↓", style="bold")
+        hints.append(" Scroll", style="dim")
         parts.append(hints)
         parts.append(Text())  # Blank line
 

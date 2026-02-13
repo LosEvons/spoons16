@@ -34,10 +34,12 @@ class R2View(Container):
     to handle scrolling properly.
     """
 
-    # Use bindings instead of focus to allow parent to handle scrolling
+    # Use j/k bindings (vim-style) to avoid conflicts with ScrollableContainer's
+    # up/down scroll bindings. This allows the parent container to handle scrolling
+    # while we handle line selection.
     BINDINGS = [
-        ("up", "move_selection(-1)", "Move selection up"),
-        ("down", "move_selection(1)", "Move selection down"),
+        ("k", "move_selection(-1)", "Move selection up"),
+        ("j", "move_selection(1)", "Move selection down"),
         ("enter", "navigate_current", "Jump to address"),
         ("ctrl+h,alt+left", "go_back", "Navigate back"),
         ("ctrl+l,alt+right", "go_forward", "Navigate forward"),
