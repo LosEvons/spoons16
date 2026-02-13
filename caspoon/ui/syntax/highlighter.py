@@ -1,8 +1,11 @@
 """Assembly instruction syntax highlighter."""
 
+import re
 
 from rich.text import Text
 
+from .instructions import get_instruction_type
+from .operand_parser import OperandParser, OperandType
 from .schemes import ColorScheme, InstructionType, get_default_scheme
 
 
@@ -13,75 +16,29 @@ class AsmHighlighter:
     using Rich's Text API.
     """
 
-    def __init__(self, color_scheme: ColorScheme | None = None):
+    def __init__(self, color_scheme: ColorScheme | None = None, enable_operand_parsing: bool = True):
         """Initialize the highlighter.
 
         Args:
             color_scheme: Optional color scheme. If None, uses the default scheme.
+            enable_operand_parsing: If True, parse and highlight operands separately.
+                                   If False, use legacy behavior (highlight entire instruction).
         """
         self.scheme = color_scheme or get_default_scheme()
+        self.enable_operand_parsing = enable_operand_parsing
+        self.operand_parser = OperandParser() if enable_operand_parsing else None
 
-        # Instruction classification mappings for x86/x64
-        self._jump_instructions = {
-            'jmp', 'je', 'jne', 'jz', 'jnz', 'jg', 'jge', 'jl', 'jle',
-            'ja', 'jae', 'jb', 'jbe', 'jo', 'jno', 'js', 'jns',
-            'jp', 'jnp', 'jc', 'jnc', 'jecxz', 'jrcxz',
-        }
-
-        self._call_instructions = {
-            'call', 'callq',
-        }
-
-        self._move_instructions = {
-            'mov', 'movq', 'movl', 'movw', 'movb',
-            'movzx', 'movzb', 'movzw', 'movzl', 'movzq',
-            'movsx', 'movsb', 'movsw', 'movsl', 'movsq',
-            'lea', 'leaq', 'leal',
-            'xchg', 'xchgq', 'xchgl',
-        }
-
-        self._arithmetic_instructions = {
-            'add', 'addq', 'addl', 'addw', 'addb',
-            'sub', 'subq', 'subl', 'subw', 'subb',
-            'mul', 'mulq', 'mull', 'mulw', 'mulb',
-            'imul', 'imulq', 'imull',
-            'div', 'divq', 'divl', 'divw', 'divb',
-            'idiv', 'idivq', 'idivl',
-            'inc', 'incq', 'incl', 'incw', 'incb',
-            'dec', 'decq', 'decl', 'decw', 'decb',
-            'neg', 'negq', 'negl',
-            'adc', 'adcq', 'adcl',
-            'sbb', 'sbbq', 'sbbl',
-        }
-
-        self._logic_instructions = {
-            'and', 'andq', 'andl', 'andw', 'andb',
-            'or', 'orq', 'orl', 'orw', 'orb',
-            'xor', 'xorq', 'xorl', 'xorw', 'xorb',
-            'not', 'notq', 'notl',
-            'shl', 'shlq', 'shll', 'sal', 'salq', 'sall',
-            'shr', 'shrq', 'shrl', 'sar', 'sarq', 'sarl',
-            'rol', 'rolq', 'roll',
-            'ror', 'rorq', 'rorl',
-            'rcl', 'rclq', 'rcll',
-            'rcr', 'rcrq', 'rcrl',
-        }
-
-        self._stack_instructions = {
-            'push', 'pushq', 'pushl', 'pushw', 'pushb',
-            'pop', 'popq', 'popl', 'popw', 'popb',
-            'pusha', 'pushad', 'popa', 'popad',
-            'pushf', 'pushfq', 'popf', 'popfq',
-        }
-
-        self._compare_instructions = {
-            'cmp', 'cmpq', 'cmpl', 'cmpw', 'cmpb',
-            'test', 'testq', 'testl', 'testw', 'testb',
-        }
-
-        self._return_instructions = {
-            'ret', 'retq', 'retn', 'retf',
-        }
+        # Pattern to parse instruction lines
+        # Handles formats like:
+        #   mov rax, rbx
+        #   mov rax, rbx ; comment
+        #   push qword [rbp-0x10]
+        self._instruction_pattern = re.compile(
+            r'^\s*(?P<opcode>\S+)'  # Opcode (required)
+            r'(?:\s+(?P<operands>[^;]+?))?'  # Operands (optional)
+            r'(?:\s*;\s*(?P<comment>.*))?$',  # Comment (optional)
+            re.IGNORECASE
+        )
 
     def classify_instruction(self, opcode: str) -> InstructionType:
         """Classify an instruction by its opcode.
@@ -101,25 +58,8 @@ class AsmHighlighter:
         if not opcode_lower:
             return InstructionType.OTHER
 
-        # Check each instruction category
-        if opcode_lower in self._jump_instructions:
-            return InstructionType.JUMP
-        elif opcode_lower in self._call_instructions:
-            return InstructionType.CALL
-        elif opcode_lower in self._move_instructions:
-            return InstructionType.MOVE
-        elif opcode_lower in self._arithmetic_instructions:
-            return InstructionType.ARITHMETIC
-        elif opcode_lower in self._logic_instructions:
-            return InstructionType.LOGIC
-        elif opcode_lower in self._stack_instructions:
-            return InstructionType.STACK
-        elif opcode_lower in self._compare_instructions:
-            return InstructionType.COMPARE
-        elif opcode_lower in self._return_instructions:
-            return InstructionType.RETURN
-        else:
-            return InstructionType.OTHER
+        # Use the instruction database for classification
+        return get_instruction_type(opcode_lower)
 
     def highlight_instruction(self, opcode: str, address: str = "") -> Text:
         """Create a highlighted Text object for an assembly instruction.
@@ -132,22 +72,39 @@ class AsmHighlighter:
             A Rich Text object with syntax highlighting applied.
         """
         try:
-            # Classify the instruction
-            instr_type = self.classify_instruction(opcode)
-
-            # Get the appropriate color
-            color = self.scheme.get_style(instr_type)
-
+            # If operand parsing is disabled, use legacy behavior
+            if not self.enable_operand_parsing:
+                return self._highlight_instruction_legacy(opcode, address)
+            
+            # Parse the instruction line
+            parsed = self._parse_instruction_line(opcode)
+            
+            if not parsed:
+                # Failed to parse, fall back to legacy
+                return self._highlight_instruction_legacy(opcode, address)
+            
             # Build the highlighted text
             text = Text()
-
+            
             # Add address if provided
             if address:
                 text.append(f"{address}: ", style=self.scheme.address)
-
-            # Add the instruction with appropriate color
-            text.append(opcode, style=color)
-
+            
+            # Add the opcode with appropriate color
+            mnemonic = parsed['opcode']
+            instr_type = self.classify_instruction(mnemonic)
+            opcode_color = self.scheme.get_style(instr_type)
+            text.append(mnemonic, style=opcode_color)
+            
+            # Add operands if present
+            if parsed['operands']:
+                text.append(" ")  # Space between opcode and operands
+                self._highlight_operands(text, parsed['operands'])
+            
+            # Add comment if present
+            if parsed['comment']:
+                text.append(f"  ; {parsed['comment']}", style=self.scheme.comment)
+            
             return text
 
         except Exception:
@@ -157,3 +114,98 @@ class AsmHighlighter:
                 text.append(f"{address}: ")
             text.append(opcode)
             return text
+    
+    def _highlight_instruction_legacy(self, opcode: str, address: str = "") -> Text:
+        """Legacy highlighting: treat entire instruction as a single unit.
+        
+        This maintains backward compatibility with the original behavior.
+        
+        Args:
+            opcode: The instruction opcode and operands.
+            address: Optional address/offset to prepend.
+        
+        Returns:
+            A Rich Text object with syntax highlighting applied.
+        """
+        # Classify the instruction
+        instr_type = self.classify_instruction(opcode)
+
+        # Get the appropriate color
+        color = self.scheme.get_style(instr_type)
+
+        # Build the highlighted text
+        text = Text()
+
+        # Add address if provided
+        if address:
+            text.append(f"{address}: ", style=self.scheme.address)
+
+        # Add the instruction with appropriate color
+        text.append(opcode, style=color)
+
+        return text
+    
+    def _parse_instruction_line(self, line: str) -> dict[str, str] | None:
+        """Parse an instruction line into components.
+        
+        Args:
+            line: The instruction line to parse.
+        
+        Returns:
+            Dictionary with 'opcode', 'operands', and 'comment' keys, or None if parsing fails.
+        """
+        match = self._instruction_pattern.match(line)
+        
+        if not match:
+            return None
+        
+        return {
+            'opcode': match.group('opcode') or "",
+            'operands': (match.group('operands') or "").strip(),
+            'comment': match.group('comment') or "",
+        }
+    
+    def _highlight_operands(self, text: Text, operands_str: str) -> None:
+        """Parse and highlight operands, appending to the given Text object.
+        
+        Args:
+            text: The Text object to append to.
+            operands_str: String containing comma-separated operands.
+        """
+        if not operands_str or not self.operand_parser:
+            text.append(operands_str)
+            return
+        
+        # Parse the operands
+        operands = self.operand_parser.parse_operands(operands_str)
+        
+        for i, operand_info in enumerate(operands):
+            # Add comma separator between operands
+            if i > 0:
+                text.append(", ", style=self.scheme.separator)
+            
+            # Get the appropriate color for this operand type
+            color = self._get_operand_color(operand_info.operand_type)
+            
+            # Highlight the operand
+            text.append(operand_info.value, style=color)
+    
+    def _get_operand_color(self, operand_type: OperandType) -> str:
+        """Get the color for a given operand type.
+        
+        Args:
+            operand_type: The type of operand.
+        
+        Returns:
+            The Rich style string for this operand type.
+        """
+        if operand_type == OperandType.REGISTER:
+            return self.scheme.register
+        elif operand_type == OperandType.IMMEDIATE:
+            return self.scheme.immediate
+        elif operand_type == OperandType.MEMORY:
+            return self.scheme.memory
+        elif operand_type == OperandType.SYMBOL:
+            return self.scheme.symbol
+        else:
+            return self.scheme.other
