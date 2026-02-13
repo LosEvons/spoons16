@@ -25,10 +25,43 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
-    # Group minor and patch updates together
+    
+    # Limit open PRs to avoid spam
+    open-pull-requests-limit: 5
+    
+    # Group updates intelligently
     groups:
-      development-dependencies:
-        dependency-type: "development"
+      # Testing dependencies together
+      testing-dependencies:
+        patterns:
+          - "pytest*"
         update-types:
           - "minor"
           - "patch"
+      
+      # Code quality tools together
+      linting-dependencies:
+        patterns:
+          - "black"
+          - "ruff"
+          - "mypy"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Optional features together (patch only)
+      optional-dependencies:
+        patterns:
+          - "pefile"
+          - "capstone"
+          - "yara-python"
+          - "scipy"
+          - "networkx"
+          - "jinja2"
+        update-types:
+          - "patch"
+    
+    # Ignore major version updates (review manually)
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
