@@ -7,10 +7,6 @@ import sys
 
 from caspoon.core.runner import ReconRunner
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
 logger = logging.getLogger(__name__)
 
 
@@ -52,6 +48,11 @@ def main() -> None:
     """Main entry point for the application."""
     # Handle special flags first
     if "--capabilities" in sys.argv:
+        # Configure logging for CLI mode
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        
         from caspoon.utils.capabilities import get_capabilities
 
         try:
@@ -63,6 +64,12 @@ def main() -> None:
         return
 
     if "--ui" in sys.argv:
+        # Disable logging output for TUI mode to avoid interfering with the UI
+        logging.basicConfig(
+            level=logging.CRITICAL + 1,  # Effectively disable all logging output
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        
         from caspoon.ui.app import CaspoonApp
 
         try:
@@ -71,6 +78,11 @@ def main() -> None:
             logger.error(f"Error running UI: {e}")
             sys.exit(1)
         return
+
+    # Configure logging for CLI mode
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
     if len(sys.argv) < 2:
         print("Usage:")

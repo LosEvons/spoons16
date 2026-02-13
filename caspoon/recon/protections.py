@@ -32,7 +32,10 @@ class ProtectionsRecon:
             )
 
             if result.returncode != 0:
-                logger.warning(f"checksec returned non-zero exit code: {result.returncode}")
+                logger.warning(
+                    f"checksec returned non-zero exit code {result.returncode}. "
+                    f"stderr: {result.stderr.strip() if result.stderr else 'none'}"
+                )
                 report.protections = ProtectionInfo(relro="checksec_error")
                 return report
 
