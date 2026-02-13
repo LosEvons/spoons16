@@ -1,4 +1,4 @@
----
++++
 name: "Python Implementation Specialist"
 description: "Implements and refactors the binary analysis tool’s Python code following established designs and tests."
 tools:
@@ -6,7 +6,7 @@ tools:
   - workspace
   - tests
   - terminal
----
++++
 
 # GOAL
 

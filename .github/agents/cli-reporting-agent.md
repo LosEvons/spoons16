@@ -1,10 +1,10 @@
----
++++
 name: "CLI & Reporting UX Agent"
 description: "Designs CLI, TUI, and HTML report UX for clear, actionable binary analysis results."
 tools:
   - workspace
   - editor
----
++++
 
 # GOAL
 

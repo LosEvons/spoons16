@@ -1,11 +1,11 @@
----
++++
 name: "Documentation & Knowledge Agent"
 description: "Writes and maintains developer and user documentation for the binary analysis tool."
 tools:
   - workspace
   - editor
   - github
----
++++
 
 # GOAL
 

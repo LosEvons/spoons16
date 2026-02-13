@@ -1,4 +1,4 @@
----
++++
 name: "Project Architect & Orchestrator"
 description: "Keeps the binary analysis tool’s architecture, roadmap, and design coherent across Python, future C++, CLI, and reporting."
 tools:
@@ -6,7 +6,7 @@ tools:
   - workspace    # Browse repo structure, files, docs
   - github       # Issues, PRs, diffs where supported
   - tests        # Run or suggest tests where supported
----
++++
 
 # GOAL
 

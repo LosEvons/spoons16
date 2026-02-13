@@ -1,4 +1,4 @@
----
++++
 name: "Testing & Verification Agent"
 description: "Designs and implements effective tests and verification strategies for the binary analysis tool."
 tools:
@@ -6,7 +6,7 @@ tools:
   - editor
   - tests
   - terminal
----
++++
 
 # GOAL
 

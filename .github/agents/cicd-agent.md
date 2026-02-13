@@ -1,4 +1,4 @@
----
++++
 name: "CI/CD & Quality Gate Agent"
 description: "Configures and improves CI/CD workflows, quality gates, and release pipelines for the binary analysis tool."
 tools:
@@ -6,7 +6,7 @@ tools:
   - editor
   - github
   - terminal
----
++++
 
 # GOAL
 
