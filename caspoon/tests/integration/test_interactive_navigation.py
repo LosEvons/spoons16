@@ -10,7 +10,7 @@ Tests the complete end-to-end navigation workflow, including:
 """
 
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -321,7 +321,7 @@ class TestNavigationScenarios:
         # We can test this by manually navigating and checking
         nav_manager.navigate_to("0x401000")
         widget.jump_to_address("0x999999")  # Should be a no-op
-        
+
         # History should only contain the manual navigation
         assert nav_manager.current_address() == "0x401000"
 
@@ -401,7 +401,7 @@ class TestR2AnalyzerIntegration:
             "isj": '[{"name":"printf","type":"FUNC"}]',
             "izj": '[{"string":"Hello","vaddr":4202496}]',
             "s main": "",
-            f"pdj 200": '[{"offset":4198400,"opcode":"push rbp"},{"offset":4198401,"opcode":"ret"}]',
+            "pdj 200": '[{"offset":4198400,"opcode":"push rbp"},{"offset":4198401,"opcode":"ret"}]',
             "axtj @ 4198400": "[]",
             "axfj @ 4198400": "[]",
             "axtj @ 4198656": '[{"from":4198401,"type":"CALL"}]',

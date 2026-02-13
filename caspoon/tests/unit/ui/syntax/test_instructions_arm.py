@@ -19,7 +19,7 @@ class TestARMInstructionClassification:
         # Unconditional branches
         assert get_instruction_type("b") == InstructionType.JUMP
         assert get_instruction_type("bx") == InstructionType.JUMP
-        
+
         # Conditional branches (ARM32)
         assert get_instruction_type("beq") == InstructionType.JUMP
         assert get_instruction_type("bne") == InstructionType.JUMP
@@ -49,7 +49,7 @@ class TestARMInstructionClassification:
         assert get_instruction_type("b.hs") == InstructionType.JUMP
         assert get_instruction_type("b.cc") == InstructionType.JUMP
         assert get_instruction_type("b.lo") == InstructionType.JUMP
-        
+
         # Compare and branch (ARM64)
         assert get_instruction_type("cbz") == InstructionType.JUMP
         assert get_instruction_type("cbnz") == InstructionType.JUMP
@@ -75,16 +75,16 @@ class TestARMInstructionClassification:
         assert get_instruction_type("movw") == InstructionType.MOVE
         assert get_instruction_type("movt") == InstructionType.MOVE
         assert get_instruction_type("mvn") == InstructionType.MOVE
-        
+
         # ARM64 moves
         assert get_instruction_type("movz") == InstructionType.MOVE
         assert get_instruction_type("movk") == InstructionType.MOVE
         assert get_instruction_type("movn") == InstructionType.MOVE
-        
+
         # Conditional moves
         assert get_instruction_type("moveq") == InstructionType.MOVE
         assert get_instruction_type("movne") == InstructionType.MOVE
-        
+
         # Conditional select (ARM64)
         assert get_instruction_type("csel") == InstructionType.MOVE
         assert get_instruction_type("csinc") == InstructionType.MOVE
@@ -103,13 +103,13 @@ class TestARMInstructionClassification:
         assert get_instruction_type("ldrsb") == InstructionType.MOVE
         assert get_instruction_type("ldrsh") == InstructionType.MOVE
         assert get_instruction_type("ldrsw") == InstructionType.MOVE
-        
+
         # ARM64 load/store
         assert get_instruction_type("ldar") == InstructionType.MOVE
         assert get_instruction_type("stlr") == InstructionType.MOVE
         assert get_instruction_type("ldarb") == InstructionType.MOVE
         assert get_instruction_type("stlrb") == InstructionType.MOVE
-        
+
         # Exclusive
         assert get_instruction_type("ldaxr") == InstructionType.MOVE
         assert get_instruction_type("stlxr") == InstructionType.MOVE
@@ -129,14 +129,14 @@ class TestARMInstructionClassification:
         assert get_instruction_type("adc") == InstructionType.ARITHMETIC
         assert get_instruction_type("addw") == InstructionType.ARITHMETIC
         assert get_instruction_type("adds") == InstructionType.ARITHMETIC
-        
+
         # Subtraction
         assert get_instruction_type("sub") == InstructionType.ARITHMETIC
         assert get_instruction_type("sbc") == InstructionType.ARITHMETIC
         assert get_instruction_type("subs") == InstructionType.ARITHMETIC
         assert get_instruction_type("rsb") == InstructionType.ARITHMETIC
         assert get_instruction_type("rsc") == InstructionType.ARITHMETIC
-        
+
         # Multiplication
         assert get_instruction_type("mul") == InstructionType.ARITHMETIC
         assert get_instruction_type("mla") == InstructionType.ARITHMETIC
@@ -147,11 +147,11 @@ class TestARMInstructionClassification:
         assert get_instruction_type("umulh") == InstructionType.ARITHMETIC
         assert get_instruction_type("madd") == InstructionType.ARITHMETIC
         assert get_instruction_type("msub") == InstructionType.ARITHMETIC
-        
+
         # Division
         assert get_instruction_type("sdiv") == InstructionType.ARITHMETIC
         assert get_instruction_type("udiv") == InstructionType.ARITHMETIC
-        
+
         # Negate/Absolute
         assert get_instruction_type("neg") == InstructionType.ARITHMETIC
         assert get_instruction_type("negs") == InstructionType.ARITHMETIC
@@ -166,23 +166,23 @@ class TestARMInstructionClassification:
         assert get_instruction_type("bic") == InstructionType.LOGIC
         assert get_instruction_type("orn") == InstructionType.LOGIC
         assert get_instruction_type("eon") == InstructionType.LOGIC
-        
+
         # Bitwise NOT
         assert get_instruction_type("mvn") == InstructionType.MOVE  # Note: mvn is in MOVE
         assert get_instruction_type("mvns") == InstructionType.LOGIC
-        
+
         # Shift operations
         assert get_instruction_type("lsl") == InstructionType.LOGIC
         assert get_instruction_type("lsr") == InstructionType.LOGIC
         assert get_instruction_type("asr") == InstructionType.LOGIC
         assert get_instruction_type("ror") == InstructionType.LOGIC
         assert get_instruction_type("rrx") == InstructionType.LOGIC
-        
+
         # Bit field operations
         assert get_instruction_type("bfi") == InstructionType.LOGIC
         assert get_instruction_type("bfc") == InstructionType.LOGIC
         assert get_instruction_type("bfm") == InstructionType.LOGIC
-        
+
         # Bit manipulation
         assert get_instruction_type("rbit") == InstructionType.LOGIC
         assert get_instruction_type("rev") == InstructionType.LOGIC
@@ -195,7 +195,7 @@ class TestARMInstructionClassification:
         # Push and pop (ARM32)
         assert get_instruction_type("push") == InstructionType.STACK
         assert get_instruction_type("pop") == InstructionType.STACK
-        
+
         # Load/Store multiple (used for stack operations)
         assert get_instruction_type("stm") == InstructionType.STACK
         assert get_instruction_type("stmia") == InstructionType.STACK
@@ -205,7 +205,7 @@ class TestARMInstructionClassification:
         assert get_instruction_type("ldm") == InstructionType.STACK
         assert get_instruction_type("ldmia") == InstructionType.STACK
         assert get_instruction_type("ldmib") == InstructionType.STACK
-        
+
         # ARM64 stack operations
         assert get_instruction_type("stp") == InstructionType.STACK
         assert get_instruction_type("ldp") == InstructionType.STACK
@@ -216,7 +216,7 @@ class TestARMInstructionClassification:
         assert get_instruction_type("cmn") == InstructionType.COMPARE
         assert get_instruction_type("tst") == InstructionType.COMPARE
         assert get_instruction_type("teq") == InstructionType.COMPARE
-        
+
         # ARM64 conditional compare
         assert get_instruction_type("ccmn") == InstructionType.COMPARE
         assert get_instruction_type("ccmp") == InstructionType.COMPARE
@@ -225,26 +225,26 @@ class TestARMInstructionClassification:
         """Test classification of ARM other/system instructions."""
         # No operation
         assert get_instruction_type("nop") == InstructionType.OTHER
-        
+
         # Breakpoint
         assert get_instruction_type("bkpt") == InstructionType.OTHER
         assert get_instruction_type("brk") == InstructionType.OTHER
-        
+
         # Hints
         assert get_instruction_type("yield") == InstructionType.OTHER
         assert get_instruction_type("wfe") == InstructionType.OTHER
         assert get_instruction_type("wfi") == InstructionType.OTHER
         assert get_instruction_type("sev") == InstructionType.OTHER
-        
+
         # Barriers
         assert get_instruction_type("dsb") == InstructionType.OTHER
         assert get_instruction_type("dmb") == InstructionType.OTHER
         assert get_instruction_type("isb") == InstructionType.OTHER
-        
+
         # System register access
         assert get_instruction_type("mrs") == InstructionType.OTHER
         assert get_instruction_type("msr") == InstructionType.OTHER
-        
+
         # Supervisor call
         assert get_instruction_type("svc") == InstructionType.OTHER
         assert get_instruction_type("swi") == InstructionType.OTHER
@@ -292,7 +292,7 @@ class TestARMHelperFunctions:
         assert is_conditional_instruction("blt")
         assert is_conditional_instruction("bgt")
         assert is_conditional_instruction("ble")
-        
+
         # Non-conditional should return False
         assert not is_conditional_instruction("mov")
         assert not is_conditional_instruction("add")
@@ -303,11 +303,11 @@ class TestARMHelperFunctions:
         """Test is_conditional_instruction with edge cases."""
         # Empty string
         assert not is_conditional_instruction("")
-        
+
         # Case insensitive
         assert is_conditional_instruction("MOVEQ")
         assert is_conditional_instruction("MoveQ")
-        
+
         # With whitespace
         assert is_conditional_instruction("  moveq  ")
 
@@ -321,7 +321,7 @@ class TestARMHelperFunctions:
         assert is_thumb_instruction("itttt")
         assert is_thumb_instruction("itee")
         assert is_thumb_instruction("itte")
-        
+
         # Non-Thumb instructions
         assert not is_thumb_instruction("mov")
         assert not is_thumb_instruction("add")
@@ -331,7 +331,7 @@ class TestARMHelperFunctions:
         """Test is_thumb_instruction with edge cases."""
         # Empty string
         assert not is_thumb_instruction("")
-        
+
         # Case insensitive
         assert is_thumb_instruction("IT")
         assert is_thumb_instruction("ITE")
@@ -349,7 +349,7 @@ class TestARMHelperFunctions:
         assert is_neon_instruction("vst2")
         assert is_neon_instruction("vmov")
         assert is_neon_instruction("vdup")
-        
+
         # Non-NEON instructions
         assert not is_neon_instruction("mov")
         assert not is_neon_instruction("add")
@@ -359,7 +359,7 @@ class TestARMHelperFunctions:
         """Test is_neon_instruction with edge cases."""
         # Empty string
         assert not is_neon_instruction("")
-        
+
         # Case insensitive
         assert is_neon_instruction("VADD")
         assert is_neon_instruction("VAdd")

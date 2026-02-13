@@ -5,7 +5,6 @@ from typing import Any
 
 from rich.console import Group
 from rich.text import Text
-from textual import on
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widgets import Static
@@ -105,7 +104,7 @@ class InteractiveDisasmView(Static):
         super().__init__(*args, **kwargs)
         self.nav_manager = navigation_manager or NavigationManager()
         self.highlighter = highlighter or AsmHighlighter()
-        
+
         # Store disassembly data
         self.disasm_lines: list[dict[str, Any]] = []
         self.current_function: str = ""
@@ -125,7 +124,7 @@ class InteractiveDisasmView(Static):
         """
         self.disasm_lines = disasm_ops
         self.current_function = function_name
-        
+
         # If a specific address is provided, select that line
         if current_address:
             for i, op in enumerate(disasm_ops):
@@ -133,7 +132,7 @@ class InteractiveDisasmView(Static):
                 if addr == current_address:
                     self.selected_line = i
                     break
-        
+
         self._render_disassembly()
 
     def _render_disassembly(self) -> None:
@@ -143,7 +142,7 @@ class InteractiveDisasmView(Static):
             return
 
         parts = []
-        
+
         # Add function header if available
         if self.current_function:
             header = Text(f"Function: {self.current_function}", style="bold cyan")
@@ -322,7 +321,7 @@ class InteractiveDisasmView(Static):
         new_selection = self.selected_line + delta
         # Clamp to valid range
         new_selection = max(0, min(new_selection, len(self.disasm_lines) - 1))
-        
+
         if new_selection != self.selected_line:
             self.selected_line = new_selection
             self._render_disassembly()
@@ -334,14 +333,14 @@ class InteractiveDisasmView(Static):
 
         op = self.disasm_lines[self.selected_line]
         opcode = op.get("opcode", "")
-        
+
         target = self._extract_target_address(opcode)
         if target:
             # Add current location to history before navigating
             current_addr = self._get_current_line_address()
             if current_addr:
                 self.nav_manager.navigate_to(current_addr)
-            
+
             # Post message to parent to handle navigation
             self.post_message(self.NavigateTo(target))
 
@@ -386,17 +385,17 @@ class InteractiveDisasmView(Static):
         for i, op in enumerate(self.disasm_lines):
             offset = op.get("offset", 0)
             addr_str = f"{offset:#x}"
-            
+
             if addr_str == address or hex(offset) == address:
                 # Add current location to history
                 current_addr = self._get_current_line_address()
                 if current_addr:
                     self.nav_manager.navigate_to(current_addr)
-                
+
                 # Update selection
                 self.selected_line = i
                 self._render_disassembly()
-                
+
                 # Emit navigation message
                 self.post_message(self.NavigateTo(address))
                 return

@@ -78,18 +78,21 @@ def analyze_with_r2(path: str) -> dict[str, Any]:
         logger.debug("Extracting cross-references for functions")
         xrefs_to = {}  # xrefs to each address (who calls this)
         xrefs_from = {}  # xrefs from each address (what this calls)
-        
+
         # Limit xref extraction to avoid performance issues
-        funcs_for_xrefs = functions[:MAX_XREF_FUNCTIONS] if len(functions) > MAX_XREF_FUNCTIONS else functions
-        
+        if len(functions) > MAX_XREF_FUNCTIONS:
+            funcs_for_xrefs = functions[:MAX_XREF_FUNCTIONS]
+        else:
+            funcs_for_xrefs = functions
+
         for func in funcs_for_xrefs:
             addr = func.get("offset")
             if addr is None:
                 continue
-            
+
             # Convert address to hex format for consistency
             addr_hex = f"0x{addr:x}" if isinstance(addr, int) else str(addr)
-            
+
             # Get xrefs TO this function (who calls it)
             try:
                 xrefs_to_json = r2.cmd(f"axtj @ {addr}")
@@ -100,7 +103,7 @@ def analyze_with_r2(path: str) -> dict[str, Any]:
                 logger.warning(f"Failed to parse xrefs-to JSON for {addr_hex}: {e}")
             except Exception as e:
                 logger.warning(f"Error extracting xrefs-to for {addr_hex}: {e}")
-            
+
             # Get xrefs FROM this function (what it calls)
             try:
                 xrefs_from_json = r2.cmd(f"axfj @ {addr}")

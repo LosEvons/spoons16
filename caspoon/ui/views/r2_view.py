@@ -36,23 +36,23 @@ class R2View(Container):
         super().__init__(*args, **kwargs)
         # Default highlighter for x86_64, will be updated per report
         self._highlighter = AsmHighlighter()
-        
+
         # Navigation manager for history tracking
         self._nav_manager = NavigationManager()
-        
+
         # Cache for function disassembly to avoid re-querying r2
         self._disasm_cache: dict[str, list[dict[str, Any]]] = {}
-        
+
         # Store current report for dynamic loading
         self._current_report: ExecutableReport | None = None
-        
+
         # Widgets for display
         self._header_widget = Static()
         self._interactive_disasm = InteractiveDisasmView(
             navigation_manager=self._nav_manager,
             highlighter=self._highlighter
         )
-        
+
         # Add widgets to container
         self._header_widget.styles.height = "auto"
         self._interactive_disasm.styles.height = "auto"
@@ -70,7 +70,7 @@ class R2View(Container):
         """
         scheme = get_default_scheme()
         legend = Text("Color Legend: ", style="bold")
-        
+
         # Define legend items with their colors
         items = [
             ("Jump", scheme.jump),
@@ -82,13 +82,13 @@ class R2View(Container):
             ("Compare", scheme.compare),
             ("Return", scheme.return_),
         ]
-        
+
         # Add each item with its color
         for i, (label, color) in enumerate(items):
             if i > 0:
                 legend.append(" | ", style="dim")
             legend.append(label, style=color)
-        
+
         return legend
 
     def update_data(self, report: ExecutableReport) -> None:
@@ -98,19 +98,19 @@ class R2View(Container):
             report: ExecutableReport containing analysis results
         """
         self._current_report = report
-        
+
         # Detect architecture and create appropriate highlighter
         arch = detect_architecture(report)
         classifier = get_instruction_classifier(arch)
         self._highlighter = AsmHighlighter(instruction_classifier=classifier)
-        
+
         # Update interactive widget's highlighter
         self._interactive_disasm.highlighter = self._highlighter
-        
+
         # Clear caches and navigation
         self._disasm_cache.clear()
         self._nav_manager.clear_history()
-        
+
         r2 = report.raw_backend_data.get("r2", {})
         if not r2:
             r2_error = report.raw_backend_data.get("r2_error")
@@ -123,10 +123,10 @@ class R2View(Container):
 
         # Build address map for navigation
         self._build_address_map(r2)
-        
+
         # Display header information (functions, strings, legend)
         self._display_header(r2)
-        
+
         # Display main function disassembly in interactive widget
         main_ops = r2.get("main_ops", [])
         if main_ops:
@@ -143,7 +143,7 @@ class R2View(Container):
         """
         address_map = {}
         funcs = r2_data.get("functions", [])
-        
+
         for fn in funcs:
             offset = fn.get("offset")
             if offset is not None:
@@ -153,7 +153,7 @@ class R2View(Container):
                     "offset": offset,
                     "size": fn.get("size", 0),
                 }
-        
+
         self._nav_manager.set_address_map(address_map)
 
     def _display_header(self, r2_data: dict[str, Any]) -> None:
@@ -178,7 +178,7 @@ class R2View(Container):
 
         # Add spacing before disassembly section
         parts.append(Text("\nMain Function Disassembly:", style="bold magenta"))
-        
+
         # Add the color legend
         parts.append(self._create_legend())
         parts.append(Text())  # Add a blank line for spacing
@@ -199,8 +199,8 @@ class R2View(Container):
         self._header_widget.update(group)
 
     def _display_disasm(
-        self, 
-        ops: list[dict[str, Any]], 
+        self,
+        ops: list[dict[str, Any]],
         function_name: str,
         current_address: str | None
     ) -> None:
@@ -213,7 +213,7 @@ class R2View(Container):
         """
         # Limit ops to prevent UI slowdown
         displayed_ops = ops[:MAX_DISASM_OPS]
-        
+
         # Update interactive widget
         self._interactive_disasm.update_disassembly(
             disasm_ops=displayed_ops,
@@ -232,13 +232,13 @@ class R2View(Container):
         """
         if not self._current_report:
             return None
-        
+
         # Check cache first
         if address in self._disasm_cache:
             func_info = self._nav_manager.address_map.get(address, {})
             func_name = func_info.get("name", address)
             return self._disasm_cache[address], func_name
-        
+
         # Look up function in address map
         func_info = self._nav_manager.address_map.get(address)
         if not func_info:
@@ -251,23 +251,23 @@ class R2View(Container):
                         break
                 except ValueError:
                     continue
-        
+
         if not func_info:
             return None
-        
+
         # For now, we only have main_ops cached
         # In a full implementation, we'd query r2 for other functions
         # For this MVP, return None for non-main functions
         if func_info.get("name") != "main":
             return None
-        
+
         r2_data = self._current_report.raw_backend_data.get("r2", {})
         main_ops = r2_data.get("main_ops", [])
-        
+
         if main_ops:
             self._disasm_cache["main"] = main_ops
             return main_ops, "main"
-        
+
         return None
 
     @on(InteractiveDisasmView.NavigateTo)
@@ -279,7 +279,7 @@ class R2View(Container):
         """
         # Try to get disassembly for the target address
         result = self._get_function_disasm(message.address)
-        
+
         if result:
             ops, func_name = result
             self._display_disasm(ops, func_name, message.address)
@@ -297,20 +297,20 @@ class R2View(Container):
         """
         if not self._current_report:
             return
-        
+
         # Get xrefs from report
         r2_data = self._current_report.raw_backend_data.get("r2", {})
         xrefs = r2_data.get("xrefs", {})
-        
+
         # Find xrefs for this address
         addr_xrefs = xrefs.get(message.address, [])
-        
+
         if addr_xrefs:
             # Display xrefs (for now, just show in header)
             xref_text = Text(f"\nCross-references for {message.address}:", style="bold yellow")
             for xref in addr_xrefs[:10]:  # Limit to 10 xrefs
                 xref_text.append(f"\n  {xref}")
-            
+
             # Append to current header
             current = self._header_widget.renderable
             if isinstance(current, Group):

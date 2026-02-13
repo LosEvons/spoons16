@@ -18,7 +18,7 @@ class TestArchitectureManagerClassifier:
         """Test getting x86 instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("x86")
-        
+
         # Test that it classifies x86 instructions correctly
         assert classifier("mov") == InstructionType.MOVE
         assert classifier("jmp") == InstructionType.JUMP
@@ -30,7 +30,7 @@ class TestArchitectureManagerClassifier:
         """Test getting x86-64 instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("x86_64")
-        
+
         # Test that it classifies x86 instructions correctly
         assert classifier("mov") == InstructionType.MOVE
         assert classifier("jmp") == InstructionType.JUMP
@@ -42,7 +42,7 @@ class TestArchitectureManagerClassifier:
         """Test getting ARM instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("arm")
-        
+
         # Test that it classifies ARM instructions correctly
         assert classifier("mov") == InstructionType.MOVE
         assert classifier("ldr") == InstructionType.MOVE
@@ -56,7 +56,7 @@ class TestArchitectureManagerClassifier:
         """Test getting ARM64 instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("arm64")
-        
+
         # Test that it classifies ARM64 instructions correctly
         assert classifier("mov") == InstructionType.MOVE
         assert classifier("ldr") == InstructionType.MOVE
@@ -71,7 +71,7 @@ class TestArchitectureManagerClassifier:
         """Test getting MIPS instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("mips")
-        
+
         # Test that it classifies MIPS instructions correctly
         assert classifier("lw") == InstructionType.MOVE
         assert classifier("sw") == InstructionType.MOVE
@@ -85,7 +85,7 @@ class TestArchitectureManagerClassifier:
         """Test getting MIPS64 instruction classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("mips64")
-        
+
         # Test that it classifies MIPS64 instructions correctly
         assert classifier("ld") == InstructionType.MOVE
         assert classifier("sd") == InstructionType.MOVE
@@ -100,7 +100,7 @@ class TestArchitectureManagerFallback:
         """Test that unknown architecture defaults to x86 classifier."""
         manager = ArchitectureManager()
         classifier = manager.get_instruction_classifier("unknown")
-        
+
         # Should use x86 classifier as fallback
         assert classifier("mov") == InstructionType.MOVE
         assert classifier("jmp") == InstructionType.JUMP
@@ -109,13 +109,13 @@ class TestArchitectureManagerFallback:
     def test_unrecognized_architecture_defaults_to_x86(self):
         """Test that unrecognized architecture defaults to x86 classifier."""
         manager = ArchitectureManager()
-        
+
         classifier = manager.get_instruction_classifier("riscv64")
         assert classifier("mov") == InstructionType.MOVE
-        
+
         classifier = manager.get_instruction_classifier("powerpc")
         assert classifier("add") == InstructionType.ARITHMETIC
-        
+
         classifier = manager.get_instruction_classifier("completely_made_up")
         assert classifier("ret") == InstructionType.RETURN
 
@@ -126,34 +126,34 @@ class TestArchitectureManagerCaseHandling:
     def test_classifier_case_insensitive(self):
         """Test that architecture names are case-insensitive."""
         manager = ArchitectureManager()
-        
+
         # Test uppercase
         classifier = manager.get_instruction_classifier("X86_64")
         assert classifier("mov") == InstructionType.MOVE
-        
+
         classifier = manager.get_instruction_classifier("ARM64")
         assert classifier("ldr") == InstructionType.MOVE
-        
+
         classifier = manager.get_instruction_classifier("MIPS")
         assert classifier("lw") == InstructionType.MOVE
 
     def test_classifier_mixed_case(self):
         """Test that mixed case architecture names work."""
         manager = ArchitectureManager()
-        
+
         classifier = manager.get_instruction_classifier("Arm64")
         assert classifier("bl") == InstructionType.CALL
-        
+
         classifier = manager.get_instruction_classifier("MiPs64")
         assert classifier("jal") == InstructionType.CALL
 
     def test_classifier_with_whitespace(self):
         """Test that architecture names with whitespace work."""
         manager = ArchitectureManager()
-        
+
         classifier = manager.get_instruction_classifier("  x86_64  ")
         assert classifier("mov") == InstructionType.MOVE
-        
+
         classifier = manager.get_instruction_classifier("\tarm\t")
         assert classifier("ldr") == InstructionType.MOVE
 
@@ -213,7 +213,7 @@ class TestArchitectureList:
         """Test getting list of supported architectures."""
         manager = ArchitectureManager()
         supported = manager.get_supported_architectures()
-        
+
         # Check that all expected architectures are in the list
         assert "x86" in supported
         assert "x86_64" in supported
@@ -226,7 +226,7 @@ class TestArchitectureList:
         """Test that we have the expected number of supported architectures."""
         manager = ArchitectureManager()
         supported = manager.get_supported_architectures()
-        
+
         # Should have at least 6 architectures
         assert len(supported) >= 6
 
@@ -234,7 +234,7 @@ class TestArchitectureList:
         """Test that supported architectures is a list."""
         manager = ArchitectureManager()
         supported = manager.get_supported_architectures()
-        
+
         assert isinstance(supported, list)
 
 
@@ -245,10 +245,10 @@ class TestConvenienceFunctions:
         """Test convenience function for getting instruction classifier."""
         classifier = get_instruction_classifier("x86_64")
         assert classifier("mov") == InstructionType.MOVE
-        
+
         classifier = get_instruction_classifier("arm")
         assert classifier("ldr") == InstructionType.MOVE
-        
+
         classifier = get_instruction_classifier("mips")
         assert classifier("lw") == InstructionType.MOVE
 
@@ -262,7 +262,7 @@ class TestConvenienceFunctions:
     def test_convenience_get_supported_architectures(self):
         """Test convenience function for getting supported architectures."""
         supported = get_supported_architectures()
-        
+
         assert "x86" in supported
         assert "x86_64" in supported
         assert "arm" in supported
@@ -279,7 +279,7 @@ class TestArchitectureManagerSingleton:
         # Get classifiers multiple times
         classifier1 = get_instruction_classifier("x86_64")
         classifier2 = get_instruction_classifier("x86_64")
-        
+
         # They should behave the same
         assert classifier1("mov") == classifier2("mov")
         assert classifier1("jmp") == classifier2("jmp")
@@ -288,7 +288,7 @@ class TestArchitectureManagerSingleton:
         """Test that multiple calls return consistent results."""
         supported1 = get_supported_architectures()
         supported2 = get_supported_architectures()
-        
+
         # Should return the same list
         assert set(supported1) == set(supported2)
 
@@ -299,7 +299,7 @@ class TestArchitectureManagerClassifierBehavior:
     def test_classifiers_are_callable(self):
         """Test that returned classifiers are callable."""
         manager = ArchitectureManager()
-        
+
         for arch in ["x86", "x86_64", "arm", "arm64", "mips", "mips64"]:
             classifier = manager.get_instruction_classifier(arch)
             assert callable(classifier)
@@ -307,15 +307,15 @@ class TestArchitectureManagerClassifierBehavior:
     def test_classifiers_return_instruction_type(self):
         """Test that classifiers return InstructionType enum values."""
         manager = ArchitectureManager()
-        
+
         classifier = manager.get_instruction_classifier("x86_64")
         result = classifier("mov")
         assert isinstance(result, InstructionType)
-        
+
         classifier = manager.get_instruction_classifier("arm")
         result = classifier("ldr")
         assert isinstance(result, InstructionType)
-        
+
         classifier = manager.get_instruction_classifier("mips")
         result = classifier("lw")
         assert isinstance(result, InstructionType)
@@ -323,7 +323,7 @@ class TestArchitectureManagerClassifierBehavior:
     def test_classifiers_handle_unknown_instructions(self):
         """Test that classifiers handle unknown instructions gracefully."""
         manager = ArchitectureManager()
-        
+
         # Test with each architecture
         for arch in ["x86", "x86_64", "arm", "arm64", "mips", "mips64"]:
             classifier = manager.get_instruction_classifier(arch)
@@ -338,10 +338,10 @@ class TestArchitectureManagerCorrectMapping:
     def test_x86_and_x86_64_share_classifier(self):
         """Test that x86 and x86-64 use the same classifier."""
         manager = ArchitectureManager()
-        
+
         classifier_x86 = manager.get_instruction_classifier("x86")
         classifier_x86_64 = manager.get_instruction_classifier("x86_64")
-        
+
         # Should classify instructions the same way
         assert classifier_x86("mov") == classifier_x86_64("mov")
         assert classifier_x86("jmp") == classifier_x86_64("jmp")
@@ -350,10 +350,10 @@ class TestArchitectureManagerCorrectMapping:
     def test_arm_and_arm64_share_classifier(self):
         """Test that ARM and ARM64 use the same classifier."""
         manager = ArchitectureManager()
-        
+
         classifier_arm = manager.get_instruction_classifier("arm")
         classifier_arm64 = manager.get_instruction_classifier("arm64")
-        
+
         # Should classify common instructions the same way
         assert classifier_arm("mov") == classifier_arm64("mov")
         assert classifier_arm("ldr") == classifier_arm64("ldr")
@@ -362,10 +362,10 @@ class TestArchitectureManagerCorrectMapping:
     def test_mips_and_mips64_share_classifier(self):
         """Test that MIPS and MIPS64 use the same classifier."""
         manager = ArchitectureManager()
-        
+
         classifier_mips = manager.get_instruction_classifier("mips")
         classifier_mips64 = manager.get_instruction_classifier("mips64")
-        
+
         # Should classify common instructions the same way
         assert classifier_mips("lw") == classifier_mips64("lw")
         assert classifier_mips("jal") == classifier_mips64("jal")
@@ -374,15 +374,15 @@ class TestArchitectureManagerCorrectMapping:
     def test_different_architectures_differ(self):
         """Test that different architectures classify differently."""
         manager = ArchitectureManager()
-        
+
         classifier_x86 = manager.get_instruction_classifier("x86_64")
         classifier_arm = manager.get_instruction_classifier("arm")
         classifier_mips = manager.get_instruction_classifier("mips")
-        
+
         # ldr is MOVE on ARM but OTHER on x86
         assert classifier_arm("ldr") == InstructionType.MOVE
         assert classifier_x86("ldr") == InstructionType.OTHER
-        
+
         # lw is MOVE on MIPS but OTHER on x86 and ARM
         assert classifier_mips("lw") == InstructionType.MOVE
         assert classifier_x86("lw") == InstructionType.OTHER

@@ -4,11 +4,9 @@ This module provides a centralized way to get the appropriate instruction
 classifier for different architectures.
 """
 
-from typing import Callable
+from collections.abc import Callable
 
-from . import instructions
-from . import instructions_arm
-from . import instructions_mips
+from . import instructions, instructions_arm, instructions_mips
 from .schemes import InstructionType
 
 
@@ -18,7 +16,7 @@ class ArchitectureManager:
     This class provides a unified interface to get instruction classifiers
     for different architectures (x86/x64, ARM, MIPS, etc.).
     """
-    
+
     def __init__(self):
         """Initialize the architecture manager."""
         # Map architecture names to their instruction classifier functions
@@ -30,7 +28,7 @@ class ArchitectureManager:
             'mips': instructions_mips.get_instruction_type,
             'mips64': instructions_mips.get_instruction_type,
         }
-    
+
     def get_instruction_classifier(self, arch: str) -> Callable[[str], InstructionType]:
         """Get the instruction classifier function for a specific architecture.
         
@@ -43,12 +41,12 @@ class ArchitectureManager:
         """
         # Normalize architecture string
         arch_lower = arch.lower().strip()
-        
+
         # Get the classifier, defaulting to x86_64 for unknown architectures
         classifier = self._classifiers.get(arch_lower, instructions.get_instruction_type)
-        
+
         return classifier
-    
+
     def supports_architecture(self, arch: str) -> bool:
         """Check if an architecture is supported.
         
@@ -60,7 +58,7 @@ class ArchitectureManager:
         """
         arch_lower = arch.lower().strip()
         return arch_lower in self._classifiers
-    
+
     def get_supported_architectures(self) -> list[str]:
         """Get a list of all supported architectures.
         

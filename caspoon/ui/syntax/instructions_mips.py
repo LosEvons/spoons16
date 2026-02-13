@@ -30,7 +30,7 @@ MIPS_INSTRUCTIONS = {
         # Unconditional relative branches
         'b', 'bal',  # pseudo-instructions (b = beq $zero,$zero; bal = bgezal $zero)
     },
-    
+
     InstructionType.CALL: {
         # Jump and link (function calls)
         'jal', 'jalr',  # jump and link, jump and link register
@@ -39,9 +39,9 @@ MIPS_INSTRUCTIONS = {
         'jialc', 'jic',  # jump indexed and link/compact
         'balc',  # branch and link compact
     },
-    
+
     InstructionType.RETURN: set(),  # No explicit return instruction in MIPS
-    
+
     InstructionType.MOVE: {
         # Load operations (data movement from memory)
         'lw', 'lh', 'lb', 'lhu', 'lbu',  # load word/halfword/byte (signed/unsigned)
@@ -72,7 +72,7 @@ MIPS_INSTRUCTIONS = {
         'movn', 'movz',  # move conditional on not zero/zero
         'movf', 'movt',  # move conditional on FP false/true
     },
-    
+
     InstructionType.ARITHMETIC: {
         # Addition
         'add', 'addu',  # add (with/without overflow trap)
@@ -98,7 +98,7 @@ MIPS_INSTRUCTIONS = {
         # Absolute value
         'abs',  # absolute value (pseudo-instruction)
     },
-    
+
     InstructionType.LOGIC: {
         # Logical operations
         'and', 'or', 'xor', 'nor',  # bitwise and/or/xor/nor
@@ -126,9 +126,9 @@ MIPS_INSTRUCTIONS = {
         # Bit field
         'bitswap', 'dbitswap',  # reverse bits in each byte (MIPS R6)
     },
-    
+
     InstructionType.STACK: set(),  # MIPS doesn't have dedicated stack instructions
-    
+
     InstructionType.COMPARE: {
         # Set on less than
         'slt', 'sltu',  # set on less than (signed/unsigned)
@@ -140,7 +140,7 @@ MIPS_INSTRUCTIONS = {
         'sge', 'sgeu',  # set greater or equal
         'sle', 'sleu',  # set less or equal
     },
-    
+
     InstructionType.OTHER: {
         # No operation
         'nop', 'ssnop',  # no operation, superscalar no operation
@@ -230,7 +230,7 @@ MIPS_INSTRUCTIONS = {
         'nmadd.s', 'nmadd.d', 'nmadd.ps',  # negative multiply-add
         'nmsub.s', 'nmsub.d', 'nmsub.ps',  # negative multiply-subtract
         # Load/Store FP
-        'lwc1', 'ldc1', 'swc1', 'sdc1',  # load/store word/double coprocessor 1
+        'sdc1',  # load/store word/double coprocessor 1
         'luxc1', 'suxc1',  # load/store doubleword FP indexed unaligned
         'ldxc1', 'sdxc1',  # load/store doubleword FP indexed
         'lwxc1', 'swxc1',  # load/store word FP indexed
@@ -248,12 +248,12 @@ def get_instruction_type(mnemonic: str) -> InstructionType:
         The InstructionType for this mnemonic.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Check main instruction categories
     for instr_type, instructions in MIPS_INSTRUCTIONS.items():
         if mnemonic in instructions:
             return instr_type
-    
+
     return InstructionType.OTHER
 
 
@@ -287,14 +287,14 @@ def is_pseudo_instruction(mnemonic: str) -> bool:
         True if this is a pseudo-instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     pseudo_instructions = {
         'move', 'li', 'la', 'b', 'bal', 'not',
         'neg', 'negu', 'abs',
         'seq', 'sne', 'sgt', 'sgtu', 'sge', 'sgeu', 'sle', 'sleu',
         'dslt', 'dsltu',
     }
-    
+
     return mnemonic in pseudo_instructions
 
 
@@ -308,7 +308,7 @@ def is_fp_instruction(mnemonic: str) -> bool:
         True if this is a floating-point instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # FP instructions have format suffixes: .s (single), .d (double), .ps (paired single)
     return ('.s' in mnemonic or '.d' in mnemonic or '.ps' in mnemonic or
             'c.f.' in mnemonic or 'c.un.' in mnemonic or 'c.eq.' in mnemonic or
@@ -329,13 +329,13 @@ def is_coprocessor_instruction(mnemonic: str) -> bool:
         True if this is a coprocessor instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Coprocessor instructions reference cop0, cop1, cop2, cop3
     # or have specific patterns like mfc0, mtc0, lwc1, etc.
     coprocessor_prefixes = ['cop', 'mfc', 'mtc', 'cfc', 'ctc', 'lwc', 'swc', 'ldc', 'sdc']
-    
+
     for prefix in coprocessor_prefixes:
         if mnemonic.startswith(prefix):
             return True
-    
+
     return False

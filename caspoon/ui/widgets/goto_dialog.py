@@ -127,7 +127,7 @@ class GotoDialog(ModalScreen[str | None]):
 
         # Normalize the address
         normalized = self._normalize_address(address_str)
-        
+
         if normalized:
             self.dismiss(normalized)
         else:

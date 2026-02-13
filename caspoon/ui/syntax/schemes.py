@@ -36,13 +36,13 @@ class ColorScheme:
     compare: str = "yellow"
     return_: str = "bright_cyan"  # Use return_ to avoid keyword conflict
     other: str = "white"
-    
+
     # Operand type colors
     register: str = "bold cyan"
     immediate: str = "bright_yellow"
     memory: str = "bright_white"
     symbol: str = "bright_green"
-    
+
     # Other syntax elements
     address: str = "dim"
     comment: str = "dim italic"
