@@ -2,7 +2,7 @@
 
 import json
 import logging
-from typing import Dict, Any
+from typing import Any
 
 import r2pipe
 
@@ -13,26 +13,26 @@ MAX_MAIN_INSTRUCTIONS = 200  # Limit instructions to analyze in main
 ANALYSIS_TIMEOUT = 60  # Timeout for r2 commands in seconds
 
 
-def analyze_with_r2(path: str) -> Dict[str, Any]:
+def analyze_with_r2(path: str) -> dict[str, Any]:
     """Perform lightweight radare2 analysis on an executable.
-    
+
     Analyzes functions, imports, strings, and disassembles the main function.
-    
+
     Args:
         path: Path to the executable file
-        
+
     Returns:
         Dictionary containing analysis results with keys:
             - functions: List of functions found
             - imports: List of imported symbols
             - strings: List of strings found
             - main_ops: Disassembly of main function
-            
+
     Raises:
         Exception: If r2pipe fails to open the file or analysis fails
     """
     logger.debug(f"Starting radare2 analysis on {path}")
-    
+
     r2 = r2pipe.open(path, flags=["-2"])
     try:
         # Basic analysis (lightweight)
@@ -71,8 +71,10 @@ def analyze_with_r2(path: str) -> Dict[str, Any]:
             logger.warning(f"Failed to parse main disassembly JSON: {e}")
             main_ops = []
 
-        logger.debug(f"Radare2 analysis complete: {len(functions)} functions, {len(imports)} imports, {len(strings)} strings")
-        
+        logger.debug(
+            f"Radare2 analysis complete: {len(functions)} functions, {len(imports)} imports, {len(strings)} strings"
+        )
+
         return {
             "functions": functions,
             "imports": imports,

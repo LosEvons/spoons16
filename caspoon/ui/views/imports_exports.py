@@ -1,23 +1,23 @@
 """Imports and exports view component."""
 
-from textual.widgets import Static
-from rich.table import Table
 from rich.console import Group
+from rich.table import Table
 from rich.text import Text
+from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 
 
 class ImportsExportsView(Static):
     """Display imported and exported functions.
-    
+
     Shows two tables listing the imported and exported functions
     found in the executable's symbol tables.
     """
-    
+
     def update_data(self, report: ExecutableReport) -> None:
         """Update the view with new report data.
-        
+
         Args:
             report: ExecutableReport containing analysis results
         """

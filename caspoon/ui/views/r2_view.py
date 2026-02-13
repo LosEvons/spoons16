@@ -1,9 +1,8 @@
 """Radare2 analysis view component."""
 
-from textual.widgets import Static
-from rich.pretty import Pretty
 from rich.console import Group
 from rich.text import Text
+from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 
@@ -15,14 +14,14 @@ MAX_STRINGS = 50
 
 class R2View(Static):
     """Display radare2 analysis results.
-    
+
     Shows functions, disassembly of main, and strings discovered
     by radare2's analysis engine, with limits to prevent UI slowdown.
     """
-    
+
     def update_data(self, report: ExecutableReport) -> None:
         """Update the view with new report data.
-        
+
         Args:
             report: ExecutableReport containing analysis results
         """
@@ -45,7 +44,7 @@ class R2View(Static):
             name = fn.get("name", "<unknown>")
             offset = hex(fn.get("offset", 0))
             parts.append(Text(f"  {offset}  {name}"))
-        
+
         if len(funcs) > MAX_FUNCTIONS:
             parts.append(Text(f"  ... {len(funcs) - MAX_FUNCTIONS} more functions (truncated)"))
 
@@ -57,9 +56,11 @@ class R2View(Static):
             offset = hex(op.get("offset", 0))
             opcode = op.get("opcode", "")
             parts.append(Text(f"  {offset}: {opcode}"))
-        
+
         if len(main_ops) > MAX_DISASM_OPS:
-            parts.append(Text(f"  ... {len(main_ops) - MAX_DISASM_OPS} more instructions (truncated)"))
+            parts.append(
+                Text(f"  ... {len(main_ops) - MAX_DISASM_OPS} more instructions (truncated)")
+            )
 
         # Strings
         rz_strings = r2.get("strings", [])
@@ -68,7 +69,7 @@ class R2View(Static):
         for s in displayed_strings:
             val = s.get("string", "")
             parts.append(Text(f"  {val}"))
-        
+
         if len(rz_strings) > MAX_STRINGS:
             parts.append(Text(f"  ... {len(rz_strings) - MAX_STRINGS} more strings (truncated)"))
 

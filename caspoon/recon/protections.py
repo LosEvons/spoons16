@@ -10,37 +10,34 @@ logger = logging.getLogger(__name__)
 
 class ProtectionsRecon:
     """Analyzes security protections using the 'checksec' tool.
-    
+
     Detects security features including PIE, NX, stack canary, and RELRO.
     """
-    
+
     name = "protections"
 
     def run(self, path: str, report: ExecutableReport) -> ExecutableReport:
         """Run protections reconnaissance.
-        
+
         Args:
             path: Path to the executable file
             report: ExecutableReport to enrich with protection information
-            
+
         Returns:
             Updated ExecutableReport with protection information
         """
         try:
             result = subprocess.run(
-                ["checksec", "--file", path],
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["checksec", "--file", path], capture_output=True, text=True, timeout=10
             )
-            
+
             if result.returncode != 0:
                 logger.warning(f"checksec returned non-zero exit code: {result.returncode}")
                 report.protections = ProtectionInfo(relro="checksec_error")
                 return report
-                
+
             output = result.stdout
-            
+
         except FileNotFoundError:
             logger.warning("'checksec' command not found. Protection detection unavailable.")
             report.protections = ProtectionInfo(relro="checksec_not_found")

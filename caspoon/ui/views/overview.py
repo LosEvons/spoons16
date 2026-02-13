@@ -1,21 +1,21 @@
 """Overview view component for displaying basic executable information."""
 
-from textual.widgets import Static
 from rich.table import Table
+from textual.widgets import Static
 
 from caspoon.core.models import ExecutableReport
 
 
 class OverviewView(Static):
     """Display overview information about the analyzed executable.
-    
+
     Shows basic metadata including path, architecture, bit width,
     stripped status, and file type in a formatted table.
     """
-    
+
     def update_data(self, report: ExecutableReport) -> None:
         """Update the view with new report data.
-        
+
         Args:
             report: ExecutableReport containing analysis results
         """

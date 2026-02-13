@@ -1,9 +1,12 @@
 """Unit tests for ImportExportRecon module."""
-import pytest
-from unittest.mock import Mock, patch, mock_open
+
 from pathlib import Path
-from caspoon.recon.imports_exports import ImportExportRecon, MAX_FILE_SIZE
+from unittest.mock import Mock, mock_open, patch
+
+import pytest
+
 from caspoon.core.models import ExecutableReport
+from caspoon.recon.imports_exports import MAX_FILE_SIZE, ImportExportRecon
 
 
 class TestImportExportRecon:
@@ -22,7 +25,7 @@ class TestImportExportRecon:
         """Test handling of non-existent file."""
         report = ExecutableReport(path="/nonexistent/file")
         result = recon.run("/nonexistent/file", report)
-        
+
         assert result is not None
         assert "imports_exports_error" in result.raw_backend_data
         assert result.raw_backend_data["imports_exports_error"] == "File not found"
@@ -32,11 +35,11 @@ class TestImportExportRecon:
         # Create a file path but mock the size check
         test_file = tmp_path / "large_file"
         test_file.write_text("test")
-        
-        with patch('os.path.getsize', return_value=MAX_FILE_SIZE + 1):
+
+        with patch("os.path.getsize", return_value=MAX_FILE_SIZE + 1):
             report = ExecutableReport(path=str(test_file))
             result = recon.run(str(test_file), report)
-            
+
             assert "imports_exports_error" in result.raw_backend_data
             assert result.raw_backend_data["imports_exports_error"] == "File too large"
 
@@ -44,11 +47,11 @@ class TestImportExportRecon:
         """Test handling of OSError when checking file size."""
         test_file = tmp_path / "test_file"
         test_file.write_text("test")
-        
-        with patch('os.path.getsize', side_effect=OSError("Permission denied")):
+
+        with patch("os.path.getsize", side_effect=OSError("Permission denied")):
             report = ExecutableReport(path=str(test_file))
             result = recon.run(str(test_file), report)
-            
+
             assert "imports_exports_error" in result.raw_backend_data
             assert "Permission denied" in result.raw_backend_data["imports_exports_error"]
 
@@ -57,10 +60,10 @@ class TestImportExportRecon:
         # Create a text file
         test_file = tmp_path / "not_elf.txt"
         test_file.write_text("This is not an ELF file")
-        
+
         report = ExecutableReport(path=str(test_file))
         result = recon.run(str(test_file), report)
-        
+
         assert "imports_exports_error" in result.raw_backend_data
         assert result.raw_backend_data["imports_exports_error"] == "Not an ELF file"
 
@@ -68,12 +71,12 @@ class TestImportExportRecon:
         """Test handling of IO error when reading file."""
         test_file = tmp_path / "test_file"
         test_file.write_text("test")
-        
+
         # Mock open to raise IOError
-        with patch('builtins.open', side_effect=IOError("Read error")):
+        with patch("builtins.open", side_effect=OSError("Read error")):
             report = ExecutableReport(path=str(test_file))
             result = recon.run(str(test_file), report)
-            
+
             assert "imports_exports_error" in result.raw_backend_data
             assert "IO error" in result.raw_backend_data["imports_exports_error"]
 
@@ -91,15 +94,15 @@ class TestImportExportRecon:
         binary_path = test_binaries_dir / "test_hello_x64"
         if not binary_path.exists():
             pytest.skip("test_hello_x64 binary not available")
-        
+
         report = ExecutableReport(path=str(binary_path))
         result = recon.run(str(binary_path), report)
-        
+
         # Should extract some imports (at least libc functions)
         assert len(result.imports) > 0
         # Should find printf from our test program
         assert any("printf" in imp for imp in result.imports)
-        
+
         # Should have some exports (functions defined in the binary)
         assert len(result.exports) > 0
 
@@ -109,10 +112,10 @@ class TestImportExportRecon:
         binary_path = test_binaries_dir / "test_stripped"
         if not binary_path.exists():
             pytest.skip("test_stripped binary not available")
-        
+
         report = ExecutableReport(path=str(binary_path))
         result = recon.run(str(binary_path), report)
-        
+
         # Stripped binary won't have .symtab but should have .dynsym
         assert len(result.imports) > 0
         # Exports from .symtab won't be available in stripped binary
@@ -124,10 +127,10 @@ class TestImportExportRecon:
         binary_path = test_binaries_dir / "test_with_pie"
         if not binary_path.exists():
             pytest.skip("test_with_pie binary not available")
-        
+
         report = ExecutableReport(path=str(binary_path))
         result = recon.run(str(binary_path), report)
-        
+
         # PIE binaries should still have symbol tables
         assert len(result.imports) > 0
 
@@ -135,98 +138,101 @@ class TestImportExportRecon:
         """Test ELF parsing with mocked symbols."""
         test_file = tmp_path / "test.elf"
         test_file.write_bytes(b"ELF")  # Minimal file
-        
+
         # Create mock ELF file structure
-        mock_symbol = {
-            'st_info': {'type': 'STT_FUNC'},
-            'name': 'mock_function'
-        }
+        mock_symbol = {"st_info": {"type": "STT_FUNC"}, "name": "mock_function"}
         mock_sym_obj = Mock()
         mock_sym_obj.__getitem__ = lambda self, key: mock_symbol[key]
-        mock_sym_obj.name = 'mock_function'
-        
+        mock_sym_obj.name = "mock_function"
+
         mock_section = Mock()
         mock_section.iter_symbols.return_value = [mock_sym_obj]
-        
+
         mock_elf = Mock()
-        mock_elf.get_section_by_name.side_effect = lambda name: mock_section if name == '.dynsym' else None
-        
-        with patch('builtins.open', mock_open(read_data=b"ELF")):
-            with patch('caspoon.recon.imports_exports.ELFFile', return_value=mock_elf):
+        mock_elf.get_section_by_name.side_effect = lambda name: (
+            mock_section if name == ".dynsym" else None
+        )
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
                 report = ExecutableReport(path=str(test_file))
                 result = recon.run(str(test_file), report)
-                
-                assert 'mock_function' in result.imports
+
+                assert "mock_function" in result.imports
 
     def test_filter_empty_symbol_names(self, recon, tmp_path):
         """Test that empty symbol names are filtered out."""
         test_file = tmp_path / "test.elf"
         test_file.write_bytes(b"ELF")
-        
+
         # Create properly mocked symbols
-        def create_mock_sym(name, func_type='STT_FUNC'):
+        def create_mock_sym(name, func_type="STT_FUNC"):
             sym = Mock()
-            sym.__getitem__ = lambda self, key: {'type': func_type}
+            sym.__getitem__ = lambda self, key: {"type": func_type}
             sym.name = name
             return sym
-        
+
         mock_symbols = [
-            create_mock_sym('valid_function'),
-            create_mock_sym(''),  # Empty
-            create_mock_sym('   '),  # Whitespace only
-            create_mock_sym('another_function'),
+            create_mock_sym("valid_function"),
+            create_mock_sym(""),  # Empty
+            create_mock_sym("   "),  # Whitespace only
+            create_mock_sym("another_function"),
         ]
-        
+
         mock_section = Mock()
         mock_section.iter_symbols.return_value = mock_symbols
-        
+
         mock_elf = Mock()
-        mock_elf.get_section_by_name.side_effect = lambda name: mock_section if name == '.dynsym' else None
-        
-        with patch('builtins.open', mock_open(read_data=b"ELF")):
-            with patch('caspoon.recon.imports_exports.ELFFile', return_value=mock_elf):
+        mock_elf.get_section_by_name.side_effect = lambda name: (
+            mock_section if name == ".dynsym" else None
+        )
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
                 report = ExecutableReport(path=str(test_file))
                 result = recon.run(str(test_file), report)
-                
+
                 # Should only include non-empty names
-                assert 'valid_function' in result.imports
-                assert 'another_function' in result.imports
+                assert "valid_function" in result.imports
+                assert "another_function" in result.imports
                 # Empty and whitespace-only names should be filtered
-                assert '' not in result.imports
-                assert '   ' not in result.imports
+                assert "" not in result.imports
+                assert "   " not in result.imports
 
     def test_only_function_symbols_extracted(self, recon, tmp_path):
         """Test that only STT_FUNC symbols are extracted."""
         test_file = tmp_path / "test.elf"
         test_file.write_bytes(b"ELF")
-        
+
         # Create properly mocked symbols
         def create_mock_sym(name, func_type):
             sym = Mock()
-            sym.__getitem__ = lambda self, key: {'type': func_type}
+            sym.__getitem__ = lambda self, key: {"type": func_type}
             sym.name = name
             return sym
-        
+
         mock_symbols = [
-            create_mock_sym('function1', 'STT_FUNC'),
-            create_mock_sym('variable1', 'STT_OBJECT'),
-            create_mock_sym('function2', 'STT_FUNC'),
-            create_mock_sym('section1', 'STT_SECTION'),
+            create_mock_sym("function1", "STT_FUNC"),
+            create_mock_sym("variable1", "STT_OBJECT"),
+            create_mock_sym("function2", "STT_FUNC"),
+            create_mock_sym("section1", "STT_SECTION"),
         ]
-        
+
         mock_section = Mock()
         mock_section.iter_symbols.return_value = mock_symbols
-        
+
         mock_elf = Mock()
-        mock_elf.get_section_by_name.side_effect = lambda name: mock_section if name == '.dynsym' else None
-        
-        with patch('builtins.open', mock_open(read_data=b"ELF")):
-            with patch('caspoon.recon.imports_exports.ELFFile', return_value=mock_elf):
+        mock_elf.get_section_by_name.side_effect = lambda name: (
+            mock_section if name == ".dynsym" else None
+        )
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
                 report = ExecutableReport(path=str(test_file))
                 result = recon.run(str(test_file), report)
-                
+
                 # Should only include STT_FUNC types
-                assert 'function1' in result.imports
-                assert 'function2' in result.imports
-                assert 'variable1' not in result.imports
-                assert 'section1' not in result.imports
+                assert "function1" in result.imports
+                assert "function2" in result.imports
+                assert "variable1" not in result.imports
+                assert "section1" not in result.imports
