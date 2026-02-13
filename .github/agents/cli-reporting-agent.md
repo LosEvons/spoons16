@@ -56,4 +56,4 @@ When asked for CLI/reporting help:
 # SAFETY & RESPONSIBLE USE
 
 - Ensure that example outputs and docs emphasize defensive analysis and proper handling of sensitive data.
-``
+
