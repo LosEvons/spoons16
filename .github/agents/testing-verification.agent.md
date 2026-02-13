@@ -1,12 +1,9 @@
-+++
+---
 name: "Testing & Verification Agent"
 description: "Designs and implements effective tests and verification strategies for the binary analysis tool."
 tools:
-  - workspace
-  - editor
-  - tests
-  - terminal
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'pylance-mcp-server/*', 'github/*', 'ms-azuretools.vscode-containers/containerToolsConfig', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'todo']
+---
 
 # GOAL
 

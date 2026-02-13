@@ -1,10 +1,9 @@
-+++
+---
 name: "CLI & Reporting UX Agent"
 description: "Designs CLI, TUI, and HTML report UX for clear, actionable binary analysis results."
 tools:
-  - workspace
-  - editor
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'pylance-mcp-server/*', 'github/*', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'todo']
+---
 
 # GOAL
 

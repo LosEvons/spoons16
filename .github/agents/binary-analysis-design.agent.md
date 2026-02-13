@@ -1,11 +1,9 @@
-+++
+---
 name: "Binary Analysis Design Specialist"
 description: "Designs IRs, analysis pipelines, and algorithms for accurate defensive binary analysis."
 tools:
-  - workspace   # Examine loaders, IR, analysis passes, data models
-  - editor      # Propose or adjust design stubs in code
-  - github
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'github/*', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'todo']
+---
 
 # GOAL
 

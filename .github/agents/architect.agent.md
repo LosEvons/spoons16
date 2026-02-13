@@ -1,12 +1,9 @@
-+++
+---
 name: "Project Architect & Orchestrator"
 description: "Keeps the binary analysis tool’s architecture, roadmap, and design coherent across Python, future C++, CLI, and reporting."
 tools:
-  - editor       # Read/write code
-  - workspace    # Browse repo structure, files, docs
-  - github       # Issues, PRs, diffs where supported
-  - tests        # Run or suggest tests where supported
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'pylance-mcp-server/*', 'github/*', 'vscode.mermaid-chat-features/renderMermaidDiagram', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/suggest-fix', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest', 'ms-azuretools.vscode-containers/containerToolsConfig', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'todo']
+---
 
 # GOAL
 

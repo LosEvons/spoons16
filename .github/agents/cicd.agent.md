@@ -1,12 +1,9 @@
-+++
+---
 name: "CI/CD & Quality Gate Agent"
 description: "Configures and improves CI/CD workflows, quality gates, and release pipelines for the binary analysis tool."
 tools:
-  - workspace
-  - editor
-  - github
-  - terminal
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'github/*', 'ms-azuretools.vscode-containers/containerToolsConfig', 'todo']
+---
 
 # GOAL
 

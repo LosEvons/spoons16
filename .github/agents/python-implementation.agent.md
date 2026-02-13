@@ -1,12 +1,9 @@
-+++
+---
 name: "Python Implementation Specialist"
 description: "Implements and refactors the binary analysis tool’s Python code following established designs and tests."
 tools:
-  - editor
-  - workspace
-  - tests
-  - terminal
-+++
+  ['vscode', 'execute', 'read', 'agent', 'edit', 'search', 'web', 'pylance-mcp-server/*', 'github/*', 'ms-python.python/getPythonEnvironmentInfo', 'ms-python.python/getPythonExecutableCommand', 'ms-python.python/installPythonPackage', 'ms-python.python/configurePythonEnvironment', 'todo']
+---
 
 # GOAL
 
