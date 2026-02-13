@@ -7,6 +7,41 @@
 
 ---
 
+## Table of Contents
+
+1. [Executive Summary](#executive-summary)
+   - Quick Reference Guide
+   - Overall Scores
+   - Key Findings
+2. [Current State Analysis](#current-state-analysis)
+3. [Framework Categories](#framework-categories)
+4. [CATEGORY 1: Terminal UI (TUI) Frameworks](#category-1-terminal-ui-tui-frameworks)
+   - Option 1A: Keep Textual (Recommended)
+   - Option 1B: Urwid
+   - Option 1C: prompt_toolkit
+5. [CATEGORY 2: Desktop GUI Frameworks](#category-2-desktop-gui-frameworks)
+   - Option 2A: Tkinter
+   - Option 2B: PyQt6 / PySide6
+   - Option 2C: PySimpleGUI (⚠️ NOT RECOMMENDED)
+6. [CATEGORY 3: Web UI Frameworks](#category-3-web-ui-frameworks)
+   - Option 3A: NiceGUI ⭐ (Top Web Alternative)
+   - Option 3B: Streamlit
+   - Option 3C: Gradio
+   - Option 3D: Flask/FastAPI + htmx
+   - Option 3E: Other Web Options
+7. [CATEGORY 4: Hybrid Options](#category-4-hybrid-options)
+   - Option 4A: Textual + Web Serving
+8. [Comparison Matrices](#comprehensive-testing-comparison-matrix)
+   - Testing Comparison
+   - Feature Comparison
+9. [Recommendations](#recommendations)
+10. [Migration Effort Comparison](#migration-effort-comparison)
+11. [Decision Framework](#decision-framework)
+12. [Conclusion](#conclusion)
+13. [References](#references)
+
+---
+
 ## Executive Summary
 
 After thorough research across **Terminal UI (TUI)**, **Desktop GUI**, and **Web UI** frameworks, this document evaluates alternatives to Textual for the Caspoon binary analysis toolkit. The analysis focuses on three key criteria:
