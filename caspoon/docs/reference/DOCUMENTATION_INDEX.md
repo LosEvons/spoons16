@@ -11,13 +11,24 @@ Start here to understand what Caspoon is and how to use it:
 
 ## 🛠️ For Contributors
 
-Guidelines for tests and documentation:
+Guidelines for contributors:
 
 - **[TESTING.md](TESTING.md)** - Comprehensive testing documentation
   - How to run tests
   - How to write tests
   - Test coverage requirements
   - Golden tests and best practices
+
+- **[caspoon/docs/DEPENDENCIES.md](caspoon/docs/DEPENDENCIES.md)** - Dependency management
+  - Core and optional dependencies
+  - Version constraints philosophy
+  - Lock files for reproducible builds
+  - Troubleshooting
+
+- **[caspoon/docs/reference/CI_CD_TOOLS.md](caspoon/docs/reference/CI_CD_TOOLS.md)** - CI/CD and security tools
+  - Security scanning workflow
+  - Dependency check script
+  - Dependabot configuration
 
 ## 🧪 Testing Documentation
 

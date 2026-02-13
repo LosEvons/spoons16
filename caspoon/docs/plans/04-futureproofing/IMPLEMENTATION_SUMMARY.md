@@ -3,7 +3,7 @@
 **Created**: 2026-02-12  
 **Updated**: 2026-02-13  
 **Plan ID**: 04-futureproofing  
-**Status**: In Progress (Subtask 1 ✅, Subtask 2 ✅)  
+**Status**: In Progress (Subtasks 1-3 ✅ Complete)  
 
 ---
 
@@ -46,9 +46,18 @@ caspoon/docs/plans/04-futureproofing/
   - Dependabot automated updates configured
   - README badges added
 
+- **[x] Subtask 3: Dependency Version Management** (Completed 2026-02-13)
+  - Version constraints added to pyproject.toml
+  - Optional dependency groups structured
+  - DEPENDENCIES.md documentation created
+  - requirements.txt and requirements-dev.txt created
+  - Dependency lock files added (requirements.lock, requirements-dev.lock)
+  - Security scanning workflow implemented
+  - Dependency check script created
+  - Enhanced Dependabot configuration
+
 ### Remaining Subtasks
 
-- **[ ] Subtask 3: Dependency Version Management** (Next - 1.5 hours)
 - **[ ] Subtask 5: Code Quality Tools** (1.5 hours)
 - **[ ] Subtask 4: Backend Abstraction** (Optional - 3-4 hours)
 - **[ ] Subtask 6: Documentation** (Optional - 3 hours)
@@ -77,11 +86,12 @@ caspoon/docs/plans/04-futureproofing/
    - Coverage reporting
    - README badges
 
-3. **Subtask 3: Dependency Version Management** (1.5 hours)
+3. **✅ Subtask 3: Dependency Version Management** (1.5 hours) - COMPLETE
    - Add version constraints to pyproject.toml
    - Structure optional dependencies
    - Document all dependencies
    - Create requirements.txt files
+   - Add dependency lock files
 
 4. **Subtask 5: Code Quality Tools** (1.5 hours)
    - Configure black (formatter)
@@ -200,17 +210,28 @@ With this infrastructure:
 
 **Goal**: Prevent breaking changes from dependency updates
 
+**Status**: ✅ COMPLETED - 2026-02-13
+
 **Delivers**:
 - Version constraints for all dependencies
-- Optional dependency groups (windows, patterns, advanced, graphs, reports, dev)
+- Optional dependency groups (windows, patterns, advanced, graphs, reports, dev, all)
 - Comprehensive dependency documentation
 - requirements.txt files for reference
+- **Lock files for reproducible builds** (requirements.lock, requirements-dev.lock)
+- **Security scanning workflow** (.github/workflows/security.yml)
+- **Dependency check helper script** (scripts/check_dependencies.py)
+- **Enhanced Dependabot configuration**
 
 **Key Files Created**:
 - Updated `pyproject.toml` with version ranges
 - `caspoon/docs/DEPENDENCIES.md` - dependency documentation
 - `caspoon/requirements.txt` - core dependencies
 - `caspoon/requirements-dev.txt` - dev dependencies
+- `caspoon/requirements.lock` - locked core dependencies
+- `caspoon/requirements-dev.lock` - locked dev dependencies
+- `.github/workflows/security.yml` - automated security scanning
+- `scripts/check_dependencies.py` - dependency management helper
+- `caspoon/docs/reference/CI_CD_TOOLS.md` - CI/CD tools documentation
 
 **Success Metric**: `pip install -e .` and `pip install -e ".[dev]"` work reproducibly
 

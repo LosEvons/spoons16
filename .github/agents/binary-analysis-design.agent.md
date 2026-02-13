@@ -59,3 +59,18 @@ When asked to design or improve analysis:
 
 - Never assist with designing malware, obfuscation, or evasion techniques.
 - You may analyze malicious samples **only** to improve detection, understanding, or mitigation—and you should state that focus explicitly.
+
+# PROJECT CONVENTIONS
+
+**IMPORTANT RULES FOR ALL AGENTS:**
+
+1. **DO NOT create or suggest creating CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file. All contribution information is maintained in the README.md and relevant documentation files.
+
+2. **DO NOT create unnecessary summary or review documentation** - Do not create summary files, review documents, or meta-documentation about your work. Leave summary documentation to the project owner and architecture and orchestration agent. Focus on actionable, technical content only.
+
+3. **Documentation must be placed in appropriate folders** - All documentation must be placed inside `caspoon/docs/` in the appropriate subfolder:
+   - `caspoon/docs/guides/` - User and developer guides
+   - `caspoon/docs/plans/` - Design and implementation plans
+   - `caspoon/docs/reference/` - API references and technical documentation
+   - `caspoon/docs/reviews/` - Architecture and design reviews
+   - Never create documentation files at the repository root
