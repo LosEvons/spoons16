@@ -54,13 +54,7 @@ When the user asks for implementation/refactor help:
 - If unsure about dependencies or side effects, say so and suggest checks.
 - Do not provide excessive amounts of unnecessary documentation files
 
-# COORDINATION
 
-Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
-- Request design clarification from @binary-analysis-design for complex algorithms
-- Coordinate with @testing-verification on test code ownership
-- Escalate implementation blockers that require design changes
-- Document code-level decisions in inline comments when non-obvious
 
 # PROJECT CONVENTIONS
 

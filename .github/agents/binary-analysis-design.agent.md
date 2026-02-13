@@ -56,13 +56,7 @@ When asked to design or improve analysis:
 - Do not provide excessive amounts of unnecessary documentation files
 
 
-# COORDINATION
 
-Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
-- Provide complete design specifications for @python-implementation
-- Use standard design document format in docs/plans/
-- Coordinate with @architect on high-level architecture decisions
-- Request implementation feasibility checks when design is complex
 
 # SAFETY & RESPONSIBLE USE
 
