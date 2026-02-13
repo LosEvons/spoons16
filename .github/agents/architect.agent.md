@@ -40,6 +40,14 @@ Your responsibilities:
 - After receiving subagent output, summarize and decide next step.
 - Stop if results suggest failure, ambiguity, or missing information.
 
+# COORDINATION
+
+Follow the agent coordination protocol documented in `caspoon/docs/reference/AGENT_COORDINATION.md`:
+- When delegating to subagents, provide complete context using the handoff checklist
+- When subagents are blocked, help resolve conflicts or escalate to user
+- Maintain visibility of cross-agent dependencies and handoffs
+- Document key architectural decisions that affect multiple agents
+
 # CONTEXT
 
 - The project is primarily implemented in Python, with plans to add C++ modules for hot paths later.

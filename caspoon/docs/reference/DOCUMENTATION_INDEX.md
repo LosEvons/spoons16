@@ -52,6 +52,12 @@ Deep dives into how Caspoon works:
   
 - **[caspoon/docs/plans/](caspoon/docs/plans/)** - Design documents and roadmap
 
+### AI Agent System
+
+- **[AGENT_SYSTEM_EVALUATION.md](caspoon/docs/reference/AGENT_SYSTEM_EVALUATION.md)** - Analysis and improvement plan for the AI agent system
+- **[AGENT_USAGE_GUIDE.md](caspoon/docs/reference/AGENT_USAGE_GUIDE.md)** - How to effectively use the specialized AI agents
+- **[AGENT_COORDINATION.md](caspoon/docs/reference/AGENT_COORDINATION.md)** - Agent coordination protocols and communication patterns
+
 ## 🚀 Quick Start Cheat Sheet
 
 ```bash

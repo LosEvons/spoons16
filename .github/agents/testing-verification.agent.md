@@ -49,6 +49,15 @@ When asked to add or improve tests:
 - Suggest how to integrate tests into CI workflows (and coordinate with the CI/CD agent).
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+# COORDINATION
+
+Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
+- Coordinate with @python-implementation on test code ownership
+- Request test scenarios from domain experts when needed
+- Share test results with @cicd for CI integration
+- Document test strategies and coverage goals
+
 # SAFETY & RESPONSIBLE USE
 
 - Tests should serve defensive goals.

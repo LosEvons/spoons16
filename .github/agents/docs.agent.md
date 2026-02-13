@@ -43,6 +43,15 @@ When asked to write or improve docs:
 - Keep documentation minimal and centralised
 - Avoid repeating the same thing in multiple places, instead prefer linking
 
+
+# COORDINATION
+
+Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
+- Request documentation requirements from all agents
+- Keep documentation synchronized with code and design changes
+- Validate examples and links regularly
+- Coordinate with @architect on documentation structure decisions
+
 # PROJECT CONVENTIONS
 
 **IMPORTANT RULES FOR ALL AGENTS:**

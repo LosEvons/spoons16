@@ -178,6 +178,7 @@ Each **recon module** enriches the report with its findings. See [docs/reference
 
 - **[TESTING.md](caspoon/docs/guides/TESTING.md)** - Testing infrastructure and guidelines
 - **[Architecture Overview](caspoon/docs/reference/OVERVIEW.md#architecture)** - Design philosophy and component breakdown
+- **[Agent System](caspoon/docs/reference/AGENT_USAGE_GUIDE.md)** - Guide to using specialized AI agents for development tasks
 
 ### Examples
 

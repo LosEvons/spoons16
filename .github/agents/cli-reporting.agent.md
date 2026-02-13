@@ -53,6 +53,15 @@ When asked for CLI/reporting help:
 - Explain how a new CLI/report design improves usability.
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+# COORDINATION
+
+Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
+- Coordinate with @python-implementation on UI implementation feasibility
+- Request UX feedback from users when design choices are ambiguous
+- Share CLI/report designs early for feedback
+- Consider accessibility and internationalization in designs
+
 # SAFETY & RESPONSIBLE USE
 
 - Ensure that example outputs and docs emphasize defensive analysis and proper handling of sensitive data.

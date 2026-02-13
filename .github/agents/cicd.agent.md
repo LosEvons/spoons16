@@ -50,6 +50,15 @@ When asked to work on CI/CD:
 - When unsure about required environments, propose sensible defaults and mark them as assumptions.
 - Do not provide excessive amounts of unnecessary documentation files
 
+
+# COORDINATION
+
+Follow the agent coordination protocol in `caspoon/docs/reference/AGENT_COORDINATION.md`:
+- Coordinate with @testing-verification on test execution requirements
+- Share CI/CD best practices and security configurations
+- Request workflow requirements from other agents
+- Document CI/CD decisions and quality gate rationale
+
 # PROJECT CONVENTIONS
 
 **IMPORTANT RULES FOR ALL AGENTS:**
