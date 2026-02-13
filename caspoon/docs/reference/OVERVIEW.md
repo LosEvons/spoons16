@@ -345,7 +345,6 @@ pytest -m golden                # Regression tests
 
 For detailed testing guidelines, see:
 - **[TESTING.md](../../../TESTING.md)** - Comprehensive testing guide
-- **[CONTRIBUTING.md](../../../CONTRIBUTING.md)** - Contribution guidelines including testing requirements
 - **[tests/README.md](../../tests/README.md)** - Test suite overview
 
 ## Future Enhancement Areas
@@ -374,16 +373,3 @@ Caspoon analyzes potentially malicious binaries. Best practices:
 ## License
 
 Check repository root for license information.
-
-## Contributing
-
-When contributing new modules or features:
-1. Follow the existing architecture patterns
-2. Write tests for all new code (see [CONTRIBUTING.md](../../../CONTRIBUTING.md))
-3. Document new recon modules and backends
-4. Update this overview document
-5. Ensure backward compatibility with ExecutableReport model
-6. Add appropriate error handling
-7. Maintain 80%+ test coverage
-
-See **[CONTRIBUTING.md](../../../CONTRIBUTING.md)** for detailed contribution guidelines.
