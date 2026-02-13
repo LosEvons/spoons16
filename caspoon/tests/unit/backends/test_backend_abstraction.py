@@ -171,3 +171,130 @@ class TestDisassemblyBackendInterface:
         # Check that concrete methods exist
         assert hasattr(DisassemblyBackend, "get_functions")
         assert hasattr(DisassemblyBackend, "get_imports")
+
+    def test_get_functions_returns_empty_when_capability_disabled(self):
+        """Test get_functions returns [] when functions capability is disabled."""
+        # Create a minimal concrete backend with functions capability disabled
+        class MinimalBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "minimal"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="minimal", functions=False)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"functions": [{"name": "test"}]}
+
+        backend = MinimalBackend()
+        result = backend.get_functions("/any/path")
+        assert result == []
+
+    def test_get_functions_calls_analyze_when_capability_enabled(self):
+        """Test get_functions calls analyze and returns functions when capability enabled."""
+        class FunctionalBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "functional"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="functional", functions=True)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"functions": [{"name": "main"}, {"name": "helper"}]}
+
+        backend = FunctionalBackend()
+        result = backend.get_functions("/test/path")
+        assert result == [{"name": "main"}, {"name": "helper"}]
+
+    def test_get_functions_returns_empty_when_no_functions_in_analysis(self):
+        """Test get_functions returns [] when analysis doesn't include functions."""
+        class NoFunctionsBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "nofuncs"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="nofuncs", functions=True)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"imports": []}  # No 'functions' key
+
+        backend = NoFunctionsBackend()
+        result = backend.get_functions("/test/path")
+        assert result == []
+
+    def test_get_imports_returns_empty_when_capability_disabled(self):
+        """Test get_imports returns [] when imports capability is disabled."""
+        class NoImportsCapBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "noimp"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="noimp", imports=False)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"imports": [{"name": "printf"}]}
+
+        backend = NoImportsCapBackend()
+        result = backend.get_imports("/any/path")
+        assert result == []
+
+    def test_get_imports_calls_analyze_when_capability_enabled(self):
+        """Test get_imports calls analyze and returns imports when capability enabled."""
+        class ImportsBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "imports"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="imports", imports=True)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"imports": [{"name": "printf"}, {"name": "malloc"}]}
+
+        backend = ImportsBackend()
+        result = backend.get_imports("/test/path")
+        assert result == [{"name": "printf"}, {"name": "malloc"}]
+
+    def test_get_imports_returns_empty_when_no_imports_in_analysis(self):
+        """Test get_imports returns [] when analysis doesn't include imports."""
+        class NoImportsDataBackend(DisassemblyBackend):
+            @property
+            def name(self):
+                return "noimpsdata"
+
+            @property
+            def capabilities(self):
+                return BackendCapabilities(name="noimpsdata", imports=True)
+
+            def is_available(self):
+                return True
+
+            def analyze(self, path):
+                return {"functions": []}  # No 'imports' key
+
+        backend = NoImportsDataBackend()
+        result = backend.get_imports("/test/path")
+        assert result == []

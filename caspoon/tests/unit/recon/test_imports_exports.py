@@ -236,3 +236,151 @@ class TestImportExportRecon:
                 assert "function2" in result.imports
                 assert "variable1" not in result.imports
                 assert "section1" not in result.imports
+
+    def test_symtab_exports_extraction(self, recon, tmp_path):
+        """Test that exports are extracted from .symtab section."""
+        test_file = tmp_path / "test.elf"
+        test_file.write_bytes(b"ELF")
+
+        # Create mock symbols for both .dynsym and .symtab
+        def create_mock_sym(name, func_type="STT_FUNC"):
+            sym = Mock()
+            sym.__getitem__ = lambda self, key: {"type": func_type}
+            sym.name = name
+            return sym
+
+        # .dynsym has imports
+        dynsym_symbols = [create_mock_sym("imported_func")]
+        mock_dynsym = Mock()
+        mock_dynsym.iter_symbols.return_value = dynsym_symbols
+
+        # .symtab has exports (local functions)
+        symtab_symbols = [
+            create_mock_sym("exported_func1"),
+            create_mock_sym("exported_func2"),
+            create_mock_sym(""),  # Empty name should be filtered
+        ]
+        mock_symtab = Mock()
+        mock_symtab.iter_symbols.return_value = symtab_symbols
+
+        mock_elf = Mock()
+        mock_elf.get_section_by_name.side_effect = lambda name: {
+            ".dynsym": mock_dynsym,
+            ".symtab": mock_symtab,
+        }.get(name)
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                # Check imports from .dynsym
+                assert "imported_func" in result.imports
+
+                # Check exports from .symtab
+                assert "exported_func1" in result.exports
+                assert "exported_func2" in result.exports
+                # Empty name should be filtered
+                assert "" not in result.exports
+
+    def test_symtab_filters_non_function_symbols(self, recon, tmp_path):
+        """Test that .symtab only extracts STT_FUNC symbols."""
+        test_file = tmp_path / "test.elf"
+        test_file.write_bytes(b"ELF")
+
+        def create_mock_sym(name, func_type):
+            sym = Mock()
+            sym.__getitem__ = lambda self, key: {"type": func_type}
+            sym.name = name
+            return sym
+
+        # .symtab with mixed symbol types
+        symtab_symbols = [
+            create_mock_sym("func_export", "STT_FUNC"),
+            create_mock_sym("data_var", "STT_OBJECT"),
+            create_mock_sym("another_func", "STT_FUNC"),
+        ]
+        mock_symtab = Mock()
+        mock_symtab.iter_symbols.return_value = symtab_symbols
+
+        mock_elf = Mock()
+        mock_elf.get_section_by_name.side_effect = lambda name: (
+            mock_symtab if name == ".symtab" else None
+        )
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                # Should only include STT_FUNC from symtab
+                assert "func_export" in result.exports
+                assert "another_func" in result.exports
+                assert "data_var" not in result.exports
+
+    def test_symtab_filters_whitespace_names(self, recon, tmp_path):
+        """Test that .symtab filters out whitespace-only names."""
+        test_file = tmp_path / "test.elf"
+        test_file.write_bytes(b"ELF")
+
+        def create_mock_sym(name):
+            sym = Mock()
+            sym.__getitem__ = lambda self, key: {"type": "STT_FUNC"}
+            sym.name = name
+            return sym
+
+        symtab_symbols = [
+            create_mock_sym("valid_export"),
+            create_mock_sym(""),
+            create_mock_sym("  "),
+            create_mock_sym("\t"),
+        ]
+        mock_symtab = Mock()
+        mock_symtab.iter_symbols.return_value = symtab_symbols
+
+        mock_elf = Mock()
+        mock_elf.get_section_by_name.side_effect = lambda name: (
+            mock_symtab if name == ".symtab" else None
+        )
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                assert "valid_export" in result.exports
+                assert len(result.exports) == 1
+
+    def test_generic_exception_handling(self, recon, tmp_path):
+        """Test handling of unexpected exceptions during ELF parsing."""
+        test_file = tmp_path / "test.elf"
+        test_file.write_bytes(b"ELF")
+
+        mock_elf = Mock()
+        # Raise an unexpected exception
+        mock_elf.get_section_by_name.side_effect = RuntimeError("Unexpected error")
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                assert "imports_exports_error" in result.raw_backend_data
+                assert "Unexpected error" in result.raw_backend_data["imports_exports_error"]
+
+    def test_generic_exception_with_different_error_types(self, recon, tmp_path):
+        """Test handling of various exception types."""
+        test_file = tmp_path / "test.elf"
+        test_file.write_bytes(b"ELF")
+
+        # Test with ValueError
+        mock_elf = Mock()
+        mock_elf.get_section_by_name.side_effect = ValueError("Invalid value")
+
+        with patch("builtins.open", mock_open(read_data=b"ELF")):
+            with patch("caspoon.recon.imports_exports.ELFFile", return_value=mock_elf):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                assert "imports_exports_error" in result.raw_backend_data
+                assert "Invalid value" in result.raw_backend_data["imports_exports_error"]

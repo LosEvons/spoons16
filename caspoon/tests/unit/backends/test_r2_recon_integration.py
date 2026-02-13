@@ -228,3 +228,15 @@ class TestR2BackendFunctionality:
         # Should have analyze method
         assert hasattr(backend, "analyze")
         assert callable(backend.analyze)
+
+    def test_r2_backend_analyze_calls_analyze_with_r2(self):
+        """Test analyze method calls analyze_with_r2."""
+        backend = Radare2Backend()
+
+        with patch("caspoon.backends.r2_backend.analyze_with_r2") as mock_analyze:
+            mock_analyze.return_value = {"functions": [], "imports": []}
+
+            result = backend.analyze("/test/path")
+
+            mock_analyze.assert_called_once_with("/test/path")
+            assert result == {"functions": [], "imports": []}

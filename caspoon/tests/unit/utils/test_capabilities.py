@@ -1,5 +1,8 @@
 """Tests for capability detection."""
 
+from unittest.mock import MagicMock, patch
+import sys
+
 import pytest
 
 from caspoon.utils.capabilities import Capabilities, get_capabilities
@@ -100,3 +103,99 @@ class TestCapabilities:
         # Should always return results, even if some are False
         assert len(all_caps) > 0
         assert all(isinstance(v, bool) for v in all_caps.values())
+
+    def test_check_pefile_when_available(self):
+        """Test _check_pefile returns True when pefile is available."""
+        caps = Capabilities()
+        # Mock successful import
+        with patch.dict(sys.modules, {"pefile": MagicMock()}):
+            result = caps._check_pefile()
+            assert result is True
+
+    def test_check_capstone_when_available(self):
+        """Test _check_capstone returns True when capstone is available."""
+        caps = Capabilities()
+        with patch.dict(sys.modules, {"capstone": MagicMock()}):
+            result = caps._check_capstone()
+            assert result is True
+
+    def test_check_yara_when_available(self):
+        """Test _check_yara returns True when yara is available."""
+        caps = Capabilities()
+        with patch.dict(sys.modules, {"yara": MagicMock()}):
+            result = caps._check_yara()
+            assert result is True
+
+    def test_check_scipy_when_available(self):
+        """Test _check_scipy returns True when scipy is available."""
+        caps = Capabilities()
+        with patch.dict(sys.modules, {"scipy": MagicMock()}):
+            result = caps._check_scipy()
+            assert result is True
+
+    def test_check_networkx_when_available(self):
+        """Test _check_networkx returns True when networkx is available."""
+        caps = Capabilities()
+        with patch.dict(sys.modules, {"networkx": MagicMock()}):
+            result = caps._check_networkx()
+            assert result is True
+
+    def test_check_jinja2_when_available(self):
+        """Test _check_jinja2 returns True when jinja2 is available."""
+        caps = Capabilities()
+        with patch.dict(sys.modules, {"jinja2": MagicMock()}):
+            result = caps._check_jinja2()
+            assert result is True
+
+    def test_print_summary_all_features_installed(self, capsys):
+        """Test print_summary when all features are installed."""
+        caps = Capabilities()
+        # Mock all capabilities as available
+        caps._capabilities = {
+            "windows_pe": True,
+            "capstone": True,
+            "yara": True,
+            "advanced_math": True,
+            "graphs": True,
+            "reports": True,
+        }
+
+        caps.print_summary()
+
+        captured = capsys.readouterr()
+        assert "All optional features are installed!" in captured.out
+        # Should not show installation instructions when all are available
+        assert "To install missing features:" not in captured.out
+
+    def test_print_summary_some_features_missing(self, capsys):
+        """Test print_summary when some features are missing."""
+        caps = Capabilities()
+        # Mock some capabilities as missing
+        caps._capabilities = {
+            "windows_pe": False,
+            "capstone": True,
+            "yara": False,
+            "advanced_math": True,
+            "graphs": False,
+            "reports": True,
+        }
+
+        caps.print_summary()
+
+        captured = capsys.readouterr()
+        # Should show installation instructions when some are missing
+        assert "To install missing features:" in captured.out
+        assert "pip install caspoon[all]" in captured.out
+        assert "pip install caspoon[windows]" in captured.out
+
+    def test_detect_all_populates_all_capabilities(self):
+        """Test that _detect_all populates all expected capabilities."""
+        caps = Capabilities()
+
+        assert "windows_pe" in caps._capabilities
+        assert "capstone" in caps._capabilities
+        assert "yara" in caps._capabilities
+        assert "advanced_math" in caps._capabilities
+        assert "graphs" in caps._capabilities
+        assert "reports" in caps._capabilities
+        assert len(caps._capabilities) == 6
