@@ -24,8 +24,9 @@ class InteractiveDisasmView(Static):
     - Go to address dialog (g key)
     - Cross-reference display (x key)
 
-    The widget uses a keyboard-first approach for navigation, as this is
-    more reliable and efficient than mouse-based navigation in Textual.
+    Navigation is handled by the parent R2View via action bindings,
+    which allows the parent ScrollableContainer to properly handle
+    scrolling while this widget remains non-focusable.
     """
 
     # Reactive properties
@@ -271,46 +272,7 @@ class InteractiveDisasmView(Static):
             return f"{offset:#x}"
         return None
 
-    # Keyboard event handlers
-
-    def on_key(self, event) -> None:
-        """Handle keyboard input for navigation.
-
-        Args:
-            event: The key event
-        """
-        key = event.key
-
-        # Arrow key navigation
-        if key == "up":
-            self._move_selection(-1)
-            event.prevent_default()
-        elif key == "down":
-            self._move_selection(1)
-            event.prevent_default()
-
-        # Jump to address on current line
-        elif key == "enter":
-            self._navigate_to_current_line()
-            event.prevent_default()
-
-        # History navigation
-        elif key == "alt+left" or key == "ctrl+h":
-            self._go_back()
-            event.prevent_default()
-        elif key == "alt+right" or key == "ctrl+l":
-            self._go_forward()
-            event.prevent_default()
-
-        # Go to address dialog
-        elif key == "g":
-            self.post_message(self.OpenGotoDialog())
-            event.prevent_default()
-
-        # Show cross-references
-        elif key == "x":
-            self._show_xrefs()
-            event.prevent_default()
+    # Navigation methods (called by parent's action handlers)
 
     def _move_selection(self, delta: int) -> None:
         """Move the selection up or down.

@@ -601,14 +601,16 @@ class TestR2ViewLegend:
         assert "Color Legend:" in legend.plain
 
 
-class TestR2ViewFocusAndKeyboardHandling:
-    """Tests for R2View focus behavior and keyboard event handling."""
+class TestR2ViewKeyboardBindings:
+    """Tests for R2View keyboard bindings and action handling."""
 
-    def test_r2view_can_take_focus(self):
-        """Test that R2View can receive keyboard focus."""
+    def test_r2view_has_bindings(self):
+        """Test that R2View defines keyboard bindings."""
         view = R2View()
         
-        assert view.can_focus is True
+        # Check that BINDINGS is defined
+        assert hasattr(view, 'BINDINGS')
+        assert len(view.BINDINGS) > 0
 
     def test_interactive_disasm_widget_cannot_take_focus(self):
         """Test that the InteractiveDisasmView widget is non-focusable.
@@ -619,22 +621,56 @@ class TestR2ViewFocusAndKeyboardHandling:
         
         assert view._interactive_disasm.can_take_focus() is False
 
-    def test_r2view_forwards_keyboard_events_to_widget(self):
-        """Test that R2View forwards keyboard events to InteractiveDisasmView."""
+    def test_r2view_action_move_selection_calls_widget(self):
+        """Test that action_move_selection calls the widget's method."""
         view = R2View()
         
-        # Create a mock key event
-        mock_event = Mock()
-        mock_event.key = "down"
-        mock_event.prevent_default = Mock()
+        # Mock the interactive widget's _move_selection method
+        view._interactive_disasm._move_selection = Mock()
         
-        # Mock the interactive widget's on_key method
-        view._interactive_disasm.on_key = Mock()
+        # Call the action
+        view.action_move_selection(1)
         
-        # Forward the event
-        view.on_key(mock_event)
+        # Verify the method was called
+        view._interactive_disasm._move_selection.assert_called_once_with(1)
+    
+    def test_r2view_action_navigate_current_calls_widget(self):
+        """Test that action_navigate_current calls the widget's method."""
+        view = R2View()
         
-        # Verify the event was forwarded
-        view._interactive_disasm.on_key.assert_called_once_with(mock_event)
+        # Mock the interactive widget's _navigate_to_current_line method
+        view._interactive_disasm._navigate_to_current_line = Mock()
+        
+        # Call the action
+        view.action_navigate_current()
+        
+        # Verify the method was called
+        view._interactive_disasm._navigate_to_current_line.assert_called_once()
+    
+    def test_r2view_action_go_back_calls_widget(self):
+        """Test that action_go_back calls the widget's method."""
+        view = R2View()
+        
+        # Mock the interactive widget's _go_back method
+        view._interactive_disasm._go_back = Mock()
+        
+        # Call the action
+        view.action_go_back()
+        
+        # Verify the method was called
+        view._interactive_disasm._go_back.assert_called_once()
+    
+    def test_r2view_action_go_forward_calls_widget(self):
+        """Test that action_go_forward calls the widget's method."""
+        view = R2View()
+        
+        # Mock the interactive widget's _go_forward method
+        view._interactive_disasm._go_forward = Mock()
+        
+        # Call the action
+        view.action_go_forward()
+        
+        # Verify the method was called
+        view._interactive_disasm._go_forward.assert_called_once()
 
 

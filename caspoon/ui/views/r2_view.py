@@ -29,10 +29,21 @@ class R2View(Container):
     by radare2's analysis engine, with limits to prevent UI slowdown.
     Automatically detects architecture and uses appropriate syntax highlighting.
     Features interactive navigation through disassembly.
+    
+    Uses action bindings for keyboard navigation to allow parent ScrollableContainer
+    to handle scrolling properly.
     """
 
-    # Make container focusable to receive keyboard events
-    can_focus = True
+    # Use bindings instead of focus to allow parent to handle scrolling
+    BINDINGS = [
+        ("up", "move_selection(-1)", "Move selection up"),
+        ("down", "move_selection(1)", "Move selection down"),
+        ("enter", "navigate_current", "Jump to address"),
+        ("ctrl+h,alt+left", "go_back", "Navigate back"),
+        ("ctrl+l,alt+right", "go_forward", "Navigate forward"),
+        ("g", "open_goto", "Go to address"),
+        ("x", "show_xrefs", "Show cross-references"),
+    ]
 
     def __init__(self, *args, **kwargs):
         """Initialize R2View with navigation and caching."""
@@ -336,16 +347,32 @@ class R2View(Container):
         # For now, this is a placeholder
         pass
 
-    def on_key(self, event) -> None:
-        """Handle keyboard input and forward to interactive widget.
-
-        This allows the container to receive keyboard events while still
-        allowing the parent ScrollableContainer to handle scrolling.
-
+    # Action handlers for bindings
+    
+    def action_move_selection(self, delta: int) -> None:
+        """Move the selection in the interactive disasm view.
+        
         Args:
-            event: The key event
+            delta: Number of lines to move (-1 for up, +1 for down)
         """
-        # Forward keyboard events to the interactive disasm widget
-        # This allows navigation while keeping the widget non-focusable
-        # so ScrollableContainer can handle scrolling
-        self._interactive_disasm.on_key(event)
+        self._interactive_disasm._move_selection(delta)
+    
+    def action_navigate_current(self) -> None:
+        """Navigate to the target address of the currently selected line."""
+        self._interactive_disasm._navigate_to_current_line()
+    
+    def action_go_back(self) -> None:
+        """Navigate back in history."""
+        self._interactive_disasm._go_back()
+    
+    def action_go_forward(self) -> None:
+        """Navigate forward in history."""
+        self._interactive_disasm._go_forward()
+    
+    def action_open_goto(self) -> None:
+        """Open the goto address dialog."""
+        self._interactive_disasm.post_message(InteractiveDisasmView.OpenGotoDialog())
+    
+    def action_show_xrefs(self) -> None:
+        """Show cross-references for the currently selected line."""
+        self._interactive_disasm._show_xrefs()
