@@ -7,3 +7,23 @@ dist/
 build/
 *egg-info/
 
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.tox/
+*.cover
+.hypothesis/
+
+# Test binaries (except source)
+caspoon/tests/fixtures/binaries/test_*
+!caspoon/tests/fixtures/binaries/src/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
