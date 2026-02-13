@@ -203,7 +203,7 @@ class InteractiveDisasmView(Static):
 
         # Address
         offset = op.get("offset", 0)
-        addr_str = f"{offset:#010x}"  # Format as 0x00401234
+        addr_str = f"{offset:#010x}"  # Format as 0x00401234 for display
         line.append(addr_str, style="cyan")
         line.append("  ")
 
@@ -214,8 +214,9 @@ class InteractiveDisasmView(Static):
         else:
             line.append("  ")
 
-        # Highlighted instruction
-        highlighted = self.highlighter.highlight_instruction(opcode)
+        # Highlighted instruction (with address for context, using simple hex format)
+        addr_for_highlighter = hex(offset)  # Simple format for highlighter
+        highlighted = self.highlighter.highlight_instruction(opcode, addr_for_highlighter)
         line.append_text(highlighted)
 
         # Add background highlight for selected line
