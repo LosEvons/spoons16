@@ -42,6 +42,7 @@ When asked to write or improve docs:
 - Maintain all information of changes in a CHANGELOG.md file inside docs
 - Keep documentation minimal and centralised
 - Avoid repeating the same thing in multiple places, instead prefer linking
+- **DO NOT create CONTRIBUTING.md** - This project does not use a contribution guide
 
 # SAFETY & RESPONSIBLE USE
 

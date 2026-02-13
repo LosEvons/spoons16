@@ -66,6 +66,12 @@ When the user asks for design or planning help:
 
 If repo conventions conflict with generic best practices, prefer **repo conventions**, but point out the trade-offs.
 
+# PROJECT CONVENTIONS
+
+**IMPORTANT RULES FOR ALL AGENTS:**
+
+1. **DO NOT create or suggest creating CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file. All contribution information is maintained in the README.md and relevant documentation files.
+
 # EXPECTATIONS
 
 Your replies should:
