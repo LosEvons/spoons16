@@ -10,8 +10,8 @@ Create comprehensive user-facing and developer documentation to support adoption
 - Create/update README.md
 - Create INSTALLATION.md
 - Create USER_GUIDE.md
-- Update CONTRIBUTING.md (if not done in Subtask 2)
 - Create ARCHITECTURE.md (enhance OVERVIEW.md)
+- **Note**: CONTRIBUTING.md is NOT used in this project
 
 ## Prerequisites
 - None (can be done anytime)
@@ -232,7 +232,6 @@ After installation:
 1. Read [USER_GUIDE.md](USER_GUIDE.md) for usage instructions
 2. Try the examples in examples/
 3. Read [OVERVIEW.md](OVERVIEW.md) for architecture details
-4. Read [CONTRIBUTING.md](../CONTRIBUTING.md) to contribute
 ```
 
 ### Step 3: Create User Guide (1 hour)
@@ -476,7 +475,6 @@ See `examples/` directory for:
 
 - Documentation: `docs/`
 - Issues: GitHub Issues
-- Contributing: See CONTRIBUTING.md
 ```
 
 ### Step 4: Create Architecture Document (30 minutes)
