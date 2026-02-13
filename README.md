@@ -249,33 +249,6 @@ Caspoon is actively developed and maintained. Current status:
 
 ---
 
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines on:
-
-- Setting up your development environment
-- Running tests and code quality checks
-- Submitting pull requests
-- Coding standards and best practices
-
-Quick start for contributors:
-
-```bash
-# Fork and clone the repository
-git clone https://github.com/YOUR_USERNAME/spoons16.git
-cd spoons16/caspoon
-
-# Install in development mode
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# See CONTRIBUTING.md for more details
-```
-
----
-
 ## License
 
 See [LICENSE](LICENSE) file for details.

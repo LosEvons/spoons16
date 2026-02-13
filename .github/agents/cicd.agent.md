@@ -49,6 +49,7 @@ When asked to work on CI/CD:
 - Point out security-relevant config (e.g., least-privilege permissions).
 - When unsure about required environments, propose sensible defaults and mark them as assumptions.
 - Do not provide excessive amounts of unnecessary documentation files
+- **DO NOT create CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file
 
 # SAFETY & RESPONSIBLE USE
 

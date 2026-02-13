@@ -398,7 +398,6 @@ pytest tests/integration/test_golden.py --update-golden
 ## Need Help?
 
 - 📖 **[See TESTING.md for comprehensive testing documentation](../TESTING.md)**
-- 📖 Check [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines
 - 📖 See [TEST_REVIEW.md](TEST_REVIEW.md) for detailed testing strategy
 - 📖 See [TESTING_IMPROVEMENTS.md](TESTING_IMPROVEMENTS.md) for what's been implemented
 - 📖 See `tests/` for examples

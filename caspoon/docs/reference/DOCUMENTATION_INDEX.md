@@ -98,9 +98,6 @@ spoons16/
 ### "I need quick test commands"
 → See **[caspoon/TESTING_GUIDE.md](caspoon/TESTING_GUIDE.md)**
 
-### "I want to add a new recon module"
-→ See **[CONTRIBUTING.md#adding-a-new-recon-module](CONTRIBUTING.md#adding-a-new-recon-module)**
-
 ### "I want to understand test coverage"
 → See **[TESTING.md#test-coverage](TESTING.md#test-coverage)**
 

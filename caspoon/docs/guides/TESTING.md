@@ -973,7 +973,6 @@ Solution: Check CI logs and ensure tests use fixtures, not hardcoded paths.
 ### Getting Help
 
 - 📖 See test examples in `tests/unit/` and `tests/integration/`
-- 📖 Check [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
 - 📖 Read [pytest documentation](https://docs.pytest.org/)
 - 🐛 Open an issue for test infrastructure bugs
 
@@ -1003,6 +1002,5 @@ pytest tests/integration/test_golden.py --update-golden  # Update after intentio
 ---
 
 **For more information:**
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [README.md](README.md) - Project overview
 - [docs/OVERVIEW.md](caspoon/docs/OVERVIEW.md) - Architecture details
