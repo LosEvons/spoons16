@@ -17,8 +17,8 @@ coverage.xml
 .hypothesis/
 
 # Test binaries (except source)
-tests/fixtures/binaries/test_*
-!tests/fixtures/binaries/src/
+caspoon/tests/fixtures/binaries/test_*
+!caspoon/tests/fixtures/binaries/src/
 
 # IDE
 .vscode/
