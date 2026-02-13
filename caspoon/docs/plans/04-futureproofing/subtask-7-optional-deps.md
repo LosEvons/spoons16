@@ -1,10 +1,27 @@
 # Subtask 7: Optional Dependencies Structure
 
+## Status: ✅ COMPLETED (Minimal Implementation)
+
 ## Objective
 Properly structure optional dependencies for future features without requiring them for basic usage.
 
 ## Priority
 🟢 **LOW - Can be deferred**
+
+## Implementation Summary
+
+**What was implemented:**
+- ✅ Created `caspoon/utils/capabilities.py` with capability detection
+- ✅ Added `--capabilities` CLI flag to `main.py`
+- ✅ Created comprehensive unit tests in `tests/unit/utils/test_capabilities.py`
+- ✅ All tests passing (8 new tests, 132 total tests passing)
+- ✅ Code quality validated with ruff
+
+**What was kept minimal:**
+- Simple detection-only implementation
+- No complex conditional import helpers (deferred)
+- No extensive documentation file (code is self-documenting)
+- Fast and lightweight detection
 
 ## Scope
 - Organize optional dependency groups

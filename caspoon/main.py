@@ -50,6 +50,18 @@ def validate_file_path(path: str) -> bool:
 
 def main() -> None:
     """Main entry point for the application."""
+    # Handle special flags first
+    if "--capabilities" in sys.argv:
+        from caspoon.utils.capabilities import get_capabilities
+
+        try:
+            caps = get_capabilities()
+            caps.print_summary()
+        except Exception as e:
+            logger.error(f"Error checking capabilities: {e}")
+            sys.exit(1)
+        return
+
     if "--ui" in sys.argv:
         from caspoon.ui.app import CaspoonApp
 
@@ -61,7 +73,10 @@ def main() -> None:
         return
 
     if len(sys.argv) < 2:
-        print("Usage: python -m caspoon <binary>  or  python -m caspoon --ui")
+        print("Usage:")
+        print("  python -m caspoon <binary>         # Analyze a binary")
+        print("  python -m caspoon --ui             # Launch TUI interface")
+        print("  python -m caspoon --capabilities   # Show available optional features")
         sys.exit(1)
 
     path = sys.argv[1]
