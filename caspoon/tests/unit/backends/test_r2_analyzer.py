@@ -685,3 +685,35 @@ class TestXrefExtraction:
         assert isinstance(result["xrefs"]["to"], dict)
         assert isinstance(result["xrefs"]["from"], dict)
 
+    @patch("caspoon.backends.r2_analyzer.r2pipe")
+    def test_main_ops_addr_to_offset_normalization(self, mock_r2pipe):
+        """Test that radare2's 'addr' field is normalized to 'offset' for consistency."""
+        mock_r2 = MagicMock()
+        mock_r2pipe.open.return_value = mock_r2
+
+        # Radare2 actually returns 'addr' field, not 'offset'
+        main_ops_from_r2 = [
+            {"addr": 0x1000, "opcode": "push rbp"},
+            {"addr": 0x1001, "opcode": "mov rbp, rsp"},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            None,  # aa
+            "[]",  # aflj
+            "[]",  # isj
+            "[]",  # izj
+            None,  # s main
+            json.dumps(main_ops_from_r2),  # pdj
+        ]
+
+        result = analyze_with_r2("/path/to/binary")
+
+        # Verify normalization: 'addr' should be copied to 'offset'
+        assert len(result["main_ops"]) == 2
+        assert result["main_ops"][0]["offset"] == 0x1000
+        assert result["main_ops"][1]["offset"] == 0x1001
+        # Original 'addr' field should still be present
+        assert result["main_ops"][0]["addr"] == 0x1000
+        assert result["main_ops"][1]["addr"] == 0x1001
+
+

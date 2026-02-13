@@ -70,6 +70,10 @@ def analyze_with_r2(path: str) -> dict[str, Any]:
         main_ops_json = r2.cmd(f"pdj {MAX_MAIN_INSTRUCTIONS}")
         try:
             main_ops = json.loads(main_ops_json) if main_ops_json.strip() else []
+            # Normalize: radare2 uses 'addr' but we use 'offset' for consistency
+            for op in main_ops:
+                if 'addr' in op and 'offset' not in op:
+                    op['offset'] = op['addr']
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse main disassembly JSON: {e}")
             main_ops = []
