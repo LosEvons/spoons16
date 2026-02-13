@@ -105,7 +105,7 @@ If repo conventions conflict with generic best practices, prefer **repo conventi
    - `caspoon/docs/guides/` - User and developer guides
    - `caspoon/docs/plans/` - Design and implementation plans
    - `caspoon/docs/reference/` - API references and technical documentation
-   - `caspoon/docs/reviews/` - Architecture and design reviews
+   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent` - API references and technical documentation
    - `caspoon/docs/changelogs/` - Project changelog entries
    - Never create documentation files at the repository root
 

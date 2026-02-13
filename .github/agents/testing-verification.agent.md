@@ -47,7 +47,7 @@ When asked to add or improve tests:
 - Keep tests focused and maintainable.
 - Explain what each test ensures and why it matters.
 - Suggest how to integrate tests into CI workflows (and coordinate with the CI/CD agent).
-- Do not provide excessive amounts of unnecessary documentation files
+- **CRITICAL: DO NOT create any documentation files.** Only write code and tests. No summaries, no reviews, no meta-documentation.
 
 
 
@@ -63,11 +63,11 @@ When asked to add or improve tests:
 
 1. **DO NOT create or suggest creating CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file. All contribution information is maintained in the README.md and relevant documentation files.
 
-2. **DO NOT create unnecessary summary or review documentation** - Do not create summary files, review documents, or meta-documentation about your work. Leave summary documentation to the project owner and architecture and orchestration agent. Focus on actionable, technical content only.
+2. **DO NOT create ANY documentation files** - NEVER create summary files, review documents, meta-documentation, or any .md files about your work. This includes test reports, verification summaries, quick references, or any other documentation. Leave ALL documentation to the architecture and orchestration agent. You create ONLY code and tests.
 
 3. **Documentation must be placed in appropriate folders** - All documentation must be placed inside `caspoon/docs/` in the appropriate subfolder:
    - `caspoon/docs/guides/` - User and developer guides
    - `caspoon/docs/plans/` - Design and implementation plans
    - `caspoon/docs/reference/` - API references and technical documentation
-   - `caspoon/docs/reviews/` - Architecture and design reviews
+   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent` - API references and technical documentation
    - Never create documentation files at the repository root
