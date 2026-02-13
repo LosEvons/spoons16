@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Dict
 
 
 class InstructionType(Enum):
@@ -22,7 +21,7 @@ class InstructionType(Enum):
 @dataclass
 class ColorScheme:
     """Color scheme for syntax highlighting.
-    
+
     Maps instruction types to Rich style strings (color names or styles).
     """
 
@@ -36,13 +35,13 @@ class ColorScheme:
     return_: str = "bright_cyan"  # Use return_ to avoid keyword conflict
     other: str = "white"
     address: str = "dim"
-    
+
     def get_style(self, instr_type: InstructionType) -> str:
         """Get the style for a given instruction type.
-        
+
         Args:
             instr_type: The instruction type to get the style for.
-            
+
         Returns:
             The Rich style string for this instruction type.
         """
@@ -62,7 +61,7 @@ class ColorScheme:
 
 def get_default_scheme() -> ColorScheme:
     """Get the default color scheme.
-    
+
     Returns:
         A ColorScheme with default colors optimized for readability.
     """

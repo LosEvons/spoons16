@@ -1,24 +1,25 @@
 """Tests for R2View component integration with syntax highlighting."""
 
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
+
 from caspoon.core.models import ExecutableReport
-from caspoon.ui.views.r2_view import R2View
 from caspoon.ui.syntax import AsmHighlighter
+from caspoon.ui.views.r2_view import R2View
 
 
 class TestR2ViewInitialization:
     """Tests for R2View initialization."""
-    
+
     def test_r2view_initializes_with_highlighter(self):
         """Test that R2View initializes with a syntax highlighter."""
         view = R2View()
-        
+
         assert hasattr(view, '_highlighter')
         assert view._highlighter is not None
         assert isinstance(view._highlighter, AsmHighlighter)
-    
+
     def test_r2view_can_be_created(self):
         """Test that R2View can be instantiated."""
         view = R2View()
@@ -27,11 +28,11 @@ class TestR2ViewInitialization:
 
 class TestR2ViewDataHandling:
     """Tests for R2View data handling."""
-    
+
     def test_update_data_with_valid_r2_data(self):
         """Test updating R2View with valid r2 analysis data."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -55,28 +56,28 @@ class TestR2ViewDataHandling:
                 ],
             }
         }
-        
+
         # Should not raise
         view.update_data(report)
-    
+
     def test_update_data_with_empty_r2_data(self):
         """Test that R2View handles empty r2 data gracefully."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
             arch="x86_64",
         )
         report.raw_backend_data = {}
-        
+
         # Should not raise
         view.update_data(report)
-    
+
     def test_update_data_with_r2_error(self):
         """Test that R2View displays r2 errors appropriately."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -85,14 +86,14 @@ class TestR2ViewDataHandling:
         report.raw_backend_data = {
             "r2_error": "Failed to open file"
         }
-        
+
         # Should not raise
         view.update_data(report)
-    
+
     def test_update_data_with_missing_functions(self):
         """Test handling of missing functions in r2 data."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -104,14 +105,14 @@ class TestR2ViewDataHandling:
                 "strings": [],
             }
         }
-        
+
         # Should not raise even if functions key is missing
         view.update_data(report)
-    
+
     def test_update_data_with_missing_main_ops(self):
         """Test handling of missing main_ops in r2 data."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -123,14 +124,14 @@ class TestR2ViewDataHandling:
                 "strings": [],
             }
         }
-        
+
         # Should not raise even if main_ops is missing
         view.update_data(report)
-    
+
     def test_update_data_with_missing_strings(self):
         """Test handling of missing strings in r2 data."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -142,25 +143,25 @@ class TestR2ViewDataHandling:
                 "main_ops": [],
             }
         }
-        
+
         # Should not raise even if strings is missing
         view.update_data(report)
 
 
 class TestR2ViewHighlighting:
     """Tests for syntax highlighting integration in R2View."""
-    
+
     def test_highlighter_is_used_for_disassembly(self):
         """Test that the highlighter is called for disassembly."""
         from rich.text import Text
-        
+
         view = R2View()
-        
+
         # Mock the highlighter to track calls
         mock_highlighter = Mock(spec=AsmHighlighter)
         mock_highlighter.highlight_instruction.return_value = Text("mock output")
         view._highlighter = mock_highlighter
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -176,23 +177,23 @@ class TestR2ViewHighlighting:
                 "strings": [],
             }
         }
-        
+
         view.update_data(report)
-        
+
         # Verify the highlighter was called for each instruction
         assert mock_highlighter.highlight_instruction.call_count == 2
-        
+
         # Verify it was called with correct arguments
         calls = mock_highlighter.highlight_instruction.call_args_list
         assert calls[0][0][0] == "push rbp"  # First arg of first call
         assert calls[0][0][1] == hex(0x1000)  # Second arg (address)
         assert calls[1][0][0] == "mov rbp, rsp"
         assert calls[1][0][1] == hex(0x1001)
-    
+
     def test_highlighter_handles_invalid_offset(self):
         """Test that highlighter handles invalid offsets gracefully."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -208,14 +209,14 @@ class TestR2ViewHighlighting:
                 "strings": [],
             }
         }
-        
+
         # Should not raise
         view.update_data(report)
-    
+
     def test_highlighter_handles_invalid_opcode(self):
         """Test that highlighter handles invalid opcodes gracefully."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -231,26 +232,26 @@ class TestR2ViewHighlighting:
                 "strings": [],
             }
         }
-        
+
         # Should not raise
         view.update_data(report)
 
 
 class TestR2ViewDisplayLimits:
     """Tests for R2View display limits."""
-    
+
     def test_functions_limited_to_max(self):
         """Test that functions are limited to MAX_FUNCTIONS."""
         from caspoon.ui.views.r2_view import MAX_FUNCTIONS
-        
+
         view = R2View()
-        
+
         # Create more functions than the limit
         many_functions = [
             {"name": f"func_{i}", "offset": 0x1000 + i}
             for i in range(MAX_FUNCTIONS + 50)
         ]
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -263,28 +264,29 @@ class TestR2ViewDisplayLimits:
                 "strings": [],
             }
         }
-        
+
         # Should not raise and should handle truncation
         view.update_data(report)
-    
+
     def test_disassembly_limited_to_max(self):
         """Test that disassembly is limited to MAX_DISASM_OPS."""
         from rich.text import Text
+
         from caspoon.ui.views.r2_view import MAX_DISASM_OPS
-        
+
         view = R2View()
-        
+
         # Mock the highlighter to track how many times it's called
         mock_highlighter = Mock(spec=AsmHighlighter)
         mock_highlighter.highlight_instruction.return_value = Text("mock")
         view._highlighter = mock_highlighter
-        
+
         # Create more operations than the limit
         many_ops = [
             {"offset": 0x1000 + i, "opcode": f"nop {i}"}
             for i in range(MAX_DISASM_OPS + 50)
         ]
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -297,24 +299,24 @@ class TestR2ViewDisplayLimits:
                 "strings": [],
             }
         }
-        
+
         view.update_data(report)
-        
+
         # Verify the highlighter was only called MAX_DISASM_OPS times
         assert mock_highlighter.highlight_instruction.call_count == MAX_DISASM_OPS
-    
+
     def test_strings_limited_to_max(self):
         """Test that strings are limited to MAX_STRINGS."""
         from caspoon.ui.views.r2_view import MAX_STRINGS
-        
+
         view = R2View()
-        
+
         # Create more strings than the limit
         many_strings = [
             {"string": f"string_{i}"}
             for i in range(MAX_STRINGS + 50)
         ]
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -327,22 +329,22 @@ class TestR2ViewDisplayLimits:
                 "strings": many_strings,
             }
         }
-        
+
         # Should not raise and should handle truncation
         view.update_data(report)
 
 
 class TestR2ViewRobustness:
     """Tests for R2View robustness and error handling."""
-    
+
     def test_malformed_function_data(self):
         """Test handling of malformed function data.
-        
+
         Note: This test currently expects the implementation to not handle None entries
         gracefully. This exposes a potential robustness issue in R2View that should be fixed.
         """
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -360,18 +362,18 @@ class TestR2ViewRobustness:
                 "strings": [],
             }
         }
-        
+
         # Should handle gracefully without crashing
         view.update_data(report)
-    
+
     def test_malformed_string_data(self):
         """Test handling of malformed string data.
-        
+
         Note: This test currently expects the implementation to not handle None entries
         gracefully. This exposes a potential robustness issue in R2View that should be fixed.
         """
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/binary",
             file_type="ELF",
@@ -388,25 +390,25 @@ class TestR2ViewRobustness:
                 ],
             }
         }
-        
+
         # Should handle gracefully without crashing
         view.update_data(report)
-    
+
     def test_none_report(self):
         """Test that R2View handles None report gracefully."""
         view = R2View()
-        
+
         # This would be a programming error, but should not crash
         try:
             view.update_data(None)
         except AttributeError:
             # Expected since None doesn't have raw_backend_data
             pass
-    
+
     def test_concurrent_updates(self):
         """Test that view can handle multiple updates."""
         view = R2View()
-        
+
         report1 = ExecutableReport(
             path="/test/binary1",
             file_type="ELF",
@@ -419,7 +421,7 @@ class TestR2ViewRobustness:
                 "strings": [],
             }
         }
-        
+
         report2 = ExecutableReport(
             path="/test/binary2",
             file_type="ELF",
@@ -432,7 +434,7 @@ class TestR2ViewRobustness:
                 "strings": [],
             }
         }
-        
+
         # Should be able to update multiple times
         view.update_data(report1)
         view.update_data(report2)
@@ -441,11 +443,11 @@ class TestR2ViewRobustness:
 
 class TestR2ViewRealWorldScenarios:
     """Tests with realistic scenarios."""
-    
+
     def test_typical_binary_analysis(self):
         """Test with typical binary analysis results."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/bin/ls",
             file_type="ELF",
@@ -474,14 +476,14 @@ class TestR2ViewRealWorldScenarios:
                 ],
             }
         }
-        
+
         # Should handle realistic data without issues
         view.update_data(report)
-    
+
     def test_stripped_binary(self):
         """Test with stripped binary (few symbols)."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/stripped",
             file_type="ELF",
@@ -501,13 +503,13 @@ class TestR2ViewRealWorldScenarios:
                 "strings": [],
             }
         }
-        
+
         view.update_data(report)
-    
+
     def test_empty_binary_analysis(self):
         """Test with binary that has no interesting results."""
         view = R2View()
-        
+
         report = ExecutableReport(
             path="/test/empty",
             file_type="ELF",
@@ -520,5 +522,5 @@ class TestR2ViewRealWorldScenarios:
                 "strings": [],
             }
         }
-        
+
         view.update_data(report)

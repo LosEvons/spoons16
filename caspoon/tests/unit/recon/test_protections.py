@@ -116,20 +116,20 @@ No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RU
 
     def test_checksec_command_format(self, recon):
         """Test that checksec is called with correct argument format.
-        
+
         checksec requires --file=<path> not --file <path> as separate arguments.
         This test verifies the command is properly formatted.
         """
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0, stdout="Full RELRO")
-            
+
             report = ExecutableReport(path="/test/binary")
             recon.run("/test/binary", report)
-            
+
             # Verify subprocess.run was called with correct format
             mock_run.assert_called_once()
             call_args = mock_run.call_args[0][0]  # Get the command list
-            
+
             # Should be ["checksec", "--file=/test/binary"], not ["checksec", "--file", "/test/binary"]
             assert len(call_args) == 2, f"Expected 2 arguments, got {len(call_args)}: {call_args}"
             assert call_args[0] == "checksec"
@@ -140,19 +140,19 @@ No RELRO        No canary found   NX disabled   No PIE          No RPATH   No RU
     @pytest.mark.requires_checksec
     def test_checksec_with_real_binary(self, recon):
         """Test checksec command with a real system binary.
-        
+
         This test verifies that checksec is called correctly and can analyze
         a real binary without errors. Requires checksec to be installed.
         """
         import shutil
-        
+
         if not shutil.which("checksec"):
             pytest.skip("checksec not installed")
-        
+
         # Use /bin/ls as it's available on all systems
         report = ExecutableReport(path="/bin/ls")
         result = recon.run("/bin/ls", report)
-        
+
         # Should successfully detect protections
         assert result.protections is not None
         assert result.protections.relro != "checksec_error"

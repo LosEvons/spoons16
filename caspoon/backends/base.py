@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 
 @dataclass
@@ -47,10 +47,10 @@ class DisassemblyBackend(ABC):
         """Get functions from binary."""
         if not self.capabilities.functions:
             return []
-        return self.analyze(path).get("functions", [])
+        return cast(list[dict], self.analyze(path).get("functions", []))
 
     def get_imports(self, path: str) -> list[dict]:
         """Get imports from binary."""
         if not self.capabilities.imports:
             return []
-        return self.analyze(path).get("imports", [])
+        return cast(list[dict], self.analyze(path).get("imports", []))

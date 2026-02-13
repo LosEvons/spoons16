@@ -1,7 +1,7 @@
 """Tests for capability detection."""
 
-from unittest.mock import MagicMock, patch
 import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 

@@ -10,33 +10,33 @@ logger = logging.getLogger(__name__)
 
 def _check_dependencies() -> None:
     """Check if required dependencies are installed.
-    
+
     Raises:
         SystemExit: If required dependencies are missing, with a helpful error message.
     """
     missing_deps = []
-    
+
     # Check core dependencies
     try:
         import r2pipe  # noqa: F401
     except ImportError:
         missing_deps.append("r2pipe")
-    
+
     try:
         import textual  # noqa: F401
     except ImportError:
         missing_deps.append("textual")
-    
+
     try:
         import elftools  # noqa: F401
     except ImportError:
         missing_deps.append("pyelftools")
-    
+
     try:
         import rich  # noqa: F401
     except ImportError:
         missing_deps.append("rich")
-    
+
     if missing_deps:
         print("\nError: Missing required dependencies:", file=sys.stderr)
         print(f"  {', '.join(missing_deps)}", file=sys.stderr)
@@ -86,10 +86,10 @@ def main() -> None:
     """Main entry point for the application."""
     # Check dependencies early to provide helpful error messages
     _check_dependencies()
-    
+
     # Import after dependency check to avoid confusing errors
     from caspoon.core.runner import ReconRunner
-    
+
     # Handle special flags first
     if "--capabilities" in sys.argv:
         # Configure logging for CLI mode
