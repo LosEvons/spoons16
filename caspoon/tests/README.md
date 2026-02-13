@@ -1,13 +1,12 @@
 # Caspoon Test Suite
 
-> **📖 For comprehensive testing documentation, see [../../TESTING.md](../../TESTING.md)**
+> **📖 For comprehensive testing documentation, see [../docs/guides/TESTING.md](../docs/guides/TESTING.md)**
 
 Comprehensive test suite for the Caspoon binary analysis tool.
 
 **Quick Links:**
-- **[TESTING.md](../../TESTING.md)** - Complete testing guide (running tests, writing tests, coverage)
-- **[CONTRIBUTING.md](../../CONTRIBUTING.md)** - Contribution guidelines
-- **[TESTING_GUIDE.md](../TESTING_GUIDE.md)** - Quick reference for developers
+- **[TESTING.md](../docs/guides/TESTING.md)** - Complete testing guide (running tests, writing tests, coverage)
+- **[TESTING_GUIDE.md](../docs/guides/TESTING_GUIDE.md)** - Quick reference for developers
 
 ---
 
@@ -144,7 +143,7 @@ pytest --cov=caspoon --cov-report=xml
 
 ## Writing Tests
 
-See [TESTING_GUIDE.md](../TESTING_GUIDE.md) for:
+See [TESTING_GUIDE.md](../docs/guides/TESTING_GUIDE.md) for:
 - Test patterns and best practices
 - Common fixtures and markers
 - Golden test workflow
@@ -275,12 +274,8 @@ Tests gracefully skip if tools are missing.
 
 ## Documentation
 
-- **[TESTING_GUIDE.md](../TESTING_GUIDE.md)** - Developer quick reference
-- **[../../TESTING.md](../../TESTING.md)** - Comprehensive testing documentation
-- **[../../CONTRIBUTING.md](../../CONTRIBUTING.md)** - Contribution guidelines
-- **[TEST_REVIEW.md](../TEST_REVIEW.md)** - Comprehensive review and recommendations
-- **[TESTING_IMPROVEMENTS.md](../TESTING_IMPROVEMENTS.md)** - What was implemented
-- **[TESTING_COMPLETE.md](../TESTING_COMPLETE.md)** - Final summary
+- **[TESTING_GUIDE.md](../docs/guides/TESTING_GUIDE.md)** - Developer quick reference
+- **[TESTING.md](../docs/guides/TESTING.md)** - Comprehensive testing documentation
 
 ## Contributing
 

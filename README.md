@@ -162,7 +162,7 @@ Caspoon follows a **pipeline-based modular design**:
 └──────────┘ └───────┘ └────────┘ └─────────┘
 ```
 
-Each **recon module** enriches the report with its findings. See [docs/OVERVIEW.md](caspoon/docs/OVERVIEW.md) for detailed architecture documentation.
+Each **recon module** enriches the report with its findings. See [docs/reference/OVERVIEW.md](caspoon/docs/reference/OVERVIEW.md) for detailed architecture documentation.
 
 ---
 
@@ -171,14 +171,13 @@ Each **recon module** enriches the report with its findings. See [docs/OVERVIEW.
 ### User Documentation
 
 - **[Quick Start](#quick-start)** - Get up and running quickly
-- **[OVERVIEW.md](caspoon/docs/OVERVIEW.md)** - Comprehensive architecture and usage guide
-- **[TESTING.md](TESTING.md)** - How to run tests and understand test coverage
+- **[OVERVIEW.md](caspoon/docs/reference/OVERVIEW.md)** - Comprehensive architecture and usage guide
+- **[TESTING.md](caspoon/docs/guides/TESTING.md)** - How to run tests and understand test coverage
 
 ### Developer Documentation
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute to the project
-- **[TESTING.md](TESTING.md)** - Testing infrastructure and guidelines
-- **[Architecture Overview](caspoon/docs/OVERVIEW.md#architecture)** - Design philosophy and component breakdown
+- **[TESTING.md](caspoon/docs/guides/TESTING.md)** - Testing infrastructure and guidelines
+- **[Architecture Overview](caspoon/docs/reference/OVERVIEW.md#architecture)** - Design philosophy and component breakdown
 
 ### Examples
 
@@ -221,7 +220,7 @@ pytest tests/integration/       # Integration tests
 pytest -m golden                # Golden/regression tests
 ```
 
-See **[TESTING.md](TESTING.md)** for detailed testing documentation.
+See **[TESTING.md](caspoon/docs/guides/TESTING.md)** for detailed testing documentation.
 
 ---
 
@@ -237,11 +236,12 @@ We welcome contributions! Whether you're fixing bugs, adding features, or improv
 4. **Run tests** to ensure everything passes: `pytest -m "not slow"`
 5. **Submit a pull request** with a clear description
 
-See **[CONTRIBUTING.md](CONTRIBUTING.md)** for detailed guidelines including:
-- Code style and conventions
-- How to add new recon modules
-- Testing requirements
-- Documentation standards
+### Development Guidelines
+
+- **Code style**: Follow PEP8 conventions, use type hints
+- **Testing**: Write tests for all new features (80%+ coverage required)
+- **Documentation**: Update docs for user-facing changes
+- **Commit messages**: Use clear, descriptive messages
 
 ### Areas for Contribution
 
