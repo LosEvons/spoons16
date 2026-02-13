@@ -14,6 +14,35 @@ After thorough research across **Terminal UI (TUI)**, **Desktop GUI**, and **Web
 2. **Testability**: Ease of writing and maintaining automated tests
 3. **AI Agent Friendliness**: Clear APIs, good documentation, and predictable behavior
 
+### Quick Reference Guide
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ RECOMMENDATION: Keep Textual + Add Tests (1 week, zero risk)   │
+└─────────────────────────────────────────────────────────────────┘
+
+IF YOU MUST MIGRATE, CHOOSE BASED ON PRIORITY:
+
+🚀 Speed         → Streamlit   (1-2 weeks, easiest, web-based)
+🎨 Modern UI     → NiceGUI     (2-3 weeks, Python-only, web-based)
+💻 Desktop       → Tkinter     (2-3 weeks, no deps, dated look)
+🏢 Professional  → PyQt6       (4-6 weeks, complex, powerful)
+🎯 Custom        → Flask+htmx  (4+ weeks, full control, web-based)
+```
+
+### Overall Scores (out of 10)
+
+| Framework | Overall | AI Friendly | Testability | Migration Cost | Maturity |
+|-----------|---------|-------------|-------------|----------------|----------|
+| **Textual** | **9.0** | 9 | 10 | 10 (zero) | 8 |
+| **NiceGUI** | **8.5** | 9 | 9 | 7 | 7 |
+| **Streamlit** | **7.5** | 9 | 8 | 8 | 9 |
+| **Tkinter** | **6.0** | 6 | 7 | 6 | 10 |
+| **PyQt6** | **7.0** | 7 | 9 | 4 | 10 |
+| **Gradio** | **6.0** | 8 | 7 | 7 | 8 |
+| **Flask+htmx** | **7.0** | 8 | 9 | 4 | 9 |
+| **Urwid** | **5.0** | 6 | 6 | 5 | 10 |
+
 ### Key Findings
 
 **Recommended Option:** **Keep Textual** with improved testing infrastructure
@@ -24,7 +53,7 @@ After thorough research across **Terminal UI (TUI)**, **Desktop GUI**, and **Web
 - Modern async architecture aligns with current Python best practices
 - Can be served as web application without code changes (unique hybrid capability)
 - Active development and strong community support
-- **Zero migration cost**
+- **Zero migration cost** - invest time in tests, not migration
 
 **Top Alternative Options** (if migration is required):
 1. **NiceGUI** (Web) - Modern, Python-first web framework with excellent developer experience
