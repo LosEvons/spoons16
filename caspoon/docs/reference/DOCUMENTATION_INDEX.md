@@ -11,14 +11,8 @@ Start here to understand what Caspoon is and how to use it:
 
 ## 🛠️ For Contributors
 
-Guidelines for contributing code, tests, and documentation:
+Guidelines for tests and documentation:
 
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Complete contribution guidelines
-  - Code standards
-  - Development workflow
-  - How to add new features
-  - Pull request process
-  
 - **[TESTING.md](TESTING.md)** - Comprehensive testing documentation
   - How to run tests
   - How to write tests
@@ -71,7 +65,6 @@ pytest --cov=caspoon --cov-report=html
 ```
 spoons16/
 ├── README.md                          # 👈 Start here (project overview)
-├── CONTRIBUTING.md                    # How to contribute
 ├── TESTING.md                         # 👈 Complete testing guide
 ├── DOCUMENTATION_INDEX.md             # This file
 │
@@ -98,9 +91,6 @@ spoons16/
 
 ### "I want to understand how Caspoon works"
 → Read **[caspoon/docs/OVERVIEW.md](caspoon/docs/OVERVIEW.md)**
-
-### "I want to contribute code"
-→ Read **[CONTRIBUTING.md](CONTRIBUTING.md)**
 
 ### "I want to add or run tests"
 → Read **[TESTING.md](TESTING.md)**
