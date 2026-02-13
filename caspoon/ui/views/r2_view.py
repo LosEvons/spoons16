@@ -31,6 +31,9 @@ class R2View(Container):
     Features interactive navigation through disassembly.
     """
 
+    # Make container focusable to receive keyboard events
+    can_focus = True
+
     def __init__(self, *args, **kwargs):
         """Initialize R2View with navigation and caching."""
         super().__init__(*args, **kwargs)
@@ -332,3 +335,17 @@ class R2View(Container):
         # TODO: Implement goto dialog
         # For now, this is a placeholder
         pass
+
+    def on_key(self, event) -> None:
+        """Handle keyboard input and forward to interactive widget.
+
+        This allows the container to receive keyboard events while still
+        allowing the parent ScrollableContainer to handle scrolling.
+
+        Args:
+            event: The key event
+        """
+        # Forward keyboard events to the interactive disasm widget
+        # This allows navigation while keeping the widget non-focusable
+        # so ScrollableContainer can handle scrolling
+        self._interactive_disasm.on_key(event)

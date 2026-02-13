@@ -600,3 +600,41 @@ class TestR2ViewLegend:
         legend = view._create_legend()
         assert "Color Legend:" in legend.plain
 
+
+class TestR2ViewFocusAndKeyboardHandling:
+    """Tests for R2View focus behavior and keyboard event handling."""
+
+    def test_r2view_can_take_focus(self):
+        """Test that R2View can receive keyboard focus."""
+        view = R2View()
+        
+        assert view.can_focus is True
+
+    def test_interactive_disasm_widget_cannot_take_focus(self):
+        """Test that the InteractiveDisasmView widget is non-focusable.
+        
+        This ensures the parent ScrollableContainer can handle scroll events.
+        """
+        view = R2View()
+        
+        assert view._interactive_disasm.can_take_focus() is False
+
+    def test_r2view_forwards_keyboard_events_to_widget(self):
+        """Test that R2View forwards keyboard events to InteractiveDisasmView."""
+        view = R2View()
+        
+        # Create a mock key event
+        mock_event = Mock()
+        mock_event.key = "down"
+        mock_event.prevent_default = Mock()
+        
+        # Mock the interactive widget's on_key method
+        view._interactive_disasm.on_key = Mock()
+        
+        # Forward the event
+        view.on_key(mock_event)
+        
+        # Verify the event was forwarded
+        view._interactive_disasm.on_key.assert_called_once_with(mock_event)
+
+

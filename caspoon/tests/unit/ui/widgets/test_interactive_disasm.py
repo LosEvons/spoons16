@@ -55,11 +55,15 @@ class TestInteractiveDisasmViewInitialization:
 
         assert widget.selected_line == 0
 
-    def test_widget_can_take_focus(self):
-        """Test that widget can receive keyboard focus."""
+    def test_widget_cannot_take_focus(self):
+        """Test that widget cannot receive keyboard focus.
+        
+        The widget is non-focusable to allow parent ScrollableContainer to
+        handle scroll events. The parent R2View handles keyboard events instead.
+        """
         widget = InteractiveDisasmView()
 
-        assert widget.can_take_focus() is True
+        assert widget.can_take_focus() is False
 
 
 class TestDisassemblyDisplay:

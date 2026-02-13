@@ -401,11 +401,12 @@ class InteractiveDisasmView(Static):
                 return
 
     def can_take_focus(self) -> bool:
-        """Allow this widget to receive keyboard focus.
+        """Control whether this widget can receive keyboard focus.
 
         Returns:
-            True to enable keyboard focus
+            False to allow parent container to handle keyboard events and scrolling
         """
-        # Widget should be focusable to receive keyboard input for navigation
-        # The parent ScrollableContainer will still handle scroll events
-        return True
+        # Widget should NOT be focusable to allow parent ScrollableContainer
+        # to handle scroll events. The parent R2View will handle keyboard events
+        # and forward them to this widget's public methods.
+        return False
