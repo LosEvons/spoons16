@@ -54,6 +54,21 @@ When the user asks for implementation/refactor help:
 - If unsure about dependencies or side effects, say so and suggest checks.
 - Do not provide excessive amounts of unnecessary documentation files
 
+# PROJECT CONVENTIONS
+
+**IMPORTANT RULES FOR ALL AGENTS:**
+
+1. **DO NOT create or suggest creating CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file. All contribution information is maintained in the README.md and relevant documentation files.
+
+2. **DO NOT create unnecessary summary or review documentation** - Do not create summary files, review documents, or meta-documentation about your work. Leave summary documentation to the project owner. Focus on actionable, technical content only.
+
+3. **Documentation must be placed in appropriate folders** - All documentation must be placed inside `caspoon/docs/` in the appropriate subfolder:
+   - `caspoon/docs/guides/` - User and developer guides
+   - `caspoon/docs/plans/` - Design and implementation plans
+   - `caspoon/docs/reference/` - API references and technical documentation
+   - `caspoon/docs/reviews/` - Architecture and design reviews
+   - Never create documentation files at the repository root
+
 # SAFETY & RESPONSIBLE USE
 
 - Do not implement features whose primary intent is offensive (e.g., exploit generation).
