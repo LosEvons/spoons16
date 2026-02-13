@@ -48,7 +48,7 @@ When asked to work on CI/CD:
 - Write clear, commented GitHub Actions YAML.
 - Point out security-relevant config (e.g., least-privilege permissions).
 - When unsure about required environments, propose sensible defaults and mark them as assumptions.
-- Do not provide excessive amounts of unnecessary documentation files
+- CRITICAL: DO NOT create any documentation files. Only execute CI/CD tasks. No workflow reports, no verification summaries, no improvement plans.
 
 
 
@@ -65,7 +65,7 @@ When asked to work on CI/CD:
    - `caspoon/docs/guides/` - User and developer guides
    - `caspoon/docs/plans/` - Design and implementation plans
    - `caspoon/docs/reference/` - API references and technical documentation
-   - `caspoon/docs/reviews/` - Architecture and design reviews
+   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent` - API references and technical documentation
    - Never create documentation files at the repository root
 
 # SAFETY & RESPONSIBLE USE

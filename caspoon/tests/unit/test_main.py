@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from caspoon.main import validate_file_path, main
+from caspoon.main import main, validate_file_path
 
 
 class TestValidateFilePath:
@@ -146,7 +146,7 @@ class TestMain:
         mock_runner.run.return_value = mock_report
 
         with patch.object(sys, "argv", ["caspoon", str(test_file)]):
-            with patch("caspoon.main.ReconRunner", return_value=mock_runner):
+            with patch("caspoon.core.runner.ReconRunner", return_value=mock_runner):
                 main()
 
                 mock_runner.run.assert_called_once()
@@ -163,7 +163,7 @@ class TestMain:
         mock_runner.run.side_effect = RuntimeError("Analysis failed")
 
         with patch.object(sys, "argv", ["caspoon", str(test_file)]):
-            with patch("caspoon.main.ReconRunner", return_value=mock_runner):
+            with patch("caspoon.core.runner.ReconRunner", return_value=mock_runner):
                 with pytest.raises(SystemExit) as exc_info:
                     main()
 
@@ -185,7 +185,7 @@ class TestMain:
             os.chdir(tmp_path)
 
             with patch.object(sys, "argv", ["caspoon", "test.bin"]):
-                with patch("caspoon.main.ReconRunner", return_value=mock_runner):
+                with patch("caspoon.core.runner.ReconRunner", return_value=mock_runner):
                     main()
 
                     # Should have been called with absolute path
@@ -207,7 +207,7 @@ class TestMain:
         mock_runner.run.return_value = mock_report
 
         with patch.object(sys, "argv", ["caspoon", str(test_file)]):
-            with patch("caspoon.main.ReconRunner", return_value=mock_runner):
+            with patch("caspoon.core.runner.ReconRunner", return_value=mock_runner):
                 main()
 
                 captured = capsys.readouterr()
