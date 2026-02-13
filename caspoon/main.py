@@ -52,7 +52,7 @@ def main() -> None:
         logging.basicConfig(
             level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
-        
+
         from caspoon.utils.capabilities import get_capabilities
 
         try:
@@ -67,9 +67,9 @@ def main() -> None:
         # Disable logging output for TUI mode to avoid interfering with the UI
         logging.basicConfig(
             level=logging.CRITICAL + 1,  # Effectively disable all logging output
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
-        
+
         from caspoon.ui.app import CaspoonApp
 
         try:
