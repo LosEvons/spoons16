@@ -6,7 +6,7 @@ This directory contains the detailed implementation plan for the TUI redesign, b
 
 | Subtask | Title | Duration | Phases | File |
 |---------|-------|----------|--------|------|
-| 1 | Foundation & State Management | 3-4 days | 1.1-1.2 | [subtask-1-foundation.md](./subtask-1-foundation.md) ✅ |
+| 1 | Foundation & State Management | 3-4 days | 1.1-1.2 | [subtask-1-foundation.md](./subtask-1-foundation.md) |
 | 2 | Base Widget Classes | 3-4 days | 1.3-1.5 | [subtask-2-base-widgets.md](./subtask-2-base-widgets.md) |
 | 3 | Core View Migrations | 4-5 days | 2.1-2.3 | [subtask-3-core-views.md](./subtask-3-core-views.md) |
 | 4 | Analysis View Migrations | 4-5 days | 3.1-3.4 | [subtask-4-analysis-views.md](./subtask-4-analysis-views.md) |
@@ -59,11 +59,11 @@ Each subtask file contains:
 2. Start with [subtask-1-foundation.md](./subtask-1-foundation.md)
 3. Work through each subtask sequentially
 4. Check off success criteria before moving to next subtask
-5. Refer to parent plans for additional context:
-   - `../tui-redesign-implementation-plan.md` - Full plan
-   - `../tui-architecture-redesign.md` - Architecture details
-   - `../tui-implementation-examples.md` - Code examples
-   - `../tui-design-decisions.md` - Design rationale
+5. Refer to archived reference materials if needed:
+   - `../archive/tui-redesign-original/tui-redesign-implementation-plan.md` - Original 25-phase plan
+   - `../archive/tui-redesign-original/tui-architecture-redesign.md` - Detailed architecture
+   - `../archive/tui-redesign-original/tui-implementation-examples.md` - Code examples
+   - `../archive/tui-redesign-original/tui-design-decisions.md` - Design rationale
 
 ## Progress Tracking
 
@@ -71,7 +71,6 @@ Mark subtasks as complete by adding ✅ to the table above and updating the OVER
 
 ## Notes
 
-- Subtask 1 is marked complete (✅) as the foundation work has been done
 - Each subtask is estimated to take 3-5 days
 - Buffer time included for unexpected issues
 - All time estimates assume full-time focused work
@@ -79,9 +78,9 @@ Mark subtasks as complete by adding ✅ to the table above and updating the OVER
 
 ## Related Documentation
 
-- [OVERVIEW.md](./OVERVIEW.md) - High-level implementation plan
-- Parent Plans:
-  - [tui-redesign-implementation-plan.md](../tui-redesign-implementation-plan.md)
-  - [tui-architecture-redesign.md](../tui-architecture-redesign.md)
-  - [tui-implementation-examples.md](../tui-implementation-examples.md)
-  - [tui-design-decisions.md](../tui-design-decisions.md)
+- [OVERVIEW.md](./OVERVIEW.md) - High-level implementation plan summary
+- Archived Reference Materials (in `../archive/tui-redesign-original/`):
+  - Original 25-phase implementation plan
+  - Detailed architecture specification with diagrams
+  - 10 code implementation examples
+  - Design decisions and rationale
