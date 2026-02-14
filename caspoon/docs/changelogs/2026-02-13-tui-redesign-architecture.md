@@ -1,7 +1,7 @@
 # TUI Redesign Architecture & Implementation Plan
-**Date**: 2026-02-13  
+**Date**: 2026-02-13 (Updated: 2026-02-14)  
 **Type**: Design & Planning  
-**Status**: Complete ✅
+**Status**: Complete ✅ (Restructured 2026-02-14)
 
 ## Overview
 
@@ -28,7 +28,18 @@ Designed a complete architectural transformation with:
 6. **Comprehensive testing strategy** for component-level tests
 7. **Backward-compatible migration path** preserving existing functionality
 
-## Deliverables
+## Update (2026-02-14): Restructured into Standard Plan Format
+
+The original 8 documentation files have been **restructured** to follow the established plan format used in plans 01-03. The new structure is more actionable and consistent:
+
+**New Structure:** `caspoon/docs/plans/04-tui-redesign/`
+- **OVERVIEW.md** (17 KB) - Standard format overview with goals, architecture, risks
+- **README.md** (3.5 KB) - Navigation guide and progress tracking
+- **8 Subtask Files** (subtask-1 through subtask-8) - Self-contained, sequential implementation tasks
+
+**Original Files:** Archived in `caspoon/docs/plans/archive/tui-redesign-original/`
+
+## Original Deliverables (2026-02-13)
 
 Created 8 comprehensive documentation files (336 KB total):
 
@@ -199,3 +210,56 @@ This planning effort demonstrates:
 **Completed by**: Architecture Agent (orchestrating explore, cli-reporting, docs agents)  
 **Review Status**: Ready for implementation  
 **Blockers**: None - all prerequisites complete
+
+---
+
+## Restructure Details (2026-02-14)
+
+### What Changed
+
+The original comprehensive documentation has been reorganized into a **standard plan format** matching plans 01-03:
+
+**Before (8 files at root):**
+- Scattered documentation files
+- 336 KB of monolithic content
+- Difficult to track progress
+- Not structured for AI agent execution
+
+**After (10 files in 04-tui-redesign/):**
+- OVERVIEW.md following standard format
+- 8 sequential subtask files (subtask-1 through subtask-8)
+- README.md for navigation and progress tracking
+- 208 KB of focused, actionable content
+- Self-contained tasks with clear dependencies
+
+### Subtask Breakdown
+
+The original 25 phases have been consolidated into **8 focused subtasks**:
+
+1. **Foundation & State Management** (3-4 days) - AppState, message bus, action registry
+2. **Base Widget Architecture** (3-4 days) - BaseView, InteractiveView, standard components
+3. **View Migration - Core Views** (4-5 days) - Overview, Protections with reactive updates
+4. **View Migration - Analysis Views** (4-5 days) - Strings, Imports/Exports, R2 with filtering
+5. **Async Workers & Progress** (3-4 days) - Non-blocking analysis with cancellation
+6. **Command Palette & Keybindings** (3-4 days) - Fuzzy search, action dispatch
+7. **Multi-Panel Layout & Navigation** (4-5 days) - Docking, sidebar, tree views
+8. **Testing, Optimization & Polish** (3-4 days) - Coverage, performance, docs
+
+**Total: 27-35 days** (same as original estimate)
+
+### Benefits of Restructure
+
+✅ **Consistent Format**: Matches existing plans 01, 02, 03  
+✅ **Self-Contained Subtasks**: Each can be implemented independently  
+✅ **Clear Dependencies**: Explicit prerequisites for each subtask  
+✅ **Progress Tracking**: Checkboxes for acceptance criteria  
+✅ **Better Navigation**: README.md provides overview and links  
+✅ **Code Examples**: Embedded in relevant subtasks  
+✅ **Testing Strategies**: Defined per subtask, not globally  
+✅ **Time Estimates**: Hour-level breakdown per implementation step  
+
+### Migration Path
+
+Original files are preserved in: `caspoon/docs/plans/archive/tui-redesign-original/`
+
+Reference material available if needed during implementation.
