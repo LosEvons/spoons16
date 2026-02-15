@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2025-02-15 - GitHub Copilot Integration
+
+Added comprehensive `.github/copilot-instructions.md` file to provide GitHub Copilot with project context, conventions, and best practices. Includes architecture overview, coding standards, testing guidelines, and security considerations.
+
+**Details**: [2025-02-15-copilot-instructions.md](2025-02-15-copilot-instructions.md)
+
+---
+
 ## 2026-02-13 - Plan 1, Subtask 3: Architecture-Specific Schemes
 
 Implemented multi-architecture syntax highlighting support for ARM and MIPS with 446 and 381 instructions respectively. Created architecture detection, manager, and comprehensive test suite with 163 tests and 100% coverage.
