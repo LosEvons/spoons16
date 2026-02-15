@@ -59,11 +59,6 @@ Each subtask file contains:
 2. Start with [subtask-1-foundation.md](./subtask-1-foundation.md)
 3. Work through each subtask sequentially
 4. Check off success criteria before moving to next subtask
-5. Refer to archived reference materials if needed:
-   - `../archive/tui-redesign-original/tui-redesign-implementation-plan.md` - Original 25-phase plan
-   - `../archive/tui-redesign-original/tui-architecture-redesign.md` - Detailed architecture
-   - `../archive/tui-redesign-original/tui-implementation-examples.md` - Code examples
-   - `../archive/tui-redesign-original/tui-design-decisions.md` - Design rationale
 
 ## Progress Tracking
 
@@ -79,8 +74,4 @@ Mark subtasks as complete by adding ✅ to the table above and updating the OVER
 ## Related Documentation
 
 - [OVERVIEW.md](./OVERVIEW.md) - High-level implementation plan summary
-- Archived Reference Materials (in `../archive/tui-redesign-original/`):
-  - Original 25-phase implementation plan
-  - Detailed architecture specification with diagrams
-  - 10 code implementation examples
-  - Design decisions and rationale
+- Each subtask file contains detailed architecture, code examples, and design rationale

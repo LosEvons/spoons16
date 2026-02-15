@@ -37,7 +37,7 @@ The original 8 documentation files have been **restructured** to follow the esta
 - **README.md** (3.5 KB) - Navigation guide and progress tracking
 - **8 Subtask Files** (subtask-1 through subtask-8) - Self-contained, sequential implementation tasks
 
-**Original Files:** Archived in `caspoon/docs/plans/archive/tui-redesign-original/`
+**Original Files:** ~~Archived in `caspoon/docs/plans/archive/tui-redesign-original/`~~ (Removed 2026-02-15 - no longer needed)
 
 ## Original Deliverables (2026-02-13)
 
@@ -260,6 +260,6 @@ The original 25 phases have been consolidated into **8 focused subtasks**:
 
 ### Migration Path
 
-Original files are preserved in: `caspoon/docs/plans/archive/tui-redesign-original/`
+~~Original files are preserved in: `caspoon/docs/plans/archive/tui-redesign-original/`~~
 
-Reference material available if needed during implementation.
+**Update (2026-02-15):** Archive removed. All necessary information is consolidated in the 04-tui-redesign subtask files.
