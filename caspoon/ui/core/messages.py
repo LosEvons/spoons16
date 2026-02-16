@@ -96,6 +96,40 @@ class AnalysisError(Message):
         super().__init__()
 
 
+class ProgressUpdate(Message):
+    """Progress update during async operations.
+
+    Posted by workers to report progress during long-running operations.
+    The app can handle this to update progress bars or status messages.
+
+    Attributes:
+        percent: Progress percentage (0 to 100)
+        message: Human-readable progress message
+    """
+
+    def __init__(self, percent: int, message: str) -> None:
+        """Initialize ProgressUpdate message.
+
+        Args:
+            percent: Progress percentage (0 to 100)
+            message: Status message describing current operation
+        """
+        self.percent = percent
+        self.message = message
+        super().__init__()
+
+
+class AnalysisCancelled(Message):
+    """Analysis was cancelled by user.
+
+    Posted when the user cancels an in-progress analysis operation.
+    """
+
+    def __init__(self) -> None:
+        """Initialize AnalysisCancelled message."""
+        super().__init__()
+
+
 # ============================================================================
 # Navigation Messages
 # ============================================================================

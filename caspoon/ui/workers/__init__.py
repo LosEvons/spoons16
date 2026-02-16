@@ -1,11 +1,12 @@
 """Async worker patterns.
 
-This package will contain worker classes for async operations:
+This package contains worker classes for async operations:
 - Analysis workers (background analysis execution)
 - File I/O workers (async file operations)
 - Search workers (async search and filtering)
-
-Currently empty - to be implemented in Subtask 5.
 """
 
-__all__: list[str] = []
+from .analysis import AnalysisWorker
+from .base import Worker, WorkerState
+
+__all__ = ["Worker", "WorkerState", "AnalysisWorker"]
