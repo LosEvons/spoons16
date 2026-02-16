@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 7) - Multi-Panel Layout
+
+Implemented IDE-like multi-panel docking layout with collapsible sidebar, details panel, and bottom console. Users can now navigate functions via tree browser, view contextual details, and monitor logs in dedicated panels.
+
+**Details**: [2026-02-16-subtask7-multi-panel.md](2026-02-16-subtask7-multi-panel.md)
+
+---
+
 ## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 6) - Command Palette
 
 Implemented VS Code-style command palette (Ctrl+P) with fuzzy search for keyboard-driven workflows. Users can now quickly find and execute any command by typing a few letters, with intelligent relevance scoring.
