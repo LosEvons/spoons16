@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 6) - Command Palette
+
+Implemented VS Code-style command palette (Ctrl+P) with fuzzy search for keyboard-driven workflows. Users can now quickly find and execute any command by typing a few letters, with intelligent relevance scoring.
+
+**Details**: [2026-02-16-subtask6-command-palette.md](2026-02-16-subtask6-command-palette.md)
+
+---
+
 ## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 5) - Async Workers
 
 Implemented non-blocking binary analysis with async worker pattern, progress reporting, and cancellation support. The TUI now remains fully responsive during analysis operations with real-time progress updates.
