@@ -46,31 +46,23 @@ class MainScreen(Container):
     }
 
     #sidebar {
-        row: 1;
-        column: 1;
-        column-span: 1;
-        row-span: 2;
+        grid-row: 1 / span 2;
+        grid-column: 1;
     }
 
     #content {
-        row: 1;
-        column: 2;
-        column-span: 1;
-        row-span: 1;
+        grid-row: 1;
+        grid-column: 2;
     }
 
     #details {
-        row: 1;
-        column: 3;
-        column-span: 1;
-        row-span: 2;
+        grid-row: 1 / span 2;
+        grid-column: 3;
     }
 
     #console {
-        row: 2;
-        column: 2;
-        column-span: 1;
-        row-span: 1;
+        grid-row: 2;
+        grid-column: 2;
     }
 
     .hidden {
