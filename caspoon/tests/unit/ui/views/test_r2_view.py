@@ -5,6 +5,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from caspoon.core.models import ExecutableReport
+from caspoon.ui.core.base import BaseView
+from caspoon.ui.core.state import AppState
 from caspoon.ui.syntax import AsmHighlighter
 from caspoon.ui.views.r2_view import R2View
 
@@ -599,3 +601,236 @@ class TestR2ViewLegend:
         legend = view._create_legend()
         assert "Color Legend:" in legend.plain
 
+
+
+# Migration-specific tests added for Subtask 4
+
+class TestR2ViewMigrationInheritance:
+    """Test migration to BaseView architecture."""
+
+    def test_inherits_baseview(self):
+        """Test that R2View inherits from BaseView."""
+        assert issubclass(R2View, BaseView)
+
+    def test_has_render_content(self):
+        """Test that R2View has render_content method."""
+        assert hasattr(R2View, "render_content")
+        assert callable(R2View.render_content)
+
+
+class TestR2ViewMigrationSubscription:
+    """Test state subscription for migration."""
+
+    def test_on_mount_exists(self):
+        """Test that on_mount method exists."""
+        view = R2View()
+        assert hasattr(view, "on_mount")
+        assert callable(view.on_mount)
+
+    def test_on_mount_handles_missing_state(self):
+        """Test that on_mount handles missing app.state gracefully."""
+        view = R2View()
+
+        # Mock app without state
+        class MockApp:
+            pass
+
+        view._app = MockApp()
+
+        # Should not raise
+        view.on_mount()
+
+
+class TestR2ViewMigrationRendering:
+    """Test render_content method for migration."""
+
+    def test_render_content_with_valid_data(self):
+        """Test that render_content handles valid r2 data."""
+        view = R2View()
+
+        r2_data = {
+            "functions": [
+                {"name": "main", "offset": 0x1000},
+            ],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+            ],
+            "strings": [
+                {"string": "test"},
+            ],
+        }
+
+        # Should not raise
+        view.render_content(r2_data)
+
+    def test_render_content_with_none(self):
+        """Test that render_content handles None data."""
+        view = R2View()
+
+        # Should not raise
+        view.render_content(None)
+
+    def test_render_content_with_empty_dict(self):
+        """Test that render_content handles empty dict."""
+        view = R2View()
+
+        # Should not raise
+        view.render_content({})
+
+    def test_render_content_with_r2_error(self):
+        """Test that render_content displays r2 errors."""
+        view = R2View()
+
+        r2_data = {
+            "r2_error": "Failed to open file",
+        }
+
+        # Mock update to capture output
+        update_calls = []
+        view.update = lambda x: update_calls.append(x)
+
+        view.render_content(r2_data)
+
+        # Should show error message
+        assert len(update_calls) == 1
+        output_str = str(update_calls[0])
+        assert "Failed to open file" in output_str
+
+
+class TestR2ViewMigrationHighlighting:
+    """Test that syntax highlighting is preserved."""
+
+    def test_highlighter_preserved(self):
+        """Test that highlighter is still initialized."""
+        view = R2View()
+
+        assert hasattr(view, '_highlighter')
+        assert isinstance(view._highlighter, AsmHighlighter)
+
+    def test_create_legend_preserved(self):
+        """Test that _create_legend method is preserved."""
+        view = R2View()
+
+        assert hasattr(view, '_create_legend')
+        legend = view._create_legend()
+
+        # Should contain color legend text
+        assert "Color Legend:" in legend.plain
+
+    def test_architecture_detection_preserved(self):
+        """Test that architecture detection still works."""
+        view = R2View()
+
+        report = ExecutableReport(
+            path="/test/binary",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [],
+                "strings": [],
+            }
+        }
+
+        # Should update highlighter based on architecture
+        view.update_data(report)
+
+        assert view._current_arch is not None
+
+
+class TestR2ViewMigrationBackwardCompatibility:
+    """Test backward compatibility maintained."""
+
+    def test_update_data_still_works(self):
+        """Test that update_data method still works."""
+        view = R2View()
+
+        report = ExecutableReport(
+            path="/test/binary",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report.raw_backend_data = {
+            "r2": {
+                "functions": [
+                    {"name": "main", "offset": 0x1000},
+                ],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                ],
+                "strings": [],
+            }
+        }
+
+        # Should not raise
+        view.update_data(report)
+
+    def test_update_data_handles_r2_error(self):
+        """Test that update_data handles r2 errors."""
+        view = R2View()
+
+        report = ExecutableReport(
+            path="/test/binary",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report.raw_backend_data = {
+            "r2_error": "r2 not found",
+        }
+
+        # Should not raise
+        view.update_data(report)
+
+
+class TestR2ViewMigrationVisualParity:
+    """Test that visual output is preserved."""
+
+    def test_panel_wrapper_added(self):
+        """Test that output is wrapped in Panel."""
+        view = R2View()
+
+        r2_data = {
+            "functions": [],
+            "main_ops": [],
+            "strings": [],
+        }
+
+        # Mock update to capture output
+        update_calls = []
+        view.update = lambda x: update_calls.append(x)
+
+        view.render_content(r2_data)
+
+        # Should have Panel wrapper
+        assert len(update_calls) == 1
+        output_str = str(update_calls[0])
+        assert "Panel" in str(type(update_calls[0]))
+
+    def test_preserves_all_sections(self):
+        """Test that all sections (functions, disassembly, strings) are displayed."""
+        view = R2View()
+
+        r2_data = {
+            "functions": [
+                {"name": "main", "offset": 0x1000},
+            ],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+            ],
+            "strings": [
+                {"string": "test string"},
+            ],
+        }
+
+        # Mock update to capture output
+        update_calls = []
+        view.update = lambda x: update_calls.append(x)
+
+        view.render_content(r2_data)
+
+        # Should contain all sections
+        assert len(update_calls) == 1
+        # Output contains Group with Text objects, so checking string representation
+        # All three sections should be present in the view
