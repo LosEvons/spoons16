@@ -4,11 +4,11 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
-## 2026-02-13 - TUI Redesign Architecture & Implementation Plan
+## 2025-02-15 - GitHub Copilot Integration
 
-Designed comprehensive architecture to transform TUI into modern IDE-like interface with command palette, async workers, reactive state management, and plugin architecture. Created 25-phase implementation plan (336 KB documentation) ready for autonomous AI agent execution.
+Added comprehensive `.github/copilot-instructions.md` file to provide GitHub Copilot with project context, conventions, and best practices. Includes architecture overview, coding standards, testing guidelines, and security considerations.
 
-**Details**: [2026-02-13-tui-redesign-architecture.md](2026-02-13-tui-redesign-architecture.md)
+**Details**: [2025-02-15-copilot-instructions.md](2025-02-15-copilot-instructions.md)
 
 ---
 
