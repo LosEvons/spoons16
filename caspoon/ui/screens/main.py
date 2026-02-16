@@ -45,21 +45,29 @@ class MainScreen(Container):
     }
 
     #sidebar {
+        row: 1;
+        column: 1;
         column-span: 1;
         row-span: 2;
     }
 
     #content {
+        row: 1;
+        column: 2;
         column-span: 1;
         row-span: 1;
     }
 
     #details {
+        row: 1;
+        column: 3;
         column-span: 1;
         row-span: 2;
     }
 
     #console {
+        row: 2;
+        column: 2;
         column-span: 1;
         row-span: 1;
     }
