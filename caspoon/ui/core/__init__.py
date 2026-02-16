@@ -4,9 +4,11 @@ This package provides the foundational components for the TUI redesign:
 - State management (AppState, data models)
 - Message system (event-driven communication)
 - Action registry (command and keybinding management)
+- Base widget classes (BaseView, InteractiveView, TableView, TreeView)
 """
 
 from .actions import Action, ActionRegistry
+from .base import BaseView, InteractiveView, TableView, TreeNode, TreeView
 from .messages import (
     AnalysisComplete,
     AnalysisError,
@@ -34,6 +36,12 @@ __all__ = [
     # Actions
     "Action",
     "ActionRegistry",
+    # Base widgets
+    "BaseView",
+    "InteractiveView",
+    "TableView",
+    "TreeView",
+    "TreeNode",
     # Messages - Analysis
     "StartAnalysis",
     "AnalysisProgress",
