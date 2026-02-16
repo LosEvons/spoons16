@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 5) - Async Workers
+
+Implemented non-blocking binary analysis with async worker pattern, progress reporting, and cancellation support. The TUI now remains fully responsive during analysis operations with real-time progress updates.
+
+**Details**: [2026-02-16-subtask5-async-workers.md](2026-02-16-subtask5-async-workers.md)
+
+---
+
 ## 2025-02-15 - GitHub Copilot Integration
 
 Added comprehensive `.github/copilot-instructions.md` file to provide GitHub Copilot with project context, conventions, and best practices. Includes architecture overview, coding standards, testing guidelines, and security considerations.
