@@ -68,6 +68,9 @@ class UIState:
         selected_address: Currently selected address (hex string or None)
         active_tab: Currently active tab ID (e.g., "functions", "strings")
         panels_visible: Dictionary of panel visibility states
+        sidebar_visible: Whether sidebar panel is visible
+        details_visible: Whether details panel is visible
+        console_visible: Whether console panel is visible
     """
 
     is_analyzing: bool = False
@@ -83,6 +86,9 @@ class UIState:
             "bottom": False,
         }
     )
+    sidebar_visible: bool = True
+    details_visible: bool = True
+    console_visible: bool = True
 
 
 @dataclass

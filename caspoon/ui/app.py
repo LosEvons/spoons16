@@ -5,8 +5,8 @@ import os
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import ScrollableContainer
-from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
+from textual.containers import Container, ScrollableContainer
+from textual.widgets import Footer, Input, TabbedContent, TabPane
 
 from .core.actions import ActionRegistry
 from .core.messages import (
@@ -14,9 +14,11 @@ from .core.messages import (
     AnalysisComplete,
     AnalysisError,
     ProgressUpdate,
+    SelectFunction,
     StartAnalysis,
 )
 from .core.state import AppState
+from .screens import MainScreen
 from .views.imports_exports import ImportsExportsView
 from .views.overview import OverviewView
 from .views.protections import ProtectionsView
@@ -68,35 +70,48 @@ class CaspoonApp(App):
         logger.info("CaspoonApp initialized with AppState and ActionRegistry")
 
     def compose(self) -> ComposeResult:
-        """Compose the UI layout.
+        """Compose the UI layout with multi-panel MainScreen.
 
         Yields:
             UI components for the application
         """
-        yield Header()
+        # Build content area container that MainScreen will use
+        content_container = Container(id="content")
 
-        yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
+        # Populate content_container with our widgets
+        input_widget = Input(placeholder="Enter path to binary and press Enter...", id="path_input")
+        content_container._add_child(input_widget)
 
-        with TabbedContent(id="tabs"):
-            with TabPane("Overview", id="overview-tab"):
-                with ScrollableContainer():
-                    yield OverviewView(id="overview")
-            with TabPane("Protections", id="protections-tab"):
-                with ScrollableContainer():
-                    yield ProtectionsView(id="protections")
-            with TabPane("Strings", id="strings-tab"):
-                with ScrollableContainer():
-                    yield StringsView(id="strings_view")
-            with TabPane("Imports / Exports", id="imports-tab"):
-                with ScrollableContainer():
-                    yield ImportsExportsView(id="imp_exp")
-            with TabPane("R2 Analysis", id="r2-tab"):
-                with ScrollableContainer():
-                    yield R2View(id="r2_view")
+        # Create tabs manually
+        tabs = TabbedContent(id="tabs")
 
-        yield Footer()
+        # Add tab panes
+        tab1 = TabPane("Overview", id="overview-tab")
+        tab1._add_child(ScrollableContainer(OverviewView(id="overview")))
+        tabs._add_child(tab1)
 
-        # Command palette (hidden by default)
+        tab2 = TabPane("Protections", id="protections-tab")
+        tab2._add_child(ScrollableContainer(ProtectionsView(id="protections")))
+        tabs._add_child(tab2)
+
+        tab3 = TabPane("Strings", id="strings-tab")
+        tab3._add_child(ScrollableContainer(StringsView(id="strings_view")))
+        tabs._add_child(tab3)
+
+        tab4 = TabPane("Imports / Exports", id="imports-tab")
+        tab4._add_child(ScrollableContainer(ImportsExportsView(id="imp_exp")))
+        tabs._add_child(tab4)
+
+        tab5 = TabPane("R2 Analysis", id="r2-tab")
+        tab5._add_child(ScrollableContainer(R2View(id="r2_view")))
+        tabs._add_child(tab5)
+
+        content_container._add_child(tabs)
+
+        # Wrap in MainScreen
+        yield MainScreen(content_container)
+
+        # Command palette (overlays on top)
         yield CommandPalette(self.action_registry, id="command_palette")
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
@@ -172,6 +187,7 @@ class CaspoonApp(App):
         self.state.ui_state.analysis_progress = message.percent
         self.state.ui_state.analysis_message = message.message
         self.update_status()
+        self._log_to_console(f"Progress: {message.percent}% - {message.message}", "debug")
         logger.debug(f"Progress: {message.percent}% - {message.message}")
 
     def on_analysis_complete(self, message: AnalysisComplete) -> None:
@@ -191,6 +207,7 @@ class CaspoonApp(App):
         self.update_status()
 
         self.notify("Analysis complete", severity="information")
+        self._log_to_console("Analysis completed successfully", "success")
         logger.info("Analysis completed successfully")
 
     def on_analysis_error(self, message: AnalysisError) -> None:
@@ -207,6 +224,7 @@ class CaspoonApp(App):
         self.update_status()
 
         self.notify(f"Analysis failed: {message.error}", severity="error")
+        self._log_to_console(f"Analysis failed: {message.error}", "error")
         logger.error(f"Analysis error: {message.error}")
 
     def on_analysis_cancelled(self, message: AnalysisCancelled) -> None:
@@ -223,6 +241,7 @@ class CaspoonApp(App):
         self.update_status()
 
         self.notify("Analysis cancelled", severity="warning")
+        self._log_to_console("Analysis cancelled by user", "warning")
         logger.info("Analysis cancelled by user")
 
     def on_start_analysis(self, message: StartAnalysis) -> None:
@@ -500,6 +519,9 @@ Caspoon Reverse Engineering Toolkit - Help
 Keyboard Shortcuts:
   Ctrl+P    - Open Command Palette
   Ctrl+Q    - Quit Application
+  Ctrl+B    - Toggle Sidebar
+  Ctrl+D    - Toggle Details Panel
+  Ctrl+J    - Toggle Console
   F1        - Show this help
   1-5       - Switch between tabs
   Tab       - Next tab
@@ -514,3 +536,38 @@ Command Palette:
 For more information, visit the documentation.
         """
         self.notify(help_text.strip(), severity="information", timeout=10)
+
+    def on_select_function(self, message: SelectFunction) -> None:
+        """Handle function selection from sidebar.
+
+        Args:
+            message: SelectFunction message with function name and address
+        """
+        # Update UI state
+        self.state.ui_state.selected_function = message.function_name
+        self.state.ui_state.selected_address = message.address
+
+        # Log to console
+        self._log_to_console(
+            f"Selected function: {message.function_name} at {message.address}",
+            "info",
+        )
+
+        logger.info(f"Function selected: {message.function_name} at {message.address}")
+
+    def _log_to_console(self, message: str, level: str = "info") -> None:
+        """Write a message to the console panel.
+
+        Args:
+            message: Message text to log
+            level: Severity level (info, warning, error, success, debug)
+        """
+        try:
+            # Try to get console from MainScreen
+            main_screen = self.query_one(MainScreen)
+            console = main_screen.get_console()
+            if console:
+                console.log(message, level)
+        except Exception:
+            # Console not available - silently skip
+            pass

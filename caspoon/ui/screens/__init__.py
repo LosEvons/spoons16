@@ -1,12 +1,12 @@
 """Screen management.
 
-This package will contain screen classes for the TUI:
-- Main application screen
+This package contains screen classes for the TUI:
+- Main application screen (multi-panel layout)
 - File picker screen
 - Help/documentation screens
 - Settings screen
-
-Currently empty - to be implemented in future subtasks.
 """
 
-__all__: list[str] = []
+from .main import MainScreen
+
+__all__: list[str] = ["MainScreen"]

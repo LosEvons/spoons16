@@ -1,14 +1,23 @@
 """Reusable widget library.
 
-This package will contain reusable widgets for the TUI:
+This package contains reusable widgets for the TUI:
 - Base widget classes (BaseView, InteractiveView)
 - Specialized widgets (TreeView, TableView, CodeView)
 - Common UI components (SearchBar, StatusBar, ProgressBar)
 - Command Palette (CommandPalette)
-
-Currently empty - to be implemented in Subtask 2.
+- Multi-panel widgets (Sidebar, Console, DetailsPanel, FunctionExplorer)
 """
 
 from .command_palette import CommandPalette
+from .console import Console
+from .details_panel import DetailsPanel
+from .function_explorer import FunctionExplorer
+from .sidebar import Sidebar
 
-__all__: list[str] = ["CommandPalette"]
+__all__: list[str] = [
+    "CommandPalette",
+    "Console",
+    "DetailsPanel",
+    "FunctionExplorer",
+    "Sidebar",
+]

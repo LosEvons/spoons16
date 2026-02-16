@@ -306,13 +306,15 @@ class TestCommandPalette:
 
             # Execute the command
             palette.action_execute()
-            
+
             # Give time for execution to complete
             await pilot.pause()
             await pilot.pause()
 
             # Verify handler was called
-            assert mock_handler.called, f"Handler should be called, call_count={mock_handler.call_count}"
+            assert (
+                mock_handler.called
+            ), f"Handler should be called, call_count={mock_handler.call_count}"
             mock_handler.assert_called_once()
 
     @pytest.mark.asyncio
