@@ -64,8 +64,29 @@ class FunctionExplorer(TreeView[AnalysisResults]):
                 # Initial data if available
                 if self.app.state.analysis_results:
                     self.data = self.app.state.analysis_results
+                else:
+                    # Show placeholder message
+                    self._show_placeholder()
+            else:
+                self._show_placeholder()
         except Exception as e:
             logger.error(f"Error mounting FunctionExplorer: {e}")
+            self._show_placeholder()
+
+    def _show_placeholder(self) -> None:
+        """Display a placeholder message when no data is available."""
+        table = Table(
+            show_header=False,
+            show_edge=False,
+            pad_edge=False,
+            box=None,
+            expand=True,
+        )
+        table.add_column("Message", overflow="fold")
+        table.add_row("[dim italic]No binary loaded yet[/]")
+        table.add_row("")
+        table.add_row("[dim]Enter a binary path above and press Enter to analyze[/]")
+        self.update(table)
 
     def render_content(self, data: AnalysisResults) -> None:
         """Organize functions by section and render tree.
