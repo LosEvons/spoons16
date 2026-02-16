@@ -44,11 +44,11 @@ class CaspoonApp(App):
         Binding("ctrl+p", "show_command_palette", "Commands", show=True),
         Binding("ctrl+q", "quit", "Quit", show=True),
         Binding("f1", "show_help", "Help", show=True),
-        Binding("1", "switch_tab('overview')", "Overview", show=False),
-        Binding("2", "switch_tab('protections')", "Protections", show=False),
-        Binding("3", "switch_tab('strings')", "Strings", show=False),
-        Binding("4", "switch_tab('imports')", "Imports/Exports", show=False),
-        Binding("5", "switch_tab('r2')", "R2 Analysis", show=False),
+        Binding("1", "switch_tab('overview-tab')", "Overview", show=False),
+        Binding("2", "switch_tab('protections-tab')", "Protections", show=False),
+        Binding("3", "switch_tab('strings-tab')", "Strings", show=False),
+        Binding("4", "switch_tab('imports-tab')", "Imports/Exports", show=False),
+        Binding("5", "switch_tab('r2-tab')", "R2 Analysis", show=False),
     ]
 
     def __init__(self, **kwargs):
@@ -75,41 +75,8 @@ class CaspoonApp(App):
         Yields:
             UI components for the application
         """
-        # Build content area container that MainScreen will use
-        content_container = Container(id="content")
-
-        # Populate content_container with our widgets
-        input_widget = Input(placeholder="Enter path to binary and press Enter...", id="path_input")
-        content_container._add_child(input_widget)
-
-        # Create tabs manually
-        tabs = TabbedContent(id="tabs")
-
-        # Add tab panes
-        tab1 = TabPane("Overview", id="overview-tab")
-        tab1._add_child(ScrollableContainer(OverviewView(id="overview")))
-        tabs._add_child(tab1)
-
-        tab2 = TabPane("Protections", id="protections-tab")
-        tab2._add_child(ScrollableContainer(ProtectionsView(id="protections")))
-        tabs._add_child(tab2)
-
-        tab3 = TabPane("Strings", id="strings-tab")
-        tab3._add_child(ScrollableContainer(StringsView(id="strings_view")))
-        tabs._add_child(tab3)
-
-        tab4 = TabPane("Imports / Exports", id="imports-tab")
-        tab4._add_child(ScrollableContainer(ImportsExportsView(id="imp_exp")))
-        tabs._add_child(tab4)
-
-        tab5 = TabPane("R2 Analysis", id="r2-tab")
-        tab5._add_child(ScrollableContainer(R2View(id="r2_view")))
-        tabs._add_child(tab5)
-
-        content_container._add_child(tabs)
-
-        # Wrap in MainScreen
-        yield MainScreen(content_container)
+        # Yield the MainScreen - it will compose its own content
+        yield MainScreen()
 
         # Command palette (overlays on top)
         yield CommandPalette(self.action_registry, id="command_palette")

@@ -84,25 +84,51 @@ class MainScreen(Screen):
     }
     """
 
-    def __init__(self, content_area: Container, **kwargs):
+    def __init__(self, **kwargs):
         """Initialize the main screen.
 
         Args:
-            content_area: Container with the main content (tabs, etc.)
             **kwargs: Additional keyword arguments for Screen
         """
         super().__init__(**kwargs)
-        self._content_area = content_area
 
     def compose(self):
         """Compose the multi-panel layout.
 
         Yields:
-            Header, Sidebar, Content area, DetailsPanel, Console, Footer
+            Header, Sidebar, Content area with tabs, DetailsPanel, Console, Footer
         """
+        from textual.widgets import Input, TabbedContent, TabPane
+        from textual.containers import ScrollableContainer
+        from caspoon.ui.views.imports_exports import ImportsExportsView
+        from caspoon.ui.views.overview import OverviewView
+        from caspoon.ui.views.protections import ProtectionsView
+        from caspoon.ui.views.r2_view import R2View
+        from caspoon.ui.views.strings_view import StringsView
+
         yield Header()
         yield Sidebar(id="sidebar")
-        yield self._content_area  # Content from app
+        
+        # Content area with input and tabs
+        with Container(id="content"):
+            yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
+            
+            with TabbedContent(id="tabs"):
+                with TabPane("Overview", id="overview-tab"):
+                    yield ScrollableContainer(OverviewView(id="overview"))
+                
+                with TabPane("Protections", id="protections-tab"):
+                    yield ScrollableContainer(ProtectionsView(id="protections"))
+                
+                with TabPane("Strings", id="strings-tab"):
+                    yield ScrollableContainer(StringsView(id="strings_view"))
+                
+                with TabPane("Imports / Exports", id="imports-tab"):
+                    yield ScrollableContainer(ImportsExportsView(id="imp_exp"))
+                
+                with TabPane("R2 Analysis", id="r2-tab"):
+                    yield ScrollableContainer(R2View(id="r2_view"))
+        
         yield DetailsPanel(id="details")
         yield Console(id="console")
         yield Footer()
