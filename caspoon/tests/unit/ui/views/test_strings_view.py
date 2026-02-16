@@ -59,7 +59,7 @@ class TestStringsViewSubscription:
     def test_subscribes_on_mount(self):
         """Test that on_mount attempts state subscription."""
         view = StringsView()
-        
+
         # Since on_mount uses self.app which accesses Textual context,
         # we test the key functionality: _on_results_changed
         # This verifies the subscription callback works correctly
@@ -175,10 +175,10 @@ class TestStringsViewFiltering:
         view = StringsView()
 
         view._strings = ["Apple", "BANANA", "cherry", "APPLE PIE"]
-        
+
         # Mock _render_strings to avoid UI operations
         view._render_strings = lambda: None
-        
+
         view.apply_filter("apple")
 
         assert len(view._filtered) == 2
@@ -195,10 +195,10 @@ class TestStringsViewFiltering:
             "/var/log/test.log",
             "/etc/config",
         ]
-        
+
         # Mock _render_strings to avoid UI operations
         view._render_strings = lambda: None
-        
+
         view.apply_filter("test")
 
         assert len(view._filtered) == 2
@@ -219,7 +219,7 @@ class TestStringsViewFiltering:
         view._strings = ["apple", "banana"]
         view._filtered = ["apple", "banana"]
         view.selected_index = 5  # Beyond bounds
-        
+
         view.apply_filter("")
 
         # Selection should be clamped to valid range
@@ -441,7 +441,7 @@ class TestStringsViewPerformance:
 
         # get_item_count should return max limit
         assert view.get_item_count() == MAX_DISPLAY_STRINGS
-        
+
         # Verify that _render_strings doesn't crash with large list
         # (it internally limits to MAX_DISPLAY_STRINGS for display)
         view.update = lambda x: None  # Mock to avoid UI

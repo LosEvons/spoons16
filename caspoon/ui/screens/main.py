@@ -97,8 +97,9 @@ class MainScreen(Container):
         Yields:
             AppHeader, Sidebar, Content area with tabs, DetailsPanel, Console, AppFooter
         """
-        from textual.widgets import Input, TabbedContent, TabPane
         from textual.containers import ScrollableContainer
+        from textual.widgets import Input, TabbedContent, TabPane
+
         from caspoon.ui.views.imports_exports import ImportsExportsView
         from caspoon.ui.views.overview import OverviewView
         from caspoon.ui.views.protections import ProtectionsView
@@ -107,27 +108,27 @@ class MainScreen(Container):
 
         yield AppHeader()
         yield Sidebar(id="sidebar")
-        
+
         # Content area with input and tabs
         with Container(id="content"):
             yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
-            
+
             with TabbedContent(id="tabs"):
                 with TabPane("Overview", id="overview-tab"):
                     yield ScrollableContainer(OverviewView(id="overview"))
-                
+
                 with TabPane("Protections", id="protections-tab"):
                     yield ScrollableContainer(ProtectionsView(id="protections"))
-                
+
                 with TabPane("Strings", id="strings-tab"):
                     yield ScrollableContainer(StringsView(id="strings_view"))
-                
+
                 with TabPane("Imports / Exports", id="imports-tab"):
                     yield ScrollableContainer(ImportsExportsView(id="imp_exp"))
-                
+
                 with TabPane("R2 Analysis", id="r2-tab"):
                     yield ScrollableContainer(R2View(id="r2_view"))
-        
+
         yield DetailsPanel(id="details")
         yield Console(id="console")
         yield AppFooter()

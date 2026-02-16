@@ -5,7 +5,6 @@ import os
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, ScrollableContainer
 from textual.widgets import Footer, Input, TabbedContent, TabPane
 
 from .core.actions import ActionRegistry
@@ -509,7 +508,7 @@ For more information, visit the documentation.
 
     def action_toggle_sidebar(self) -> None:
         """Toggle sidebar visibility.
-        
+
         Delegates to MainScreen's action_toggle_sidebar method.
         """
         try:
@@ -521,7 +520,7 @@ For more information, visit the documentation.
 
     def action_toggle_details(self) -> None:
         """Toggle details panel visibility.
-        
+
         Delegates to MainScreen's action_toggle_details method.
         """
         try:
@@ -533,7 +532,7 @@ For more information, visit the documentation.
 
     def action_toggle_console(self) -> None:
         """Toggle console visibility.
-        
+
         Delegates to MainScreen's action_toggle_console method.
         """
         try:

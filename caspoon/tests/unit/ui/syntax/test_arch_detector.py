@@ -22,16 +22,16 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "x86_64"
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "x86-64"
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "x64"
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "amd64"
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "x86-64-little"
         assert detect_architecture(report) == "x86_64"
 
@@ -40,22 +40,22 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "x86"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "i386"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "i486"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "i586"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "i686"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "x86-32"
         assert detect_architecture(report) == "x86"
-        
+
         report.arch = "ia32"
         assert detect_architecture(report) == "x86"
 
@@ -64,13 +64,13 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "aarch64"
         assert detect_architecture(report) == "arm64"
-        
+
         report.arch = "arm64"
         assert detect_architecture(report) == "arm64"
-        
+
         report.arch = "armv8"
         assert detect_architecture(report) == "arm64"
-        
+
         report.arch = "arm64-little"
         assert detect_architecture(report) == "arm64"
 
@@ -79,22 +79,22 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "arm"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "armv7"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "armv6"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "armv5"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "arm-little"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "armhf"
         assert detect_architecture(report) == "arm"
-        
+
         report.arch = "armel"
         assert detect_architecture(report) == "arm"
 
@@ -103,13 +103,13 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "mips64"
         assert detect_architecture(report) == "mips64"
-        
+
         report.arch = "mips64el"
         assert detect_architecture(report) == "mips64"
-        
+
         report.arch = "mips64-little"
         assert detect_architecture(report) == "mips64"
-        
+
         report.arch = "mips64le"
         assert detect_architecture(report) == "mips64"
 
@@ -118,16 +118,16 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "mips"
         assert detect_architecture(report) == "mips"
-        
+
         report.arch = "mipsel"
         assert detect_architecture(report) == "mips"
-        
+
         report.arch = "mips-little"
         assert detect_architecture(report) == "mips"
-        
+
         report.arch = "mipsle"
         assert detect_architecture(report) == "mips"
-        
+
         report.arch = "mips32"
         assert detect_architecture(report) == "mips"
 
@@ -136,65 +136,65 @@ class TestArchitectureDetection:
         report = Mock(spec=ExecutableReport)
         report.arch = "riscv64"
         assert detect_architecture(report) == "unknown"
-        
+
         report.arch = "powerpc"
         assert detect_architecture(report) == "unknown"
-        
+
         report.arch = "sparc"
         assert detect_architecture(report) == "unknown"
-        
+
         report.arch = "completely_made_up_arch"
         assert detect_architecture(report) == "unknown"
 
     def test_detect_architecture_case_insensitive(self):
         """Test that architecture detection is case-insensitive."""
         report = Mock(spec=ExecutableReport)
-        
+
         report.arch = "X86_64"
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "ARM64"
         assert detect_architecture(report) == "arm64"
-        
+
         report.arch = "MIPS"
         assert detect_architecture(report) == "mips"
-        
+
         report.arch = "AArch64"
         assert detect_architecture(report) == "arm64"
 
     def test_detect_architecture_with_whitespace(self):
         """Test architecture detection handles whitespace."""
         report = Mock(spec=ExecutableReport)
-        
+
         report.arch = "  x86_64  "
         assert detect_architecture(report) == "x86_64"
-        
+
         report.arch = "\tarm64\t"
         assert detect_architecture(report) == "arm64"
-        
+
         report.arch = " mips "
         assert detect_architecture(report) == "mips"
 
     def test_detect_architecture_substring_fallback(self):
         """Test substring-based fallback detection."""
         report = Mock(spec=ExecutableReport)
-        
+
         # Should detect x86 from substring
         report.arch = "some_x86_variant"
         assert detect_architecture(report) == "x86_64"  # Defaults to 64-bit
-        
+
         # Should detect ARM from substring
         report.arch = "custom_arm_system"
         assert detect_architecture(report) == "arm"
-        
+
         # Should detect ARM64 from substring with 64
         report.arch = "arm_system_64"
         assert detect_architecture(report) == "arm64"
-        
+
         # Should detect MIPS from substring
         report.arch = "custom_mips_cpu"
         assert detect_architecture(report) == "mips"
-        
+
         # Should detect MIPS64 from substring
         report.arch = "mips_system_64"
         assert detect_architecture(report) == "mips64"
@@ -387,12 +387,12 @@ class TestArchitectureDetectionIntegration:
             arch="x86_64",
             bits=64
         )
-        
+
         detected_arch = detect_architecture(report)
         display_name = get_architecture_display_name(detected_arch)
         is_64bit = is_64bit_architecture(detected_arch)
         is_little_endian = is_little_endian_architecture(detected_arch)
-        
+
         assert detected_arch == "x86_64"
         assert display_name == "x86-64 (64-bit)"
         assert is_64bit is True

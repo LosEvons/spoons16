@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 MIN_STRING_LENGTH = 4
 MAX_STRINGS = 10000  # Limit to prevent memory issues
+STRINGS_TIMEOUT = 30  # Timeout for strings command in seconds
 
 
 class StringsRecon:
@@ -36,7 +37,7 @@ class StringsRecon:
                 ["strings", "-n", str(MIN_STRING_LENGTH), path],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=STRINGS_TIMEOUT,
             )
 
             if result.returncode != 0:

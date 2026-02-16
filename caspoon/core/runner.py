@@ -1,6 +1,7 @@
 """Reconnaissance runner that orchestrates analysis pipeline."""
 
 import logging
+from typing import Any
 
 from ..backends.r2_recon import R2BackendRecon
 from ..recon.file_info import FileInfoRecon
@@ -21,7 +22,7 @@ class ReconRunner:
 
     def __init__(self) -> None:
         """Initialize the runner with the default pipeline of recon modules."""
-        self.steps: list = [
+        self.steps: list[Any] = [
             FileInfoRecon(),
             ProtectionsRecon(),
             StringsRecon(),

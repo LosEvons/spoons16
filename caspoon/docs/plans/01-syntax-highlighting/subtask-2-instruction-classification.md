@@ -1,5 +1,9 @@
 # Subtask 2: Instruction Classification
 
+**Status**: ✅ COMPLETED  
+**Completion Date**: 2026-02-13  
+**Related Changelog**: [2026-02-13-plan1-subtask3-architecture-schemes.md](../../changelogs/2026-02-13-plan1-subtask3-architecture-schemes.md)
+
 ## Objective
 Enhance instruction classification to accurately categorize instructions across different architectures and instruction types.
 
@@ -191,26 +195,27 @@ After (with colors):
 - Testing: 2 hours
 
 ## Success Criteria
-- [ ] All common x86/x64 instructions are correctly classified
-- [ ] Operands are parsed and highlighted by type
-- [ ] Register names are distinguished from other operands
-- [ ] Memory references are properly highlighted
-- [ ] Performance impact is minimal (<10% overhead)
-- [ ] Edge cases (prefixes, size specifiers) are handled
+- [x] All common x86/x64 instructions are correctly classified
+- [x] Operands are parsed and highlighted by type
+- [x] Register names are distinguished from other operands
+- [x] Memory references are properly highlighted
+- [x] Performance impact is minimal (<10% overhead)
+- [x] Edge cases (prefixes, size specifiers) are handled
 
-## Challenges and Solutions
+## Implementation Summary
 
-### Challenge 1: Instruction Variants
-Many instructions have size/prefix variants (movb, movw, movl, movq).
-**Solution**: Use prefix/suffix stripping in classification logic.
+### Completed Components
+✅ **Created `caspoon/ui/syntax/instructions.py`** - Comprehensive x86/x64 instruction database (354 instructions)  
+✅ **Created `caspoon/ui/syntax/operand_parser.py`** - Parser for registers, immediates, memory references, and symbols  
+✅ **Enhanced `caspoon/ui/syntax/highlighter.py`** - Integrated operand parsing and instruction classification  
+✅ **Tests created** - `test_highlighter_extended.py` with comprehensive coverage
 
-### Challenge 2: Complex Operands
-Operands like `[rip+0x2000]` or `qword ptr [rbp-0x10]` are complex.
-**Solution**: Multi-pass parsing with regex for nested structures.
-
-### Challenge 3: Architecture Differences
-Different architectures use different mnemonics.
-**Solution**: Modular architecture-specific instruction databases.
+### Key Features Implemented
+- **Instruction Database**: 354 x86/x64 instructions across 9 categories
+- **Operand Parsing**: Distinguishes REGISTER, IMMEDIATE, MEMORY, SYMBOL, UNKNOWN
+- **Regex-based Parsing**: Robust parsing of instruction lines with comments
+- **Detailed Highlighting**: Separate colors for opcode, operands, comments
+- **Register Detection**: x86/x64 64-bit, 32-bit, 16-bit, 8-bit registers, plus segment and control registers
 
 ## Next Steps
-After completion, proceed to Subtask 3: Architecture-Specific Schemes for ARM and other architectures.
+✅ Completed - Proceed to Subtask 3: Architecture-Specific Schemes (also completed)

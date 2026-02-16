@@ -34,7 +34,7 @@ def mock_report():
     report.file_type = "ELF"
     report.stripped = False
     report.file_size = 8192
-    
+
     # Strings with interesting patterns
     report.strings = [
         "password",
@@ -48,7 +48,7 @@ def mock_report():
         "secret_key",
         "http://api.example.com",
     ]
-    
+
     # Functions
     report.functions = [
         {"name": "main", "address": 0x401000, "size": 256},
@@ -56,11 +56,11 @@ def mock_report():
         {"name": "process_data", "address": 0x401200, "size": 64},
         {"name": "printf", "address": 0x402000, "size": 32},
     ]
-    
+
     # Imports and exports
     report.imports = ["printf", "malloc", "free", "strcmp", "memcpy"]
     report.exports = ["main", "authenticate", "process_data"]
-    
+
     # Protections
     report.protections = MagicMock()
     report.protections.pie = True
@@ -68,10 +68,10 @@ def mock_report():
     report.protections.canary = True
     report.protections.relro = "full"
     report.protections.fortify = False
-    
+
     # Sections
     report.sections = [".text", ".data", ".bss", ".rodata", ".plt", ".got"]
-    
+
     report.raw_backend_data = {}
     return report
 
@@ -82,7 +82,7 @@ class TestCompleteAnalysisWorkflow:
     @pytest.mark.asyncio
     async def test_complete_analysis_workflow(self, temp_binary, mock_report):
         """Test full flow: load file → analyze → navigate views → filter → select.
-        
+
         This test validates the primary user workflow:
         1. Load a binary file
         2. Analysis completes successfully
@@ -122,7 +122,7 @@ class TestCompleteAnalysisWorkflow:
                 # In a real UI test, we'd focus the filter input and type
                 # For now, test the filtering mechanism directly
                 strings_view.apply_filter("password")
-                
+
                 # Step 6: Verify filtering worked
                 assert any("password" in s.lower() for s in strings_view._filtered)
                 assert len(strings_view._filtered) < len(strings_view._strings)
@@ -144,7 +144,7 @@ class TestCommandPaletteWorkflow:
     @pytest.mark.asyncio
     async def test_command_palette_workflow(self, temp_binary, mock_report):
         """Test Ctrl+P → search → execute → verify state change.
-        
+
         Validates:
         1. Command palette opens on Ctrl+P
         2. Commands can be searched
@@ -189,7 +189,7 @@ class TestMultiPanelWorkflow:
     @pytest.mark.asyncio
     async def test_multi_panel_workflow(self, temp_binary, mock_report):
         """Test toggle panels → select function → details update → console logs.
-        
+
         Validates:
         1. Panels can be toggled on/off
         2. Function explorer shows functions
@@ -237,7 +237,7 @@ class TestErrorHandlingWorkflow:
     @pytest.mark.asyncio
     async def test_error_handling_workflow(self):
         """Test invalid file → error shown → recovery → valid file works.
-        
+
         Validates:
         1. Loading invalid file shows error
         2. Application remains usable after error
@@ -294,7 +294,7 @@ class TestCancellationWorkflow:
     @pytest.mark.asyncio
     async def test_cancellation_workflow(self, temp_binary, mock_report):
         """Test start analysis → cancel → verify cleanup → restart works.
-        
+
         Validates:
         1. Analysis can be started
         2. Analysis can be cancelled mid-execution
@@ -353,7 +353,7 @@ class TestRapidOperationsWorkflow:
     @pytest.mark.asyncio
     async def test_rapid_operations(self, temp_binary, mock_report):
         """Test rapid tab switching, filtering, command execution.
-        
+
         Validates:
         1. Rapid tab switching doesn't cause crashes
         2. Multiple filter changes are handled smoothly
@@ -402,7 +402,7 @@ class TestViewSwitchingWorkflow:
     @pytest.mark.asyncio
     async def test_view_switching_workflow(self, temp_binary, mock_report):
         """Navigate through all views, verify data persists and displays correctly.
-        
+
         Validates:
         1. All views are accessible
         2. Data persists when switching views
@@ -426,7 +426,7 @@ class TestViewSwitchingWorkflow:
                 for view_key in views:
                     await pilot.press(view_key)
                     await pilot.pause(0.05)
-                    
+
                     # Verify state is still intact
                     assert app.state.binary_info is not None
                     assert app.state.analysis_results is not None
@@ -446,7 +446,7 @@ class TestFilterWorkflow:
     @pytest.mark.asyncio
     async def test_filter_workflow(self, temp_binary, mock_report):
         """Apply filters in multiple views, verify they work independently.
-        
+
         Validates:
         1. Filters can be applied in strings view
         2. Filters produce expected results
@@ -471,7 +471,7 @@ class TestFilterWorkflow:
 
                 # Get strings view and test filtering
                 strings_view = app.query_one(StringsView)
-                
+
                 # Test filter: "password"
                 strings_view.apply_filter("password")
                 filtered_count_1 = len(strings_view._filtered)
@@ -497,7 +497,7 @@ class TestMultipleAnalysesWorkflow:
     @pytest.mark.asyncio
     async def test_multiple_analyses_workflow(self, temp_binary, mock_report):
         """Load multiple binaries in sequence, verify cleanup between loads.
-        
+
         Validates:
         1. Can analyze multiple files in sequence
         2. Previous analysis data is cleared
@@ -508,7 +508,7 @@ class TestMultipleAnalysesWorkflow:
 
         with patch("caspoon.ui.workers.analysis.ReconRunner") as mock_runner_class:
             mock_runner = MagicMock()
-            
+
             # Create different reports
             report1 = MagicMock()
             report1.path = "/test/binary1"
@@ -519,7 +519,7 @@ class TestMultipleAnalysesWorkflow:
             report1.protections = MagicMock()
             report1.protections.pie = True
             report1.raw_backend_data = {}
-            
+
             report2 = MagicMock()
             report2.path = "/test/binary2"
             report2.arch = "aarch64"
@@ -529,7 +529,7 @@ class TestMultipleAnalysesWorkflow:
             report2.protections = MagicMock()
             report2.protections.pie = False
             report2.raw_backend_data = {}
-            
+
             mock_runner.run.side_effect = [report1, report2]
             mock_runner_class.return_value = mock_runner
 
@@ -537,7 +537,7 @@ class TestMultipleAnalysesWorkflow:
                 # Analyze first binary
                 await app.start_analysis(temp_binary)
                 await asyncio.sleep(0.2)
-                
+
                 assert app.state.binary_info.path == "/test/binary1"
                 assert app.state.binary_info.architecture == "x86_64"
                 assert len(app.state.analysis_results.strings) == 1
@@ -545,7 +545,7 @@ class TestMultipleAnalysesWorkflow:
                 # Analyze second binary
                 await app.start_analysis(temp_binary)
                 await asyncio.sleep(0.2)
-                
+
                 # Verify new data replaced old data
                 assert app.state.binary_info.path == "/test/binary2"
                 assert app.state.binary_info.architecture == "aarch64"

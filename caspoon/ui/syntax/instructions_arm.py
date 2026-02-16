@@ -25,18 +25,18 @@ ARM_INSTRUCTIONS = {
         # Compare and branch (ARM64)
         'cbz', 'cbnz', 'tbz', 'tbnz',
     },
-    
+
     InstructionType.CALL: {
         # Branch with link (function calls)
         'bl', 'blx', 'blr',  # bl/blx for ARM32, blr for ARM64
     },
-    
+
     InstructionType.RETURN: {
         # Return instructions
         'ret',  # ARM64
         'bx lr',  # ARM32 common return pattern (will match 'bx' in JUMP, but this is ok)
     },
-    
+
     InstructionType.MOVE: {
         # Basic move operations
         'mov', 'movw', 'movt', 'mvn',  # move, move wide, move top, move not
@@ -72,7 +72,7 @@ ARM_INSTRUCTIONS = {
         'strmi', 'strpl', 'strvs', 'strvc',
         'strhi', 'strls', 'strge', 'strlt', 'strgt', 'strle',
     },
-    
+
     InstructionType.ARITHMETIC: {
         # Addition
         'add', 'adc', 'addw', 'adds', 'adcs',  # add, add with carry
@@ -99,7 +99,7 @@ ARM_INSTRUCTIONS = {
         'submi', 'subpl', 'subvs', 'subvc',
         'subhi', 'subls', 'subge', 'sublt', 'subgt', 'suble',
     },
-    
+
     InstructionType.LOGIC: {
         # Logical operations
         'and', 'orr', 'eor', 'bic', 'orn', 'eon',  # and, or, xor, bit clear
@@ -128,7 +128,7 @@ ARM_INSTRUCTIONS = {
         'eormi', 'eorpl', 'eorvs', 'eorvc',
         'eorhi', 'eorls', 'eorge', 'eorlt', 'eorgt', 'eorle',
     },
-    
+
     InstructionType.STACK: {
         # Push and pop (ARM32)
         'push', 'pop',
@@ -140,7 +140,7 @@ ARM_INSTRUCTIONS = {
         # ARM64 stack operations
         'stp', 'ldp',  # store/load pair (commonly used for stack)
     },
-    
+
     InstructionType.COMPARE: {
         # Compare operations
         'cmp', 'cmn',  # compare, compare negative
@@ -148,7 +148,7 @@ ARM_INSTRUCTIONS = {
         # ARM64 compare
         'ccmn', 'ccmp',  # conditional compare
     },
-    
+
     InstructionType.OTHER: {
         # No operation
         'nop',
@@ -212,78 +212,78 @@ ARM_INSTRUCTIONS = {
 
 def get_instruction_type(mnemonic: str) -> InstructionType:
     """Get the instruction type for a given ARM mnemonic.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         The InstructionType for this mnemonic.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Check main instruction categories
     for instr_type, instructions in ARM_INSTRUCTIONS.items():
         if mnemonic in instructions:
             return instr_type
-    
+
     return InstructionType.OTHER
 
 
 def is_conditional_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a conditional instruction.
-    
+
     ARM instructions can have condition suffixes like eq, ne, cs, etc.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this instruction has a condition suffix.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Common ARM condition suffixes
-    conditions = ['eq', 'ne', 'cs', 'hs', 'cc', 'lo', 'mi', 'pl', 
+    conditions = ['eq', 'ne', 'cs', 'hs', 'cc', 'lo', 'mi', 'pl',
                   'vs', 'vc', 'hi', 'ls', 'ge', 'lt', 'gt', 'le', 'al']
-    
+
     for cond in conditions:
         if mnemonic.endswith(cond):
             return True
-    
+
     return False
 
 
 def is_thumb_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a Thumb-specific instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a Thumb-specific instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # IT (if-then) instructions are Thumb-specific
     thumb_instructions = {
         'it', 'ite', 'itt', 'ittt', 'itttt',
         'itee', 'itte', 'ittee', 'ittte', 'ittee', 'itete', 'itett',
         'iteee', 'iteet', 'itete', 'itett', 'ittee', 'ittet', 'ittte',
     }
-    
+
     return mnemonic in thumb_instructions
 
 
 def is_neon_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a NEON/Advanced SIMD instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a NEON instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # NEON instructions typically start with 'v'
     return mnemonic.startswith('v') and len(mnemonic) > 1

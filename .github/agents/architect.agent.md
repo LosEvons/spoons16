@@ -105,9 +105,9 @@ If repo conventions conflict with generic best practices, prefer **repo conventi
    - `caspoon/docs/guides/` - User and developer guides
    - `caspoon/docs/plans/` - Design and implementation plans
    - `caspoon/docs/reference/` - API references and technical documentation
-   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent` - API references and technical documentation
    - `caspoon/docs/changelogs/` - Project changelog entries
-   - Never create documentation files at the repository root
+   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent
+   - **NEVER create documentation files at the repository root** - No .md files except README.md and LICENSE should exist in the repository root
 
 3. **Changelog System** - When completing major work (plans, features, infrastructure):
    - Update `caspoon/docs/changelogs/INDEX.md` with a brief entry (date, 1-3 sentence summary, link)
