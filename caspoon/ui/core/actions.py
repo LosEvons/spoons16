@@ -232,6 +232,7 @@ class ActionRegistry:
 
             name_lower = action.name.lower()
             desc_lower = action.description.lower()
+            category_lower = action.category.lower()
 
             # Exact name match
             if query_lower == name_lower:
@@ -248,6 +249,9 @@ class ActionRegistry:
             # Query in action_id
             elif query_lower in action.action_id.lower():
                 score = 40
+            # Query in category
+            elif query_lower in category_lower:
+                score = 30
 
             if score > 0:
                 matches.append((score, action))

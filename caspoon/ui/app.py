@@ -4,6 +4,7 @@ import logging
 import os
 
 from textual.app import App, ComposeResult
+from textual.binding import Binding
 from textual.containers import ScrollableContainer
 from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
 
@@ -21,6 +22,7 @@ from .views.overview import OverviewView
 from .views.protections import ProtectionsView
 from .views.r2_view import R2View
 from .views.strings_view import StringsView
+from .widgets import CommandPalette
 from .workers import AnalysisWorker, Worker
 
 logger = logging.getLogger(__name__)
@@ -36,6 +38,17 @@ class CaspoonApp(App):
     TITLE = "Caspoon Reverse Engineering Toolkit"
     SUB_TITLE = "Executable Recon Viewer"
 
+    BINDINGS = [
+        Binding("ctrl+p", "show_command_palette", "Commands", show=True),
+        Binding("ctrl+q", "quit", "Quit", show=True),
+        Binding("f1", "show_help", "Help", show=True),
+        Binding("1", "switch_tab('overview')", "Overview", show=False),
+        Binding("2", "switch_tab('protections')", "Protections", show=False),
+        Binding("3", "switch_tab('strings')", "Strings", show=False),
+        Binding("4", "switch_tab('imports')", "Imports/Exports", show=False),
+        Binding("5", "switch_tab('r2')", "R2 Analysis", show=False),
+    ]
+
     def __init__(self, **kwargs):
         """Initialize the application with centralized state management."""
         super().__init__(**kwargs)
@@ -43,11 +56,14 @@ class CaspoonApp(App):
         # Centralized state management
         self.state = AppState()
 
-        # Action registry for command palette (future use)
+        # Action registry for command palette
         self.action_registry = ActionRegistry()
 
         # Current worker for analysis (None if no analysis in progress)
         self._current_worker: Worker | None = None
+
+        # Register all commands
+        self._register_commands()
 
         logger.info("CaspoonApp initialized with AppState and ActionRegistry")
 
@@ -61,24 +77,27 @@ class CaspoonApp(App):
 
         yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
 
-        with TabbedContent():
-            with TabPane("Overview"):
+        with TabbedContent(id="tabs"):
+            with TabPane("Overview", id="overview-tab"):
                 with ScrollableContainer():
                     yield OverviewView(id="overview")
-            with TabPane("Protections"):
+            with TabPane("Protections", id="protections-tab"):
                 with ScrollableContainer():
                     yield ProtectionsView(id="protections")
-            with TabPane("Strings"):
+            with TabPane("Strings", id="strings-tab"):
                 with ScrollableContainer():
                     yield StringsView(id="strings_view")
-            with TabPane("Imports / Exports"):
+            with TabPane("Imports / Exports", id="imports-tab"):
                 with ScrollableContainer():
                     yield ImportsExportsView(id="imp_exp")
-            with TabPane("R2 Analysis"):
+            with TabPane("R2 Analysis", id="r2-tab"):
                 with ScrollableContainer():
                     yield R2View(id="r2_view")
 
         yield Footer()
+
+        # Command palette (hidden by default)
+        yield CommandPalette(self.action_registry, id="command_palette")
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
         """Handle input submission when user enters a file path.
@@ -252,3 +271,246 @@ class CaspoonApp(App):
             footer.renderable = text  # type: ignore[attr-defined]
         except Exception as e:
             logger.error(f"Error setting status: {e}")
+
+    def _register_commands(self) -> None:
+        """Register all application commands with the action registry."""
+        reg = self.action_registry
+
+        # File commands
+        reg.register(
+            "file.quit",
+            "Quit Application",
+            self.action_quit,
+            "Exit the application",
+            "ctrl+q",
+            "File",
+        )
+        reg.register(
+            "file.reload",
+            "Reload Binary",
+            self.action_reload_analysis,
+            "Reload current binary analysis",
+            "ctrl+r",
+            "File",
+        )
+
+        # View commands
+        reg.register(
+            "view.overview",
+            "Show Overview",
+            lambda: self.action_switch_tab("overview-tab"),
+            "Switch to Overview tab",
+            "1",
+            "View",
+        )
+        reg.register(
+            "view.protections",
+            "Show Protections",
+            lambda: self.action_switch_tab("protections-tab"),
+            "Switch to Protections tab",
+            "2",
+            "View",
+        )
+        reg.register(
+            "view.strings",
+            "Show Strings",
+            lambda: self.action_switch_tab("strings-tab"),
+            "Switch to Strings tab",
+            "3",
+            "View",
+        )
+        reg.register(
+            "view.imports_exports",
+            "Show Imports/Exports",
+            lambda: self.action_switch_tab("imports-tab"),
+            "Switch to Imports/Exports tab",
+            "4",
+            "View",
+        )
+        reg.register(
+            "view.disassembly",
+            "Show R2 Analysis",
+            lambda: self.action_switch_tab("r2-tab"),
+            "Switch to R2 Analysis tab",
+            "5",
+            "View",
+        )
+        reg.register(
+            "view.next_tab",
+            "Next Tab",
+            self.action_next_tab,
+            "Switch to next tab",
+            "tab",
+            "View",
+        )
+        reg.register(
+            "view.prev_tab",
+            "Previous Tab",
+            self.action_prev_tab,
+            "Switch to previous tab",
+            "shift+tab",
+            "View",
+        )
+
+        # Analysis commands
+        reg.register(
+            "analysis.start",
+            "Start Analysis",
+            self.action_start_analysis_prompt,
+            "Start binary analysis",
+            "f5",
+            "Analysis",
+        )
+        reg.register(
+            "analysis.cancel",
+            "Cancel Analysis",
+            lambda: self.run_worker(self.cancel_analysis(), exclusive=False),
+            "Cancel ongoing analysis",
+            "escape",
+            "Analysis",
+        )
+
+        # Navigation commands
+        reg.register(
+            "nav.filter",
+            "Focus Filter",
+            self.action_focus_filter,
+            "Focus the filter input in current view",
+            "/",
+            "Navigation",
+        )
+        reg.register(
+            "nav.clear_filter",
+            "Clear Filter",
+            self.action_clear_filter,
+            "Clear filter in current view",
+            "ctrl+shift+f",
+            "Navigation",
+        )
+
+        # Help commands
+        reg.register(
+            "help.show",
+            "Show Help",
+            self.action_show_help,
+            "Show help documentation",
+            "f1",
+            "Help",
+        )
+        reg.register(
+            "help.command_palette",
+            "Show Command Palette",
+            self.action_show_command_palette,
+            "Open command palette",
+            "ctrl+p",
+            "Help",
+        )
+
+        logger.info(f"Registered {len(reg.get_all_actions())} commands")
+
+    # Action Handlers
+
+    def action_show_command_palette(self) -> None:
+        """Show the command palette."""
+        palette = self.query_one("#command_palette", CommandPalette)
+        palette.show()
+
+    def action_quit(self) -> None:
+        """Quit the application."""
+        self.exit()
+
+    def action_reload_analysis(self) -> None:
+        """Reload current binary analysis."""
+        # Get current file path from input
+        path_input = self.query_one("#path_input", Input)
+        path = path_input.value.strip()
+
+        if path and os.path.exists(path):
+            self.run_worker(self.start_analysis(path), exclusive=True)
+        else:
+            self.notify("No binary loaded to reload", severity="warning")
+
+    def action_switch_tab(self, tab_id: str) -> None:
+        """Switch to specified tab.
+
+        Args:
+            tab_id: ID of the tab to switch to
+        """
+        try:
+            tabs = self.query_one("#tabs", TabbedContent)
+            tabs.active = tab_id
+        except Exception as e:
+            logger.error(f"Error switching tab: {e}")
+
+    def action_next_tab(self) -> None:
+        """Switch to next tab."""
+        try:
+            tabs = self.query_one("#tabs", TabbedContent)
+            # Get current tab index and cycle to next
+            tab_panes = list(tabs.query(TabPane))
+            if tab_panes:
+                current_idx = next(
+                    (i for i, pane in enumerate(tab_panes) if pane.id == tabs.active),
+                    0,
+                )
+                next_idx = (current_idx + 1) % len(tab_panes)
+                tabs.active = tab_panes[next_idx].id or "overview-tab"
+        except Exception as e:
+            logger.error(f"Error switching to next tab: {e}")
+
+    def action_prev_tab(self) -> None:
+        """Switch to previous tab."""
+        try:
+            tabs = self.query_one("#tabs", TabbedContent)
+            # Get current tab index and cycle to previous
+            tab_panes = list(tabs.query(TabPane))
+            if tab_panes:
+                current_idx = next(
+                    (i for i, pane in enumerate(tab_panes) if pane.id == tabs.active),
+                    0,
+                )
+                prev_idx = (current_idx - 1) % len(tab_panes)
+                tabs.active = tab_panes[prev_idx].id or "overview-tab"
+        except Exception as e:
+            logger.error(f"Error switching to previous tab: {e}")
+
+    def action_start_analysis_prompt(self) -> None:
+        """Focus the path input to start analysis."""
+        try:
+            path_input = self.query_one("#path_input", Input)
+            path_input.focus()
+        except Exception as e:
+            logger.error(f"Error focusing path input: {e}")
+
+    def action_focus_filter(self) -> None:
+        """Focus filter input in current view (if available)."""
+        # This is a stub - will be implemented when views support filtering
+        self.notify("Filter not yet implemented in current view", severity="information")
+
+    def action_clear_filter(self) -> None:
+        """Clear filter in current view (if available)."""
+        # This is a stub - will be implemented when views support filtering
+        self.notify("Filter not yet implemented in current view", severity="information")
+
+    def action_show_help(self) -> None:
+        """Show help documentation."""
+        help_text = """
+Caspoon Reverse Engineering Toolkit - Help
+
+Keyboard Shortcuts:
+  Ctrl+P    - Open Command Palette
+  Ctrl+Q    - Quit Application
+  F1        - Show this help
+  1-5       - Switch between tabs
+  Tab       - Next tab
+  Shift+Tab - Previous tab
+  F5        - Start Analysis (focus path input)
+  Escape    - Cancel Analysis (if running)
+
+Command Palette:
+  Type to search commands, use Up/Down to navigate,
+  and press Enter to execute.
+
+For more information, visit the documentation.
+        """
+        self.notify(help_text.strip(), severity="information", timeout=10)

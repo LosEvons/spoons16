@@ -303,6 +303,84 @@ class TestActionRegistry:
         # Exact match should be first
         assert results[0].action_id == "open"
 
+    def test_search_by_category(self):
+        """Test searching actions by category."""
+        registry = ActionRegistry()
+
+        registry.register("file.open", "Open", Mock(), category="File")
+        registry.register("file.close", "Close", Mock(), category="File")
+        registry.register("edit.copy", "Copy", Mock(), category="Edit")
+
+        results = registry.search("file")
+
+        # Should match both by category and by action_id prefix
+        assert len(results) >= 2
+
+    def test_search_no_matches(self):
+        """Test search with no matches returns empty list."""
+        registry = ActionRegistry()
+
+        registry.register("action1", "Test 1", Mock())
+        registry.register("action2", "Test 2", Mock())
+
+        results = registry.search("nonexistent")
+
+        assert len(results) == 0
+
+    def test_search_disabled_excluded(self):
+        """Test that disabled actions are included in search results."""
+        registry = ActionRegistry()
+
+        registry.register("action1", "Test 1", Mock())
+        registry.register("action2", "Test 2", Mock())
+
+        # Disable one action
+        registry.set_enabled("action2", False)
+
+        results = registry.search("")
+
+        # Both should still be in results (ActionRegistry.search doesn't filter by enabled)
+        assert len(results) == 2
+
+    def test_search_exact_match_highest_score(self):
+        """Test exact match scores 100."""
+        registry = ActionRegistry()
+
+        registry.register("test", "test", Mock())
+        registry.register("testing", "testing", Mock())
+
+        results = registry.search("test")
+
+        # Exact match "test" should be first
+        assert results[0].action_id == "test"
+
+    def test_search_name_starts_with_high_score(self):
+        """Test name starts with query scores 90."""
+        registry = ActionRegistry()
+
+        registry.register("action1", "open file", Mock())
+        registry.register("action2", "file open", Mock())
+
+        results = registry.search("open")
+
+        # "open file" starts with "open", should be first
+        assert results[0].action_id == "action1"
+
+    def test_search_sorting_by_score_then_name(self):
+        """Test results sorted by score descending, then by name."""
+        registry = ActionRegistry()
+
+        # Same score - should be sorted by name (action name, not action_id)
+        registry.register("test1", "zebra action", Mock(), description="contains test")
+        registry.register("test2", "apple action", Mock(), description="test here")
+
+        results = registry.search("test")
+
+        # Both match in description (same score), should be sorted by name field
+        # "apple action" comes before "zebra action"
+        assert results[0].action_id == "test2"
+        assert results[1].action_id == "test1"
+
     def test_set_enabled(self):
         """Test enabling/disabling actions."""
         registry = ActionRegistry()
