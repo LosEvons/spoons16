@@ -49,6 +49,9 @@ class CaspoonApp(App):
         Binding("3", "switch_tab('strings-tab')", "Strings", show=False),
         Binding("4", "switch_tab('imports-tab')", "Imports/Exports", show=False),
         Binding("5", "switch_tab('r2-tab')", "R2 Analysis", show=False),
+        Binding("ctrl+b", "toggle_sidebar", "Toggle Sidebar", show=False),
+        Binding("ctrl+d", "toggle_details", "Toggle Details", show=False),
+        Binding("ctrl+j", "toggle_console", "Toggle Console", show=False),
     ]
 
     def __init__(self, **kwargs):
@@ -503,6 +506,42 @@ Command Palette:
 For more information, visit the documentation.
         """
         self.notify(help_text.strip(), severity="information", timeout=10)
+
+    def action_toggle_sidebar(self) -> None:
+        """Toggle sidebar visibility.
+        
+        Delegates to MainScreen's action_toggle_sidebar method.
+        """
+        try:
+            from .screens.main import MainScreen
+            main_screen = self.query_one(MainScreen)
+            main_screen.action_toggle_sidebar()
+        except Exception as e:
+            logger.error(f"Error toggling sidebar: {e}")
+
+    def action_toggle_details(self) -> None:
+        """Toggle details panel visibility.
+        
+        Delegates to MainScreen's action_toggle_details method.
+        """
+        try:
+            from .screens.main import MainScreen
+            main_screen = self.query_one(MainScreen)
+            main_screen.action_toggle_details()
+        except Exception as e:
+            logger.error(f"Error toggling details: {e}")
+
+    def action_toggle_console(self) -> None:
+        """Toggle console visibility.
+        
+        Delegates to MainScreen's action_toggle_console method.
+        """
+        try:
+            from .screens.main import MainScreen
+            main_screen = self.query_one(MainScreen)
+            main_screen.action_toggle_console()
+        except Exception as e:
+            logger.error(f"Error toggling console: {e}")
 
     def on_select_function(self, message: SelectFunction) -> None:
         """Handle function selection from sidebar.
