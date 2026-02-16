@@ -2,8 +2,9 @@
 
 from textual.binding import Binding
 from textual.containers import Container
-from textual.widgets import Footer, Header
 
+from caspoon.ui.widgets.app_footer import AppFooter
+from caspoon.ui.widgets.app_header import AppHeader
 from caspoon.ui.widgets.console import Console
 from caspoon.ui.widgets.details_panel import DetailsPanel
 from caspoon.ui.widgets.sidebar import Sidebar
@@ -102,7 +103,7 @@ class MainScreen(Container):
         """Compose the multi-panel layout.
 
         Yields:
-            Header, Sidebar, Content area with tabs, DetailsPanel, Console, Footer
+            AppHeader, Sidebar, Content area with tabs, DetailsPanel, Console, AppFooter
         """
         from textual.widgets import Input, TabbedContent, TabPane
         from textual.containers import ScrollableContainer
@@ -112,7 +113,7 @@ class MainScreen(Container):
         from caspoon.ui.views.r2_view import R2View
         from caspoon.ui.views.strings_view import StringsView
 
-        yield Header()
+        yield AppHeader()
         yield Sidebar(id="sidebar")
         
         # Content area with input and tabs
@@ -137,7 +138,7 @@ class MainScreen(Container):
         
         yield DetailsPanel(id="details")
         yield Console(id="console")
-        yield Footer()
+        yield AppFooter()
 
     def on_mount(self) -> None:
         """Set up the screen when mounted.
