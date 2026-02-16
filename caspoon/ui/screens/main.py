@@ -40,7 +40,7 @@ class MainScreen(Container):
     MainScreen {
         layout: grid;
         grid-size: 3 2;
-        grid-columns: 1fr 3fr 1fr;
+        grid-columns: 1fr 2fr 1fr;
         grid-rows: 1fr auto;
     }
 
@@ -70,11 +70,11 @@ class MainScreen(Container):
 
     /* Adjust grid when panels are hidden */
     MainScreen.sidebar-hidden {
-        grid-columns: 0 4fr 1fr;
+        grid-columns: 0 3fr 1fr;
     }
 
     MainScreen.details-hidden {
-        grid-columns: 1fr 3fr 0;
+        grid-columns: 1fr 2fr 0;
     }
 
     MainScreen.sidebar-hidden.details-hidden {

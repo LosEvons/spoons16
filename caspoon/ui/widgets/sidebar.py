@@ -23,7 +23,6 @@ class Sidebar(Vertical):
 
     DEFAULT_CSS = """
     Sidebar {
-        width: 25%;
         border: solid green;
         background: $surface;
     }

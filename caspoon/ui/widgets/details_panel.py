@@ -25,7 +25,6 @@ class DetailsPanel(ScrollableContainer):
     DEFAULT_CSS = """
     DetailsPanel {
         border: solid blue;
-        width: 25%;
     }
 
     DetailsPanel Static {
