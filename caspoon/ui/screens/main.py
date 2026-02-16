@@ -2,7 +2,6 @@
 
 from textual.binding import Binding
 from textual.containers import Container
-from textual.screen import Screen
 from textual.widgets import Footer, Header
 
 from caspoon.ui.widgets.console import Console
@@ -10,7 +9,7 @@ from caspoon.ui.widgets.details_panel import DetailsPanel
 from caspoon.ui.widgets.sidebar import Sidebar
 
 
-class MainScreen(Screen):
+class MainScreen(Container):
     """Main screen with multi-panel docking layout.
 
     Provides an IDE-like experience with:
@@ -28,8 +27,7 @@ class MainScreen(Screen):
 
     Example:
         >>> screen = MainScreen()
-        >>> app.install_screen(screen, name="main")
-        >>> app.push_screen("main")
+        >>> yield screen
     """
 
     BINDINGS = [
