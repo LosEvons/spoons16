@@ -9,6 +9,8 @@ from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
 
 from caspoon.core.runner import ReconRunner
 
+from .core.actions import ActionRegistry
+from .core.state import AppState
 from .views.imports_exports import ImportsExportsView
 from .views.overview import OverviewView
 from .views.protections import ProtectionsView
@@ -27,6 +29,18 @@ class CaspoonApp(App):
 
     TITLE = "Caspoon Reverse Engineering Toolkit"
     SUB_TITLE = "Executable Recon Viewer"
+
+    def __init__(self, **kwargs):
+        """Initialize the application with centralized state management."""
+        super().__init__(**kwargs)
+
+        # Centralized state management
+        self.state = AppState()
+
+        # Action registry for command palette (future use)
+        self.action_registry = ActionRegistry()
+
+        logger.info("CaspoonApp initialized with AppState and ActionRegistry")
 
     def compose(self) -> ComposeResult:
         """Compose the UI layout.
@@ -85,7 +99,14 @@ class CaspoonApp(App):
             self.set_status(f"Analyzing: {path}...")
             runner = ReconRunner()
             report = runner.run(path)
+
+            # Update centralized state (new architecture)
+            self.state.update_from_report(report)
+            logger.info("AppState updated from analysis report")
+
+            # Update views using old interface (backward compatibility)
             self.display_report(report)
+
             self.set_status(f"Loaded: {path}")
         except Exception as e:
             logger.error(f"Error analyzing file: {e}")
