@@ -4,6 +4,38 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2026-02-16 - TUI Redesign: COMPLETE - Production Ready
+
+Successfully completed all 8 subtasks of the comprehensive TUI redesign. The TUI now features reactive architecture, async workers, command palette, multi-panel layout, and comprehensive testing with 920 passing tests and 88.45% coverage.
+
+**Details**: [2026-02-16-subtask8-final.md](2026-02-16-subtask8-final.md)
+
+---
+
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 7) - Multi-Panel Layout
+
+Implemented IDE-like multi-panel docking layout with collapsible sidebar, details panel, and bottom console. Users can now navigate functions via tree browser, view contextual details, and monitor logs in dedicated panels.
+
+**Details**: [2026-02-16-subtask7-multi-panel.md](2026-02-16-subtask7-multi-panel.md)
+
+---
+
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 6) - Command Palette
+
+Implemented VS Code-style command palette (Ctrl+P) with fuzzy search for keyboard-driven workflows. Users can now quickly find and execute any command by typing a few letters, with intelligent relevance scoring.
+
+**Details**: [2026-02-16-subtask6-command-palette.md](2026-02-16-subtask6-command-palette.md)
+
+---
+
+## 2026-02-16 - TUI Redesign: Phase 3 (Subtask 5) - Async Workers
+
+Implemented non-blocking binary analysis with async worker pattern, progress reporting, and cancellation support. The TUI now remains fully responsive during analysis operations with real-time progress updates.
+
+**Details**: [2026-02-16-subtask5-async-workers.md](2026-02-16-subtask5-async-workers.md)
+
+---
+
 ## 2025-02-15 - GitHub Copilot Integration
 
 Added comprehensive `.github/copilot-instructions.md` file to provide GitHub Copilot with project context, conventions, and best practices. Includes architecture overview, coding standards, testing guidelines, and security considerations.
