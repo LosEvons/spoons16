@@ -56,6 +56,42 @@ caspoon --help
 
 ### Basic Usage
 
+#### Interactive TUI Mode
+
+```bash
+# Launch interactive terminal UI
+caspoon --ui
+
+# Or start with a binary loaded
+caspoon --ui /path/to/binary
+```
+
+The TUI provides a powerful, keyboard-driven interface for binary analysis:
+
+- **📑 Tabbed Views**: Navigate between Overview, Protections, Strings, Imports/Exports, and R2 Analysis
+- **⌨️ Keyboard Shortcuts**: Efficient navigation with number keys (1-5), arrow keys, and Ctrl combos
+- **🔍 Interactive Filtering**: Real-time search and filter in strings and other views
+- **🎯 Command Palette** (Ctrl+P): Fuzzy search for any command or action
+- **📊 Multi-Panel Layout**: Optional sidebar, details panel, and console for advanced workflows
+- **🔄 Live Analysis**: Watch analysis progress in real-time with responsive UI
+
+**Key Features:**
+- Switch views instantly with number keys (`1` = Overview, `2` = Protections, etc.)
+- Filter strings with `/` key for fast searches
+- Toggle panels: `Ctrl+B` (sidebar), `Ctrl+D` (details), `Ctrl+J` (console)
+- Command palette: `Ctrl+P` for fuzzy command search
+- Help: Press `F1` for in-app help
+
+**Example Workflow:**
+```bash
+caspoon --ui /bin/ls          # Load binary in TUI
+# Press 3 → /password → Enter  # Jump to strings, search, view results
+# Press Ctrl+P → "imports"     # Command palette to find import-related actions
+# Press Ctrl+B                 # Open function explorer sidebar
+```
+
+For detailed TUI documentation, see **[TUI User Guide](caspoon/docs/guides/tui-user-guide.md)**.
+
 #### Command-Line Mode (JSON output)
 
 ```bash
@@ -171,6 +207,7 @@ Each **recon module** enriches the report with its findings. See [docs/reference
 ### User Documentation
 
 - **[Quick Start](#quick-start)** - Get up and running quickly
+- **[TUI User Guide](caspoon/docs/guides/tui-user-guide.md)** - Complete guide to the Terminal UI
 - **[OVERVIEW.md](caspoon/docs/reference/OVERVIEW.md)** - Comprehensive architecture and usage guide
 - **[TESTING.md](caspoon/docs/guides/TESTING.md)** - How to run tests and understand test coverage
 
