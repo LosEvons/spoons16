@@ -46,38 +46,26 @@ class MainScreen(Container):
     }
 
     #sidebar {
-        grid-row-start: 1;
-        grid-column-start: 1;
         row-span: 2;
         column-span: 1;
     }
 
     #content {
-        grid-row-start: 1;
-        grid-column-start: 2;
         column-span: 1;
         row-span: 1;
     }
 
     #details {
-        grid-row-start: 1;
-        grid-column-start: 3;
         row-span: 2;
         column-span: 1;
     }
 
     #console {
-        grid-row-start: 2;
-        grid-column-start: 2;
         column-span: 1;
         row-span: 1;
     }
 
-    .hidden {
-        display: none;
-    }
-
-    /* Adjust grid when panels are hidden */
+    /* Adjust grid when panels are hidden - use 0 width instead of display:none */
     MainScreen.sidebar-hidden {
         grid-columns: 0 3fr 1fr;
     }
@@ -88,6 +76,10 @@ class MainScreen(Container):
 
     MainScreen.sidebar-hidden.details-hidden {
         grid-columns: 0 1fr 0;
+    }
+
+    MainScreen.console-hidden {
+        grid-rows: 1fr 0;
     }
     """
 
@@ -150,17 +142,15 @@ class MainScreen(Container):
             if hasattr(self.app, "state"):
                 state = self.app.state.ui_state
 
-                # Set initial visibility
+                # Set initial visibility by toggling grid layout classes
                 if not state.sidebar_visible:
-                    self.query_one("#sidebar").add_class("hidden")
                     self.add_class("sidebar-hidden")
 
                 if not state.details_visible:
-                    self.query_one("#details").add_class("hidden")
                     self.add_class("details-hidden")
 
                 if not state.console_visible:
-                    self.query_one("#console").add_class("hidden")
+                    self.add_class("console-hidden")
 
         except Exception:
             # Continue with defaults if state not available
@@ -174,15 +164,12 @@ class MainScreen(Container):
         Updates both the widget visibility and AppState.
         """
         try:
-            sidebar = self.query_one("#sidebar")
-            sidebar.toggle_class("hidden")
-
-            # Update screen layout class
+            # Update screen layout class (changes grid-columns)
             self.toggle_class("sidebar-hidden")
+            is_visible = not self.has_class("sidebar-hidden")
 
             # Update AppState
             if hasattr(self.app, "state"):
-                is_visible = not sidebar.has_class("hidden")
                 self.app.state.ui_state.sidebar_visible = is_visible
 
                 # Log to console
@@ -202,15 +189,12 @@ class MainScreen(Container):
         Updates both the widget visibility and AppState.
         """
         try:
-            details = self.query_one("#details")
-            details.toggle_class("hidden")
-
-            # Update screen layout class
+            # Update screen layout class (changes grid-columns)
             self.toggle_class("details-hidden")
+            is_visible = not self.has_class("details-hidden")
 
             # Update AppState
             if hasattr(self.app, "state"):
-                is_visible = not details.has_class("hidden")
                 self.app.state.ui_state.details_visible = is_visible
 
                 # Log to console
@@ -230,20 +214,16 @@ class MainScreen(Container):
         Updates both the widget visibility and AppState.
         """
         try:
-            console = self.query_one("#console")
-            console.toggle_class("hidden")
+            # Update screen layout class (changes grid-rows)
+            self.toggle_class("console-hidden")
+            is_visible = not self.has_class("console-hidden")
 
             # Update AppState
             if hasattr(self.app, "state"):
-                is_visible = not console.has_class("hidden")
                 self.app.state.ui_state.console_visible = is_visible
 
-                # Only log if console is being shown (not hidden)
-                if is_visible and isinstance(console, Console):
-                    console.log("Console shown", level="info")
-
         except Exception:
-            # Silently fail if widgets not found
+            # Silently fail if state not available
             pass
 
     def get_console(self) -> Console | None:
