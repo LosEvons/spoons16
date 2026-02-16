@@ -1,144 +1,139 @@
 """Integration tests for multi-panel layout."""
 
 import pytest
-from textual.containers import Container
+from textual.app import App
 
 from caspoon.ui.core.models import AnalysisResults
+from caspoon.ui.core.state import AppState
 from caspoon.ui.screens import MainScreen
 from caspoon.ui.widgets import Console, DetailsPanel, Sidebar
+
+
+@pytest.fixture
+def test_app():
+    """Create test app with MainScreen."""
+
+    class TestApp(App):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+            self.state = AppState()
+
+        def compose(self):
+            yield MainScreen()
+
+    return TestApp()
 
 
 class TestMultiPanelLayout:
     """Integration test suite for multi-panel layout."""
 
     @pytest.mark.asyncio
-    async def test_main_screen_layout(self, app_with_state):
+    async def test_main_screen_layout(self, test_app):
         """Test MainScreen composes correctly with all panels."""
-        # Create content area
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
             # Check all panels are present
-            sidebar = screen.query_one("#sidebar", Sidebar)
+            main_screen = test_app.query_one(MainScreen)
+            sidebar = main_screen.query_one("#sidebar", Sidebar)
             assert sidebar is not None
 
-            details = screen.query_one("#details", DetailsPanel)
+            details = main_screen.query_one("#details", DetailsPanel)
             assert details is not None
 
-            console = screen.query_one("#console", Console)
+            console = main_screen.query_one("#console", Console)
             assert console is not None
 
-            content_area = screen.query_one("#content")
+            content_area = main_screen.query_one("#content")
             assert content_area is not None
 
     @pytest.mark.asyncio
-    async def test_toggle_sidebar(self, app_with_state):
+    async def test_toggle_sidebar(self, test_app):
         """Test sidebar visibility toggle (Ctrl+B)."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
-            sidebar = screen.query_one("#sidebar")
+            main_screen = test_app.query_one(MainScreen)
 
             # Initially visible
-            assert not sidebar.has_class("hidden")
+            assert "sidebar-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.sidebar_visible is True
 
             # Toggle to hide
-            screen.action_toggle_sidebar()
+            main_screen.action_toggle_sidebar()
             await pilot.pause()
 
-            assert sidebar.has_class("hidden")
-            assert not app_with_state.state.ui_state.sidebar_visible
+            assert "sidebar-hidden" in main_screen.classes
+            assert test_app.state.ui_state.sidebar_visible is False
 
             # Toggle to show
-            screen.action_toggle_sidebar()
+            main_screen.action_toggle_sidebar()
             await pilot.pause()
 
-            assert not sidebar.has_class("hidden")
-            assert app_with_state.state.ui_state.sidebar_visible
+            assert "sidebar-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.sidebar_visible is True
 
     @pytest.mark.asyncio
-    async def test_toggle_details(self, app_with_state):
+    async def test_toggle_details(self, test_app):
         """Test details panel visibility toggle (Ctrl+D)."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
-            details = screen.query_one("#details")
+            main_screen = test_app.query_one(MainScreen)
 
             # Initially visible
-            assert not details.has_class("hidden")
+            assert "details-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.details_visible is True
 
             # Toggle to hide
-            screen.action_toggle_details()
+            main_screen.action_toggle_details()
             await pilot.pause()
 
-            assert details.has_class("hidden")
-            assert not app_with_state.state.ui_state.details_visible
+            assert "details-hidden" in main_screen.classes
+            assert test_app.state.ui_state.details_visible is False
 
             # Toggle to show
-            screen.action_toggle_details()
+            main_screen.action_toggle_details()
             await pilot.pause()
 
-            assert not details.has_class("hidden")
-            assert app_with_state.state.ui_state.details_visible
+            assert "details-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.details_visible is True
 
     @pytest.mark.asyncio
-    async def test_toggle_console(self, app_with_state):
+    async def test_toggle_console(self, test_app):
         """Test console visibility toggle (Ctrl+J)."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
-            console = screen.query_one("#console")
+            main_screen = test_app.query_one(MainScreen)
 
             # Initially visible
-            assert not console.has_class("hidden")
+            assert "console-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.console_visible is True
 
             # Toggle to hide
-            screen.action_toggle_console()
+            main_screen.action_toggle_console()
             await pilot.pause()
 
-            assert console.has_class("hidden")
-            assert not app_with_state.state.ui_state.console_visible
+            assert "console-hidden" in main_screen.classes
+            assert test_app.state.ui_state.console_visible is False
 
             # Toggle to show
-            screen.action_toggle_console()
+            main_screen.action_toggle_console()
             await pilot.pause()
 
-            assert not console.has_class("hidden")
-            assert app_with_state.state.ui_state.console_visible
+            assert "console-hidden" not in main_screen.classes
+            assert test_app.state.ui_state.console_visible is True
 
     @pytest.mark.asyncio
-    async def test_function_explorer_navigation(self, app_with_state):
+    async def test_function_explorer_navigation(self, test_app):
         """Test function explorer tree navigation works."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
             # Get function explorer from sidebar
-            sidebar = screen.query_one("#sidebar", Sidebar)
+            main_screen = test_app.query_one(MainScreen)
+            sidebar = main_screen.query_one("#sidebar", Sidebar)
             explorer = sidebar._explorer
 
             # Set test data
@@ -161,18 +156,14 @@ class TestMultiPanelLayout:
             assert explorer.selected_index >= 0
 
     @pytest.mark.asyncio
-    async def test_details_panel_updates(self, app_with_state):
+    async def test_details_panel_updates(self, test_app):
         """Test details panel updates on selection."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
             # Get details panel
-            details = screen.query_one("#details", DetailsPanel)
+            main_screen = test_app.query_one(MainScreen)
+            details = main_screen.query_one("#details", DetailsPanel)
 
             # Show function details
             func_data = {
@@ -188,18 +179,14 @@ class TestMultiPanelLayout:
             assert content_widget is not None
 
     @pytest.mark.asyncio
-    async def test_console_logging(self, app_with_state):
+    async def test_console_logging(self, test_app):
         """Test console receives and displays logs."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
             # Get console
-            console = screen.get_console()
+            main_screen = test_app.query_one(MainScreen)
+            console = main_screen.get_console()
             assert console is not None
 
             # Log messages
@@ -212,56 +199,50 @@ class TestMultiPanelLayout:
             assert len(rich_log.lines) >= 2
 
     @pytest.mark.asyncio
-    async def test_panel_state_persistence(self, app_with_state):
+    async def test_panel_state_persistence(self, test_app):
         """Test AppState tracks panel visibility."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
+
+            main_screen = test_app.query_one(MainScreen)
 
             # Initial state
-            assert app_with_state.state.ui_state.sidebar_visible is True
-            assert app_with_state.state.ui_state.details_visible is True
-            assert app_with_state.state.ui_state.console_visible is True
+            assert test_app.state.ui_state.sidebar_visible is True
+            assert test_app.state.ui_state.details_visible is True
+            assert test_app.state.ui_state.console_visible is True
 
             # Toggle sidebar
-            screen.action_toggle_sidebar()
+            main_screen.action_toggle_sidebar()
             await pilot.pause()
-            assert app_with_state.state.ui_state.sidebar_visible is False
+            assert test_app.state.ui_state.sidebar_visible is False
 
             # Toggle details
-            screen.action_toggle_details()
+            main_screen.action_toggle_details()
             await pilot.pause()
-            assert app_with_state.state.ui_state.details_visible is False
+            assert test_app.state.ui_state.details_visible is False
 
             # Toggle console
-            screen.action_toggle_console()
+            main_screen.action_toggle_console()
             await pilot.pause()
-            assert app_with_state.state.ui_state.console_visible is False
+            assert test_app.state.ui_state.console_visible is False
 
     @pytest.mark.asyncio
-    async def test_helper_methods(self, app_with_state):
+    async def test_helper_methods(self, test_app):
         """Test MainScreen helper methods for getting panels."""
-        content = Container(id="content")
-        screen = MainScreen(content)
-
-        async with app_with_state.run_test() as pilot:
-            pilot.app.install_screen(screen, name="test_screen")
-            pilot.app.push_screen("test_screen")
+        async with test_app.run_test() as pilot:
             await pilot.pause()
 
+            main_screen = test_app.query_one(MainScreen)
+
             # Test helper methods
-            console = screen.get_console()
+            console = main_screen.get_console()
             assert console is not None
             assert isinstance(console, Console)
 
-            details = screen.get_details_panel()
+            details = main_screen.get_details_panel()
             assert details is not None
             assert isinstance(details, DetailsPanel)
 
-            sidebar = screen.get_sidebar()
+            sidebar = main_screen.get_sidebar()
             assert sidebar is not None
             assert isinstance(sidebar, Sidebar)
