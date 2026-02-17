@@ -176,7 +176,7 @@ class TestMultiPanelLayout:
             await pilot.pause()
 
             # Verify no crashes - content should be updated
-            content_widget = details.query_one("#details_content")
+            content_widget = details.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content_widget is not None
 
     @pytest.mark.asyncio
