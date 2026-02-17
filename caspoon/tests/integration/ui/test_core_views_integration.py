@@ -9,6 +9,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from caspoon.core.models import ExecutableReport, ProtectionInfo
+from caspoon.ui import widget_ids as wid
 from caspoon.tests.fixtures.ui_fixtures import (
     mock_executable_report,
 )
@@ -51,7 +52,7 @@ class TestViewsUpdateOnAnalysis:
 
         async with app.run_test() as pilot:
             # Get the OverviewView from the app
-            overview = app.query_one("#overview", OverviewView)
+            overview = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
 
             # Initially should have no data
             assert overview.data is None
@@ -74,7 +75,7 @@ class TestViewsUpdateOnAnalysis:
 
         async with app.run_test() as pilot:
             # Get the ProtectionsView from the app
-            protections = app.query_one("#protections", ProtectionsView)
+            protections = app.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView)
 
             # Simulate analysis by updating state
             app.state.update_from_report(mock_executable_report)
@@ -93,8 +94,8 @@ class TestViewsUpdateOnAnalysis:
         app = CaspoonApp()
 
         async with app.run_test() as pilot:
-            overview = app.query_one("#overview", OverviewView)
-            protections = app.query_one("#protections", ProtectionsView)
+            overview = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
+            protections = app.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView)
 
             # Both should start empty
             assert overview.data is None
@@ -198,8 +199,8 @@ class TestEndToEndFlow:
 
             async with app.run_test() as pilot:
                 # Get input widget and views
-                input_widget = app.query_one("#path_input")
-                overview = app.query_one("#overview", OverviewView)
+                input_widget = app.query_one(f"#{wid.PATH_INPUT}")
+                overview = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
 
                 # Initially views have no data
                 assert overview.data is None
@@ -250,7 +251,7 @@ class TestViewsWithoutState:
             await pilot.pause()
 
             # View should exist but have no data
-            overview = app.query_one("#overview", OverviewView)
+            overview = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
             assert overview is not None
 
 
@@ -263,7 +264,7 @@ class TestMultipleStateUpdates:
         app = CaspoonApp()
 
         async with app.run_test() as pilot:
-            overview = app.query_one("#overview", OverviewView)
+            overview = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
 
             # First report
             report1 = ExecutableReport(

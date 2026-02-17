@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import pytest
 from textual.widgets import Input, ListView
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.core.actions import Action, ActionRegistry
 from caspoon.ui.widgets.command_palette import CommandPalette
 
@@ -105,8 +106,8 @@ class TestCommandPalette:
             palette = app.query_one("#palette", CommandPalette)
 
             # Check that Input and ListView are present
-            search_input = palette.query_one("#search", Input)
-            results_list = palette.query_one("#results", ListView)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
 
             assert search_input is not None
             assert results_list is not None
@@ -129,7 +130,7 @@ class TestCommandPalette:
 
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should show all actions (7 registered)
             assert len(results_list.children) == 7
 
@@ -155,7 +156,7 @@ class TestCommandPalette:
             palette._update_results("file")
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should show 3 file commands
             assert len(results_list.children) == 3
 
@@ -181,7 +182,7 @@ class TestCommandPalette:
             palette._update_results("clipboard")
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should show copy and paste commands
             assert len(results_list.children) == 2
 
@@ -207,7 +208,7 @@ class TestCommandPalette:
             palette._update_results("view")
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should show 2 view commands
             assert len(results_list.children) == 2
 
@@ -233,7 +234,7 @@ class TestCommandPalette:
             palette._update_results("FILE")
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should still show 3 file commands
             assert len(results_list.children) == 3
 
@@ -265,7 +266,7 @@ class TestCommandPalette:
 
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Should show max 15 results
             assert len(results_list.children) <= 15
 
@@ -300,7 +301,7 @@ class TestCommandPalette:
             await pilot.pause()
 
             # Verify results are populated
-            results = palette.query_one("#results", ListView)
+            results = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             assert len(results.children) > 0, "Should have results"
             assert results.highlighted_child is not None, "Should have highlighted child"
 
@@ -357,12 +358,12 @@ class TestCommandPalette:
             palette.on_show()
 
             # Search for a command with keybinding
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "open"
 
             await pilot.pause()
 
-            results_list = palette.query_one("#results", ListView)
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
             # Check that results contain the keybinding
             # This is a simple check - the keybinding should be in the label text
             assert len(results_list.children) > 0
@@ -406,7 +407,7 @@ class TestCommandPalette:
             palette.add_class("visible")
 
             # Set some search text
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "test"
 
             await pilot.pause()

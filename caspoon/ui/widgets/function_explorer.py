@@ -53,6 +53,11 @@ class FunctionExplorer(TreeView[AnalysisResults]):
         self._sections: dict[str, list[dict[str, Any]]] = {}
         self._filter_text = ""
 
+    @property
+    def current_filter(self) -> str:
+        """Return the current filter text."""
+        return self._filter_text
+
     def on_mount(self) -> None:
         """Set up the explorer when mounted.
 

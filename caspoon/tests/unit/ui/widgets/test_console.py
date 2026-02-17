@@ -3,6 +3,7 @@
 import pytest
 from textual.widgets import RichLog
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.widgets.console import Console
 
 
@@ -25,7 +26,7 @@ class TestConsole:
             await pilot.app.mount(console)
 
             # Check RichLog widget is present
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert rich_log is not None
 
     @pytest.mark.asyncio
@@ -42,7 +43,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify message was logged (RichLog should contain it)
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
     @pytest.mark.asyncio
@@ -59,7 +60,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify message was logged
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
     @pytest.mark.asyncio
@@ -76,7 +77,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify message was logged
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
     @pytest.mark.asyncio
@@ -93,7 +94,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify message was logged
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
     @pytest.mark.asyncio
@@ -110,7 +111,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify message was logged
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
     @pytest.mark.asyncio
@@ -128,7 +129,7 @@ class TestConsole:
             console.log("Message 3")
             await pilot.pause()
 
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) > 0
 
             # Clear console
@@ -156,7 +157,7 @@ class TestConsole:
             await pilot.pause()
 
             # Verify console is empty
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) == 0
 
     @pytest.mark.asyncio
@@ -175,5 +176,5 @@ class TestConsole:
             await pilot.pause()
 
             # Verify all messages were logged
-            rich_log = console.query_one("#console_log", RichLog)
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             assert len(rich_log.lines) >= 3

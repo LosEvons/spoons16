@@ -2,6 +2,7 @@
 
 import pytest
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.widgets.details_panel import DetailsPanel
 
 
@@ -24,7 +25,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Check content widget is present
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -37,7 +38,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Help text should be displayed by default
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
             # Just verify it doesn't crash
 
@@ -63,7 +64,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Verify no crashes and content is updated
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -84,7 +85,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Verify no crashes
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -108,7 +109,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Verify no crashes
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -130,7 +131,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Verify no crashes
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -152,7 +153,7 @@ class TestDetailsPanel:
             await pilot.pause()
 
             # Should show help text again
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
 
     @pytest.mark.asyncio
@@ -172,5 +173,5 @@ class TestDetailsPanel:
                 pass  # Expected to fail gracefully
 
             # Panel should still be functional
-            content = panel.query_one("#details_content")
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None

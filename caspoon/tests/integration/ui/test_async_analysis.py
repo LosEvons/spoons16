@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from textual.widgets import Input
 
+from caspoon.tests.helpers import wait_for_workers
 from caspoon.ui.app import CaspoonApp
 from caspoon.ui.core.messages import AnalysisComplete, ProgressUpdate, StartAnalysis
 
@@ -57,7 +58,7 @@ class TestAsyncAnalysisIntegration:
             # Start analysis
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.05)  # Shorter wait to check before completion
+                await wait_for_workers(app, pilot)
 
                 # Check state - should be analyzing or just completed
                 assert app.state.ui_state.analysis_progress >= 0
@@ -85,7 +86,7 @@ class TestAsyncAnalysisIntegration:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await pilot.pause(0.2)  # Wait for analysis
+                await pilot.pause()  # Drain message queue
 
                 # At minimum, some progress should have been reported
                 # The worker posts progress at 10%, 30%, and 100%
@@ -104,7 +105,7 @@ class TestAsyncAnalysisIntegration:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.15)  # Wait for completion
+                await wait_for_workers(app, pilot)
 
                 # Check state was updated
                 assert app.state.binary_info is not None
@@ -130,7 +131,7 @@ class TestAsyncAnalysisIntegration:
             with patch("asyncio.to_thread", side_effect=slow_analysis):
                 async with app.run_test() as pilot:
                     await app.start_analysis(temp_binary)
-                    await asyncio.sleep(0.05)  # Let it start
+                    await pilot.pause()  # Drain messages
 
                     # Check it's running
                     assert app.state.ui_state.is_analyzing is True
@@ -157,7 +158,7 @@ class TestAsyncAnalysisIntegration:
                 await app.start_analysis(temp_binary)
                 first_worker = app._current_worker
 
-                await asyncio.sleep(0.05)
+                await pilot.pause()
 
                 # Start second analysis (should cancel first)
                 await app.start_analysis(temp_binary)
@@ -166,7 +167,7 @@ class TestAsyncAnalysisIntegration:
                 # Should be different workers
                 assert first_worker is not second_worker
 
-                await asyncio.sleep(0.15)
+                await wait_for_workers(app, pilot)
 
                 # Should complete successfully
                 assert app.state.ui_state.is_analyzing is False
@@ -183,7 +184,7 @@ class TestAsyncAnalysisIntegration:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.15)  # Wait for error
+                await wait_for_workers(app, pilot)
 
                 # Check error was handled
                 assert app.state.ui_state.is_analyzing is False
@@ -196,7 +197,7 @@ class TestAsyncAnalysisIntegration:
 
         async with app.run_test() as pilot:
             await app.start_analysis("/nonexistent/file")
-            await asyncio.sleep(0.1)  # Wait for error
+            await wait_for_workers(app, pilot)
 
             # Check error was handled
             assert app.state.ui_state.is_analyzing is False
@@ -228,7 +229,7 @@ class TestAsyncAnalysisIntegration:
                     assert input_widget is not None
 
                     # Wait for completion
-                    await asyncio.sleep(0.3)
+                    await wait_for_workers(app, pilot)
 
                     assert app.state.ui_state.is_analyzing is False
 
@@ -249,7 +250,7 @@ class TestMessageBasedAnalysis:
             async with app.run_test() as pilot:
                 # Post StartAnalysis message
                 app.post_message(StartAnalysis(temp_binary))
-                await asyncio.sleep(0.15)  # Wait for processing
+                await wait_for_workers(app, pilot)
 
                 # Check analysis ran
                 assert app.state.binary_info is not None
@@ -278,13 +279,13 @@ class TestStateManagement:
             with patch("asyncio.to_thread", side_effect=slow_analysis):
                 async with app.run_test() as pilot:
                     await app.start_analysis(temp_binary)
-                    await asyncio.sleep(0.05)  # Let it start
+                    await pilot.pause()  # Drain messages
 
                     # Check flag is set
                     assert app.state.ui_state.is_analyzing is True
 
                     # Wait for completion
-                    await asyncio.sleep(0.3)
+                    await wait_for_workers(app, pilot)
 
                     # Check flag is cleared
                     assert app.state.ui_state.is_analyzing is False
@@ -301,15 +302,13 @@ class TestStateManagement:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-
-                # Wait a bit and check progress
-                await asyncio.sleep(0.05)
+                await pilot.pause()
 
                 # Progress should be > 0
                 assert app.state.ui_state.analysis_progress >= 0
 
                 # Wait for completion
-                await asyncio.sleep(0.15)
+                await wait_for_workers(app, pilot)
 
                 # Progress should be 100
                 assert app.state.ui_state.analysis_progress == 100
@@ -330,13 +329,7 @@ class TestStatusDisplay:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.05)
-
-                # Status should contain "Analyzing"
-                # (We'd need to query the footer to check this properly,
-                # but update_status is called which sets it)
-
-                await asyncio.sleep(0.15)
+                await wait_for_workers(app, pilot)
 
                 # After completion, should show "Ready" or similar
 
@@ -352,7 +345,7 @@ class TestStatusDisplay:
 
             async with app.run_test() as pilot:
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.15)
+                await wait_for_workers(app, pilot)
 
                 # Check state is reset
                 assert app.state.ui_state.is_analyzing is False
