@@ -1,6 +1,7 @@
 """Assembly instruction syntax highlighter."""
 
 import re
+from functools import lru_cache
 from typing import Callable
 
 from rich.text import Text
@@ -21,7 +22,8 @@ class AsmHighlighter:
         self,
         color_scheme: ColorScheme | None = None,
         enable_operand_parsing: bool = True,
-        instruction_classifier: Callable[[str], InstructionType] | None = None
+        instruction_classifier: Callable[[str], InstructionType] | None = None,
+        cache_size: int = 1000
     ):
         """Initialize the highlighter.
 
@@ -33,11 +35,19 @@ class AsmHighlighter:
                                    If None, uses the default x86/x64 classifier.
                                    Should be a function that takes a mnemonic string
                                    and returns an InstructionType.
+            cache_size: Maximum number of cached highlighted instructions. Default is 1000.
         """
         self.scheme = color_scheme or get_default_scheme()
         self.enable_operand_parsing = enable_operand_parsing
         self.operand_parser = OperandParser() if enable_operand_parsing else None
         self.instruction_classifier = instruction_classifier or get_instruction_type
+        
+        # Cache configuration
+        self._cache_enabled = True
+        self._cache_size = cache_size
+        
+        # Create the cached method with specified cache size
+        self._get_cached_markup = lru_cache(maxsize=cache_size)(self._get_cached_markup_impl)
 
         # Pattern to parse instruction lines
         # Handles formats like:
@@ -50,6 +60,51 @@ class AsmHighlighter:
             r'(?:\s*;\s*(?P<comment>.*))?$',  # Comment (optional)
             re.IGNORECASE
         )
+
+    def clear_cache(self) -> None:
+        """Clear the highlight cache.
+        
+        Call this when switching binaries or when you want to free memory.
+        """
+        if hasattr(self, '_get_cached_markup'):
+            self._get_cached_markup.cache_clear()
+
+    def disable_cache(self) -> None:
+        """Disable caching for testing or debugging.
+        
+        When disabled, instructions are highlighted fresh every time.
+        """
+        self._cache_enabled = False
+
+    def enable_cache(self, size: int | None = None) -> None:
+        """Enable caching with optional new size.
+        
+        Args:
+            size: Optional new cache size. If None, uses current cache size.
+        """
+        self._cache_enabled = True
+        if size is not None and size != self._cache_size:
+            self._cache_size = size
+            # Recreate the cached method with new size
+            self._get_cached_markup = lru_cache(maxsize=size)(self._get_cached_markup_impl)
+    
+    def get_cache_info(self) -> dict[str, int]:
+        """Get cache statistics.
+        
+        Returns:
+            Dictionary with 'hits', 'misses', 'size', and 'maxsize' keys.
+            Returns empty dict if cache is not available.
+        """
+        if not hasattr(self, '_get_cached_markup'):
+            return {}
+        
+        info = self._get_cached_markup.cache_info()
+        return {
+            'hits': info.hits,
+            'misses': info.misses,
+            'size': info.currsize,
+            'maxsize': info.maxsize or 0,
+        }
 
     def classify_instruction(self, opcode: str) -> InstructionType:
         """Classify an instruction by its opcode.
@@ -73,6 +128,46 @@ class AsmHighlighter:
         return self.instruction_classifier(opcode_lower)
 
     def highlight_instruction(self, opcode: str, address: str = "") -> Text:
+        """Create a highlighted Text object for an assembly instruction.
+        
+        Uses LRU cache for performance when cache is enabled.
+
+        Args:
+            opcode: The instruction opcode and operands.
+            address: Optional address/offset to prepend.
+
+        Returns:
+            A Rich Text object with syntax highlighting applied.
+        """
+        if not self._cache_enabled:
+            return self._highlight_instruction_impl(opcode, address)
+        
+        # Use cached version - convert markup string back to Text
+        try:
+            markup_str = self._get_cached_markup(opcode, address)
+            return Text.from_markup(markup_str)
+        except Exception:
+            # If markup conversion fails, fall back to non-cached
+            return self._highlight_instruction_impl(opcode, address)
+    
+    def _get_cached_markup_impl(self, opcode: str, address: str) -> str:
+        """Cached implementation that returns markup string.
+        
+        This is wrapped by lru_cache in __init__. We return a markup string
+        because Text objects are not hashable and cannot be cached directly.
+        
+        Args:
+            opcode: The instruction opcode and operands.
+            address: Optional address/offset to prepend.
+            
+        Returns:
+            Rich markup string that can be converted back to Text.
+        """
+        text = self._highlight_instruction_impl(opcode, address)
+        # Convert Text to markup string for caching
+        return text.markup
+    
+    def _highlight_instruction_impl(self, opcode: str, address: str = "") -> Text:
         """Create a highlighted Text object for an assembly instruction.
 
         Args:
