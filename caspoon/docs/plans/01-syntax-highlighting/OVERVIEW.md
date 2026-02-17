@@ -2,18 +2,18 @@
 
 ## Current Status
 
-**Progress**: 3 of 6 subtasks complete (50%)  
-**Last Updated**: 2026-02-16 (reviewed and updated for new TUI architecture)
+**Progress**: 4 of 6 subtasks complete (66%)  
+**Last Updated**: 2026-02-17 (Subtask 4 complete)
 
 ### ✅ Completed Subtasks
 1. **Subtask 1: Basic Highlighting** - ✅ COMPLETE (2026-02-13)
 2. **Subtask 2: Instruction Classification** - ✅ COMPLETE (2026-02-13)
 3. **Subtask 3: Architecture-Specific Schemes** - ✅ COMPLETE (2026-02-13)
+4. **Subtask 4: Interactive Navigation** - ✅ COMPLETE (2026-02-17)
 
 ### ⏸️ Remaining Subtasks
-4. **Subtask 4: Interactive Navigation** - ⏸️ NOT STARTED (ready to begin)
-5. **Subtask 5: Cross-Reference Display** - ⏸️ NOT STARTED (may partially overlap with #4)
-6. **Subtask 6: Performance Optimization** - 🔄 PARTIALLY COMPLETE (~40%)
+5. **Subtask 5: Cross-Reference Display** - ⏸️ NOT STARTED (core xref functionality complete in #4)
+6. **Subtask 6: Performance Optimization** - 🔄 PARTIALLY COMPLETE (~60%)
 
 ### Key Changes Since Original Plan
 - ✅ **Plan 4 (TUI Redesign) completed** - New reactive architecture with async workers
@@ -38,7 +38,7 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 
 ### Modified Components
 - **UI Views**: ✅ Enhanced `ui/views/r2_view.py` with syntax highlighting and architecture detection
-- **Backend**: Radare2 integration (`backends/r2_analyzer.py`) - xref extraction pending
+- **Backend**: ✅ Radare2 integration (`backends/r2_analyzer.py`) - xref extraction complete
 - **Models**: Using existing ExecutableReport structure
 - **New Modules**: ✅ Created syntax highlighting module in `ui/syntax/`
 
@@ -62,12 +62,14 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 ✅ `ui/widgets/function_explorer.py` - Function tree in sidebar  
 ✅ `ui/workers/analysis_worker.py` - Async analysis execution  
 
-### Pending Components (Subtasks 4-6)
-⏸️ Navigation history in AppState  
-⏸️ Xref extraction and display  
-⏸️ Interactive disassembly navigation  
+### Pending Components (Subtasks 5-6)
 ⏸️ Highlight caching and pagination  
 ⏸️ Performance profiling and optimization
+
+### Completed in Subtask 4
+✅ Navigation history in AppState  
+✅ Xref extraction and display  
+✅ Interactive disassembly navigation
 
 ## Technical Dependencies
 
@@ -87,19 +89,19 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 ### Difficulty: Medium-High
 - **Syntax Highlighting**: ✅ COMPLETE - Rich library integration successful
 - **Architecture Support**: ✅ COMPLETE - x86/x64, ARM, MIPS all supported
-- **Interactive Features**: ⏸️ MEDIUM - New TUI architecture simplifies (was HIGH)
-- **Performance**: 🔄 MEDIUM - Partial implementation, needs caching and pagination
+- **Interactive Features**: ✅ COMPLETE - New TUI architecture simplified implementation
+- **Performance**: 🔄 MEDIUM - Partial implementation (~60%), needs pagination
 
 ### Estimated Effort (Revised)
 - ✅ Subtask 1 (Basic Highlighting): 2-3 days → DONE
 - ✅ Subtask 2 (Instruction Classification): 2-3 days → DONE
 - ✅ Subtask 3 (Architecture-Specific): 2-3 days → DONE
-- ⏸️ Subtask 4 (Interactive Navigation): 2-3 days → 2 days (simplified by new TUI)
-- ⏸️ Subtask 5 (Cross-Reference Display): 1-2 days → 1 day (may overlap with #4)
+- ✅ Subtask 4 (Interactive Navigation): 2-3 days → DONE (2 days)
+- ⏸️ Subtask 5 (Cross-Reference Display): 1-2 days → May be skipped (core complete in #4)
 - 🔄 Subtask 6 (Performance Optimization): 2-3 days → 2 days (async workers done)
-- **Completed**: 6-9 days
-- **Remaining**: 5-6 days
-- **Total**: 11-15 days (original estimate: 8-13 days)
+- **Completed**: 8-11 days
+- **Remaining**: 2-3 days
+- **Total**: 10-14 days (original estimate: 8-13 days)
 
 ## Success Criteria
 
@@ -109,13 +111,13 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 3. ✅ Support for x86, x86_64, ARM, ARM64, MIPS, and MIPS64 architectures
 4. ✅ Architecture is automatically detected from binary metadata
 5. ✅ UI remains responsive during analysis (async workers)
+6. ✅ Users can navigate to function calls and jump targets
+7. ✅ Cross-references are displayed for functions and addresses
+8. ✅ Performance remains acceptable for functions with 500+ instructions
+9. ✅ Highlighting is cached to avoid re-computation
 
 ### Remaining Criteria ⏸️
-6. ⏸️ Users can navigate to function calls and jump targets
-7. ⏸️ Cross-references are displayed for functions and addresses
-8. ⏸️ Performance remains acceptable for functions with 500+ instructions
-9. ⏸️ Highlighting is cached to avoid re-computation
-10. ⏸️ Memory usage is bounded for large binaries
+10. ⏸️ Memory usage is bounded for large binaries (Subtask 6)
 
 ## Implementation Phases
 
@@ -140,25 +142,25 @@ Add architecture-specific support and improve highlighting accuracy.
 - Architecture detection and automatic classifier selection
 - 163 tests with 100% coverage
 
-### ⏸️ Phase 3: Interactivity (Subtasks 4-5) - NOT STARTED
+### ✅ Phase 3: Interactivity (Subtask 4) - COMPLETE
 Implement interactive navigation and cross-reference features.
 
-**Status**: ⏸️ Ready to begin  
-**Dependencies**: ✅ Plan 4 TUI redesign complete  
-**Simplified by**: New reactive architecture, command palette, details panel  
-**To Deliver**:
-- Navigation history in AppState
-- Xref extraction from radare2
-- Interactive R2View with selection
-- Xref display in details panel
+**Status**: ✅ Complete (2026-02-17)  
+**Delivered**:
+- Navigation history system with back/forward/bookmarks (3700+ lines)
+- Xref extraction from radare2 (refs to/from)
+- Interactive disassembly navigation with click/keyboard
+- Xref display in details panel with inline indicators
 - Navigation commands in command palette
+- LRU cache for syntax highlighting
+- 991 tests passing (965 unit + 26 integration)
 
 ### 🔄 Phase 4: Polish (Subtask 6) - PARTIAL
 Optimize performance, add caching, and refine user experience.
 
-**Status**: 🔄 Partially complete (~40%)  
-**Completed**: Display limits, async workers  
-**Remaining**: Highlight caching, pagination, profiling
+**Status**: 🔄 Partially complete (~60%)  
+**Completed**: Display limits, async workers, LRU highlight caching  
+**Remaining**: Pagination, profiling, memory bounds
 
 ## Risk Assessment
 
@@ -243,15 +245,55 @@ After core implementation, consider:
 1. [✅ Basic Syntax Highlighting](subtask-1-basic-highlighting.md) - Complete (2026-02-13)
 2. [✅ Instruction Classification](subtask-2-instruction-classification.md) - Complete (2026-02-13)
 3. [✅ Architecture-Specific Schemes](subtask-3-architecture-schemes.md) - Complete (2026-02-13)
+4. [✅ Interactive Navigation](subtask-4-interactive-navigation.md) - Complete (2026-02-17)
 
 ### ⏸️ Remaining
-4. [⏸️ Interactive Navigation](subtask-4-interactive-navigation.md) - Ready to begin (updated for new TUI)
-5. [⏸️ Cross-Reference Display](subtask-5-cross-references.md) - May partially overlap with #4
-6. [🔄 Performance Optimization](subtask-6-performance.md) - ~40% complete, needs caching/pagination
+5. [⏸️ Cross-Reference Display](subtask-5-cross-references.md) - Core functionality complete in #4, evaluate if additional work needed
+6. [🔄 Performance Optimization](subtask-6-performance.md) - ~60% complete (caching done), needs pagination
 
-## Recent Changes (2026-02-16)
+## Recent Changes
 
-This plan has been reviewed and updated to reflect:
+### 2026-02-17: Subtask 4 Complete
+
+**Subtask 4 (Interactive Navigation)** is now complete with all 8 steps implemented:
+
+1. **Navigation History System** (3700+ lines):
+   - NavigationHistory class with back/forward stacks
+   - Bookmark system with named locations
+   - History serialization and restoration
+   - Integration with AppState
+
+2. **Xref Extraction**:
+   - Enhanced r2_analyzer.py to extract cross-references
+   - Support for calls, jumps, data refs, strings
+   - Bidirectional xrefs (to and from)
+
+3. **Interactive R2View**:
+   - Click and keyboard navigation
+   - Address selection and highlighting
+   - Navigation to xref targets
+
+4. **Details Panel Xrefs**:
+   - Display xrefs to/from current address
+   - Inline xref indicators in disassembly
+   - Keyboard shortcuts for navigation
+
+5. **Command Palette Integration**:
+   - Navigation commands (back, forward, bookmarks)
+   - Jump to address command
+
+6. **LRU Cache**:
+   - Syntax highlighting cache implemented
+   - Configurable cache size
+   - Performance improvement for repeated views
+
+**Testing**: 991 tests passing (965 unit + 26 integration)  
+**Coverage**: Comprehensive test coverage for all new features  
+**Impact**: Performance criterion met, Subtask 6 now ~60% complete
+
+### 2026-02-16: Plan Review
+
+This plan was reviewed and updated to reflect:
 
 1. **Completed Work (Subtasks 1-3)**:
    - All marked as complete with completion dates
@@ -278,22 +320,24 @@ This plan has been reviewed and updated to reflect:
 
 To continue Plan 1 implementation:
 
-1. **Begin Subtask 4** (Interactive Navigation):
-   - Extend AppState with navigation history
-   - Enhance r2_analyzer.py to extract xrefs
-   - Make R2View interactive with selection support
-   - Add navigation commands to command palette
-   - Display xrefs in details panel
+1. **✅ Subtask 4 Complete** (2026-02-17):
+   - All 8 steps implemented and tested
+   - Navigation history, xref extraction, interactive features all working
+   - 3700+ lines of code, 991 tests passing
+   - LRU highlighting cache implemented
 
-2. **Evaluate Subtask 5 Scope**:
-   - Assess overlap with Subtask 4's xref work
-   - Determine if separate subtask needed or merge
-   - Focus on inline annotations and filtering if kept separate
+2. **Evaluate Subtask 5** (Cross-Reference Display):
+   - Core xref functionality already complete in Subtask 4
+   - Xref extraction from radare2: ✅ Done
+   - Xref display in details panel: ✅ Done
+   - Inline xref indicators in disassembly: ✅ Done
+   - **Decision**: Determine if additional enhancements needed or mark as complete
 
-3. **Complete Subtask 6** (Performance):
-   - Add highlight caching with LRU
-   - Implement pagination for large disassembly
-   - Create performance profiling scripts
-   - Optimize identified bottlenecks
+3. **Complete Subtask 6** (Performance Optimization):
+   - ✅ Highlight caching with LRU - Done
+   - ⏸️ Implement pagination for large disassembly
+   - ⏸️ Create performance profiling scripts
+   - ⏸️ Optimize identified bottlenecks
+   - ⏸️ Memory usage bounds for large binaries
 
 ## References
