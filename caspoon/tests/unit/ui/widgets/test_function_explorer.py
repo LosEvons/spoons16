@@ -238,3 +238,157 @@ class TestFunctionExplorer:
 
             # Section should be expanded
             assert ".text" in explorer.expanded_nodes
+
+    @pytest.mark.asyncio
+    async def test_function_selection_emits_jump_message(self, app_with_state):
+        """Test selecting a function emits JumpToAddress message."""
+        explorer = FunctionExplorer()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(explorer)
+            await pilot.pause()
+
+            # Set up data
+            results = AnalysisResults(
+                functions=[
+                    {"name": "main", "address": 0x401000, "section": ".text"},
+                ]
+            )
+            explorer.render_content(results)
+            await pilot.pause()
+
+            # Expand section first
+            explorer.selected_index = 0
+            explorer.on_item_selected(0)  # Expand .text section
+            await pilot.pause()
+
+            # Verify initial navigation state
+            assert len(pilot.app.state.navigation_history) == 0
+            
+            # Now select the function (index 1 after expansion)
+            explorer.selected_index = 1
+            explorer.on_item_selected(1)
+            await pilot.pause()
+
+            # Verify navigation history was updated (this proves JumpToAddress worked)
+            assert len(pilot.app.state.navigation_history) == 1
+            assert pilot.app.state.navigation_history[0] == "0x00401000"
+
+    @pytest.mark.asyncio
+    async def test_function_selection_updates_navigation_history(self, app_with_state):
+        """Test selecting a function updates navigation history in AppState."""
+        explorer = FunctionExplorer()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(explorer)
+            await pilot.pause()
+
+            # Set up data
+            results = AnalysisResults(
+                functions=[
+                    {"name": "main", "address": 0x401000, "section": ".text"},
+                ]
+            )
+            explorer.render_content(results)
+            await pilot.pause()
+
+            # Expand section
+            explorer.selected_index = 0
+            explorer.on_item_selected(0)
+            await pilot.pause()
+
+            # Verify initial state
+            assert len(pilot.app.state.navigation_history) == 0
+
+            # Select function
+            explorer.selected_index = 1
+            explorer.on_item_selected(1)
+            await pilot.pause()
+
+            # Verify navigation history was updated
+            assert len(pilot.app.state.navigation_history) == 1
+            assert pilot.app.state.navigation_history[0] == "0x00401000"
+            assert pilot.app.state.current_nav_index == 0
+
+    @pytest.mark.asyncio
+    async def test_function_without_address_no_jump(self, app_with_state):
+        """Test selecting a function without address doesn't emit JumpToAddress."""
+        explorer = FunctionExplorer()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(explorer)
+            await pilot.pause()
+
+            # Set up data with function that has no address
+            results = AnalysisResults(
+                functions=[
+                    {"name": "unknown_func", "address": 0, "section": ".text"},
+                ]
+            )
+            explorer.render_content(results)
+            await pilot.pause()
+
+            # Expand section
+            explorer.selected_index = 0
+            explorer.on_item_selected(0)
+            await pilot.pause()
+
+            # Verify navigation history is empty before selection
+            history_before = len(pilot.app.state.navigation_history)
+
+            # Select function without address
+            explorer.selected_index = 1
+            explorer.on_item_selected(1)
+            await pilot.pause()
+
+            # Navigation history should not have changed (no address to navigate to)
+            assert len(pilot.app.state.navigation_history) == history_before
+
+    @pytest.mark.asyncio
+    async def test_multiple_function_selections_build_history(self, app_with_state):
+        """Test selecting multiple functions builds navigation history."""
+        explorer = FunctionExplorer()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(explorer)
+            await pilot.pause()
+
+            # Set up data with multiple functions
+            results = AnalysisResults(
+                functions=[
+                    {"name": "main", "address": 0x401000, "section": ".text"},
+                    {"name": "helper", "address": 0x401100, "section": ".text"},
+                    {"name": "printf", "address": 0x402000, "section": ".plt"},
+                ]
+            )
+            explorer.render_content(results)
+            await pilot.pause()
+
+            # Note: Sections are sorted alphabetically: .plt (index 0), .text (index 1)
+            # Expand .text section (index 1)
+            explorer.selected_index = 1
+            explorer.on_item_selected(1)
+            await pilot.pause()
+
+            # After expansion, tree structure is:
+            # Index 0: .plt (collapsed)
+            # Index 1: .text (expanded)
+            # Index 2: main
+            # Index 3: helper
+            
+            # Select main (index 2 after expansion)
+            explorer.selected_index = 2
+            explorer.on_item_selected(2)
+            await pilot.pause()
+
+            # Select helper (index 3)
+            explorer.selected_index = 3
+            explorer.on_item_selected(3)
+            await pilot.pause()
+
+            # Verify navigation history
+            history = pilot.app.state.navigation_history
+            assert len(history) == 2
+            assert history[0] == "0x00401000"  # main
+            assert history[1] == "0x00401100"  # helper
+            assert pilot.app.state.current_nav_index == 1

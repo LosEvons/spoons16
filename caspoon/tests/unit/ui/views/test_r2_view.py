@@ -5,7 +5,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from caspoon.core.models import ExecutableReport
-from caspoon.ui.core.base import BaseView
+from caspoon.ui.core.base import InteractiveView
+from caspoon.ui.core.messages import JumpToAddress
 from caspoon.ui.core.state import AppState
 from caspoon.ui.syntax import AsmHighlighter
 from caspoon.ui.views.r2_view import R2View
@@ -606,11 +607,11 @@ class TestR2ViewLegend:
 # Migration-specific tests added for Subtask 4
 
 class TestR2ViewMigrationInheritance:
-    """Test migration to BaseView architecture."""
+    """Test migration to InteractiveView architecture."""
 
-    def test_inherits_baseview(self):
-        """Test that R2View inherits from BaseView."""
-        assert issubclass(R2View, BaseView)
+    def test_inherits_interactiveview(self):
+        """Test that R2View inherits from InteractiveView."""
+        assert issubclass(R2View, InteractiveView)
 
     def test_has_render_content(self):
         """Test that R2View has render_content method."""
@@ -666,13 +667,22 @@ class TestR2ViewMigrationRendering:
     def test_render_content_with_none(self):
         """Test that render_content handles None data."""
         view = R2View()
+        
+        # Mock update to avoid app context requirement
+        view.update = Mock()
 
         # Should not raise
         view.render_content(None)
+        
+        # Should have called update
+        assert view.update.called
 
     def test_render_content_with_empty_dict(self):
         """Test that render_content handles empty dict."""
         view = R2View()
+        
+        # Mock update to avoid app context requirement
+        view.update = Mock()
 
         # Should not raise
         view.render_content({})
@@ -834,3 +844,543 @@ class TestR2ViewMigrationVisualParity:
         assert len(update_calls) == 1
         # Output contains Group with Text objects, so checking string representation
         # All three sections should be present in the view
+
+
+# ============================================================================
+# Interactive Navigation Tests (Step 3)
+# ============================================================================
+
+
+class TestR2ViewInteractiveInheritance:
+    """Test R2View inherits from InteractiveView correctly."""
+
+    def test_inherits_from_interactive_view(self):
+        """Test that R2View inherits from InteractiveView."""
+        view = R2View()
+        assert isinstance(view, InteractiveView)
+
+    def test_has_required_interactive_methods(self):
+        """Test that R2View implements required InteractiveView methods."""
+        view = R2View()
+        
+        # Check required methods exist
+        assert hasattr(view, "get_item_count")
+        assert hasattr(view, "on_item_selected")
+        assert hasattr(view, "apply_filter")
+        
+        # Check they're callable
+        assert callable(view.get_item_count)
+        assert callable(view.on_item_selected)
+        assert callable(view.apply_filter)
+
+    def test_has_keyboard_bindings(self):
+        """Test that R2View has keyboard bindings defined."""
+        view = R2View()
+        
+        assert hasattr(view, "BINDINGS")
+        assert len(view.BINDINGS) > 0
+        
+        # Check for key bindings
+        binding_keys = [str(b.key) for b in view.BINDINGS]
+        assert any("enter" in k for k in binding_keys)
+        assert any("up" in k or "k" in k for k in binding_keys)
+        assert any("down" in k or "j" in k for k in binding_keys)
+
+    def test_has_selection_state(self):
+        """Test that R2View has selection tracking."""
+        view = R2View()
+        
+        # Should have selected_index from InteractiveView
+        assert hasattr(view, "selected_index")
+        assert view.selected_index == 0  # Default
+
+
+class TestR2ViewAddressMapping:
+    """Test address parsing and mapping functionality."""
+
+    def test_address_map_initialization(self):
+        """Test that address map is initialized empty."""
+        view = R2View()
+        
+        assert hasattr(view, "_address_map")
+        assert isinstance(view._address_map, dict)
+        assert len(view._address_map) == 0
+
+    def test_parse_address_from_line(self):
+        """Test extracting address from disassembly line."""
+        view = R2View()
+        
+        # Test valid addresses
+        assert view._parse_address_from_line("  0x401000  push rbp") == "0x401000"
+        assert view._parse_address_from_line("0x1234abcd  mov rax, rbx") == "0x1234abcd"
+        assert view._parse_address_from_line("   0xdeadbeef  call printf") == "0xdeadbeef"
+        
+        # Test invalid/no addresses
+        assert view._parse_address_from_line("No address here") is None
+        assert view._parse_address_from_line("  Functions:") is None
+        assert view._parse_address_from_line("") is None
+
+    def test_parse_address_mixed_case(self):
+        """Test address parsing with mixed case hex."""
+        view = R2View()
+        
+        assert view._parse_address_from_line("0xAbCdEf  nop") == "0xAbCdEf"
+        assert view._parse_address_from_line("0xFFFFFFFF  ret") == "0xFFFFFFFF"
+
+    def test_build_address_map_from_lines(self):
+        """Test building address map from rendered lines."""
+        from rich.text import Text
+        
+        view = R2View()
+        
+        lines = [
+            Text("Functions:"),
+            Text("  0x1000  main"),
+            Text("Main Disassembly:"),
+            Text("  0x1000  push rbp"),
+            Text("  0x1001  mov rbp, rsp"),
+            Text("  0x1004  ret"),
+        ]
+        
+        address_map = view._build_address_map(lines)
+        
+        # Check that addresses were found at correct indices
+        assert address_map.get(1) == "0x1000"  # Function line
+        assert address_map.get(3) == "0x1000"  # First instruction
+        assert address_map.get(4) == "0x1001"  # Second instruction
+        assert address_map.get(5) == "0x1004"  # Third instruction
+        
+        # Check that non-address lines aren't in map
+        assert 0 not in address_map  # Header
+        assert 2 not in address_map  # Section header
+
+    def test_address_map_updates_on_render(self):
+        """Test that address map is updated when rendering new data."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Address map should be populated
+        assert len(view._address_map) > 0
+        
+        # Should have addresses for instruction lines
+        has_addresses = any("0x" in addr for addr in view._address_map.values())
+        assert has_addresses
+
+
+class TestR2ViewInteractiveNavigation:
+    """Test keyboard navigation and selection."""
+
+    def test_get_item_count_with_data(self):
+        """Test get_item_count returns correct number of lines."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [
+                {"name": "main", "offset": 0x1000},
+            ],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "ret"},
+            ],
+            "strings": [
+                {"string": "test"},
+            ],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Should have multiple lines (headers + data)
+        assert view.get_item_count() > 0
+
+    def test_get_item_count_empty_data(self):
+        """Test get_item_count with no data."""
+        view = R2View()
+        
+        # Mock update to avoid app context requirement
+        view.update = Mock()
+        
+        view.render_content(None)
+        
+        # Should have at least 1 line (error message)
+        assert view.get_item_count() >= 1
+
+    def test_navigation_updates_selection(self):
+        """Test that navigation actions update selected_index."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "mov rbp, rsp"},
+                {"offset": 0x1004, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Start at 0
+        assert view.selected_index == 0
+        
+        # Move down
+        view.action_move_down()
+        assert view.selected_index == 1
+        
+        # Move down again
+        view.action_move_down()
+        assert view.selected_index == 2
+
+    def test_selection_highlighting_applied(self):
+        """Test that selection highlighting is applied to rendered lines."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        # Render with selection at index 0
+        view.selected_index = 0
+        view.render_content(r2_data)
+        
+        # The _apply_selection_highlighting method should be called
+        # Check that we have lines stored
+        assert len(view._all_lines) > 0
+
+
+class TestR2ViewJumpToAddress:
+    """Test jumping to addresses via Enter key."""
+
+    def test_on_item_selected_with_address(self):
+        """Test that selecting a line with an address posts JumpToAddress message."""
+        view = R2View()
+        
+        # Mock the post_message method to capture messages
+        posted_messages = []
+        view.post_message = lambda msg: posted_messages.append(msg)
+        
+        # Mock app state
+        mock_app = Mock()
+        mock_state = Mock()
+        mock_app.state = mock_state
+        view._app = mock_app
+        
+        # Render data
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Find a line with an address
+        address_line = None
+        for line_idx, addr in view._address_map.items():
+            address_line = line_idx
+            break
+        
+        # Select that line
+        if address_line is not None:
+            view.on_item_selected(address_line)
+            
+            # Should have posted a JumpToAddress message
+            assert len(posted_messages) == 1
+            assert isinstance(posted_messages[0], JumpToAddress)
+            assert posted_messages[0].address in view._address_map[address_line]
+
+    def test_on_item_selected_without_address(self):
+        """Test that selecting a line without an address does nothing."""
+        view = R2View()
+        
+        # Mock the post_message method
+        posted_messages = []
+        view.post_message = lambda msg: posted_messages.append(msg)
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Select a line without an address (e.g., header line)
+        view.on_item_selected(0)  # Usually a header
+        
+        # Check if it's a non-address line
+        if 0 not in view._address_map:
+            # Should not post any message
+            assert len(posted_messages) == 0
+
+    def test_navigation_state_updated_on_jump(self):
+        """Test that navigation history is updated when jumping."""
+        view = R2View()
+        
+        # Mock app state with property
+        mock_app = Mock()
+        mock_state = Mock()
+        mock_app.state = mock_state
+        
+        # Patch the app property to return our mock
+        with patch.object(type(view), 'app', new_callable=lambda: property(lambda self: mock_app)):
+            view.post_message = Mock()
+            
+            r2_data = {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                ],
+                "strings": [],
+            }
+            view.render_content(r2_data)
+            
+            # Find line with address
+            if view._address_map:
+                line_idx = list(view._address_map.keys())[0]
+                address = view._address_map[line_idx]
+                
+                view.on_item_selected(line_idx)
+                
+                # Should have called navigate_to on state
+                mock_state.navigate_to.assert_called_once_with(address)
+
+
+class TestR2ViewXrefAction:
+    """Test xref action (placeholder for future implementation)."""
+
+    def test_action_show_xrefs_exists(self):
+        """Test that action_show_xrefs method exists."""
+        view = R2View()
+        
+        assert hasattr(view, "action_show_xrefs")
+        assert callable(view.action_show_xrefs)
+
+    def test_action_show_xrefs_with_address(self):
+        """Test calling show_xrefs on line with address."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "call printf"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Find line with address
+        if view._address_map:
+            view.selected_index = list(view._address_map.keys())[0]
+            
+            # Should not raise (placeholder implementation)
+            view.action_show_xrefs()
+
+    def test_action_show_xrefs_without_address(self):
+        """Test calling show_xrefs on line without address."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        view.selected_index = 0  # Header line
+        
+        # Should not raise
+        view.action_show_xrefs()
+
+
+class TestR2ViewSelectionHighlighting:
+    """Test visual selection highlighting."""
+
+    def test_apply_selection_highlighting(self):
+        """Test that _apply_selection_highlighting method works."""
+        from rich.text import Text
+        
+        view = R2View()
+        
+        lines = [
+            Text("Line 1"),
+            Text("Line 2"),
+            Text("Line 3"),
+        ]
+        
+        # Select line 1
+        view.selected_index = 1
+        
+        highlighted = view._apply_selection_highlighting(lines)
+        
+        # Should return same number of lines
+        assert len(highlighted) == len(lines)
+        
+        # Selected line should have reverse style
+        # (Can't easily check the exact style, but verify it returns Text objects)
+        for line in highlighted:
+            assert isinstance(line, Text)
+
+    def test_selection_highlighting_updates_on_navigation(self):
+        """Test that selection highlighting updates when navigating."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "mov rbp, rsp"},
+                {"offset": 0x1004, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Move selection and verify re-render happens
+        original_index = view.selected_index
+        view.action_move_down()
+        
+        # Selection should have changed
+        assert view.selected_index != original_index
+        
+        # Lines should still be available
+        assert len(view._all_lines) > 0
+
+
+class TestR2ViewFilteringNotSupported:
+    """Test that filtering is currently not supported."""
+
+    def test_apply_filter_does_nothing(self):
+        """Test that apply_filter does not modify the view."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "push rbp"},
+                {"offset": 0x1001, "opcode": "call printf"},
+                {"offset": 0x1006, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        original_count = view.get_item_count()
+        
+        # Apply filter
+        view.apply_filter("call")
+        
+        # Count should not change (filtering not implemented)
+        assert view.get_item_count() == original_count
+
+    def test_filter_text_property_exists(self):
+        """Test that filter_text property exists from InteractiveView."""
+        view = R2View()
+        
+        assert hasattr(view, "filter_text")
+
+
+class TestR2ViewInteractiveEdgeCases:
+    """Test edge cases in interactive navigation."""
+
+    def test_navigation_with_no_data(self):
+        """Test navigation when view has no data."""
+        view = R2View()
+        
+        # Mock update to avoid app context requirement
+        view.update = Mock()
+        
+        view.render_content(None)
+        
+        # Should not raise
+        view.action_move_up()
+        view.action_move_down()
+        view.action_move_to_top()
+        view.action_move_to_bottom()
+
+    def test_selection_on_empty_address_map(self):
+        """Test selection when no addresses are available."""
+        view = R2View()
+        
+        # Data with no addresses
+        r2_data = {
+            "functions": [],
+            "main_ops": [],
+            "strings": [{"string": "test"}],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Select a line
+        view.on_item_selected(0)
+        
+        # Should not raise or post messages
+        # (since no addresses available)
+
+    def test_out_of_bounds_selection(self):
+        """Test that out of bounds selection is handled."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "ret"},
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Try to select beyond bounds
+        view.watch_selected_index(0, 999)
+        
+        # Should be clamped
+        assert view.selected_index < view.get_item_count()
+
+    def test_rapid_navigation_updates(self):
+        """Test rapid navigation doesn't break the view."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000 + i, "opcode": f"nop {i}"}
+                for i in range(10)
+            ],
+            "strings": [],
+        }
+        
+        view.render_content(r2_data)
+        
+        # Rapid navigation
+        for _ in range(20):
+            view.action_move_down()
+        
+        # Should be at or near bottom
+        assert view.selected_index >= 0
+        assert view.selected_index < view.get_item_count()
+        
+        for _ in range(20):
+            view.action_move_up()
+        
+        # Should be at top
+        assert view.selected_index == 0

@@ -7,7 +7,7 @@ from rich.table import Table
 from rich.text import Text
 
 from caspoon.ui.core.base import TreeNode, TreeView
-from caspoon.ui.core.messages import SelectFunction
+from caspoon.ui.core.messages import JumpToAddress, SelectFunction
 from caspoon.ui.core.models import AnalysisResults
 
 logger = logging.getLogger(__name__)
@@ -255,8 +255,8 @@ class FunctionExplorer(TreeView[AnalysisResults]):
     def on_item_selected(self, index: int) -> None:
         """Handle item selection.
 
-        If a function is selected, posts a SelectFunction message.
-        If a section is selected, toggles its expansion.
+        If a function is selected, posts SelectFunction and JumpToAddress messages,
+        and updates navigation history. If a section is selected, toggles its expansion.
 
         Args:
             index: Index of selected item in flattened tree
@@ -269,20 +269,41 @@ class FunctionExplorer(TreeView[AnalysisResults]):
                 # Section node - toggle expansion
                 self.action_toggle_node()
             elif node.data and node.data.get("type") == "function":
-                # Function node - post selection message
+                # Function node - emit navigation messages
                 func_data = node.data
                 name = func_data.get("name", "")
                 address = func_data.get("address", 0)
 
-                logger.info(f"Function selected: {name} at 0x{address:08x}")
-                self.post_message(SelectFunction(name, f"0x{address:08x}" if address else None))
-
-                # Update details panel if available
-                try:
-                    details_panel = self.app.query_one("DetailsPanel")
-                    details_panel.show_function_details(func_data)
-                except Exception as e:
-                    logger.debug(f"Could not update details panel: {e}")
+                if address:
+                    # Format address consistently (0x prefix, 8 hex digits)
+                    address_str = f"0x{address:08x}"
+                    
+                    logger.info(f"Function selected: {name} at {address_str}")
+                    
+                    # Post SelectFunction message for legacy compatibility
+                    self.post_message(SelectFunction(name, address_str))
+                    
+                    # Post JumpToAddress message to trigger navigation
+                    self.post_message(JumpToAddress(address_str))
+                    
+                    # Update navigation history in app state
+                    try:
+                        if hasattr(self.app, "state"):
+                            self.app.state.navigate_to(address_str)
+                            logger.debug(f"Added {address_str} to navigation history")
+                    except Exception as e:
+                        logger.debug(f"Could not update navigation history: {e}")
+                    
+                    # Update details panel if available
+                    try:
+                        details_panel = self.app.query_one("DetailsPanel")
+                        details_panel.show_function_details(func_data)
+                    except Exception as e:
+                        logger.debug(f"Could not update details panel: {e}")
+                else:
+                    # Function without address - just post SelectFunction
+                    logger.info(f"Function selected: {name} (no address)")
+                    self.post_message(SelectFunction(name, None))
 
     def apply_filter(self, text: str) -> None:
         """Filter functions by name.

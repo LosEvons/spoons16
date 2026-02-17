@@ -374,3 +374,375 @@ class TestAppState:
         state.reset()
         assert state.binary_info is None
         assert state.analysis_results is None
+
+
+class TestNavigationHistory:
+    """Tests for navigation history functionality."""
+
+    def test_navigation_history_initialization(self):
+        """Test navigation history initializes empty."""
+        state = AppState()
+
+        assert state.navigation_history == []
+        assert state.current_nav_index == -1
+        assert not state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_navigate_to_first_address(self):
+        """Test navigating to first address."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+
+        assert state.navigation_history == ["0x401000"]
+        assert state.current_nav_index == 0
+        assert not state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_navigate_to_multiple_addresses(self):
+        """Test navigating to multiple addresses in sequence."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+
+        assert state.navigation_history == ["0x401000", "0x401010", "0x401020"]
+        assert state.current_nav_index == 2
+        assert state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_go_back_single_step(self):
+        """Test going back one step."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+
+        result = state.go_back()
+
+        assert result == "0x401000"
+        assert state.current_nav_index == 0
+        assert not state.can_go_back()
+        assert state.can_go_forward()
+
+    def test_go_back_multiple_steps(self):
+        """Test going back multiple steps."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+        state.navigate_to("0x401030")
+
+        result1 = state.go_back()
+        result2 = state.go_back()
+        result3 = state.go_back()
+
+        assert result1 == "0x401020"
+        assert result2 == "0x401010"
+        assert result3 == "0x401000"
+        assert state.current_nav_index == 0
+        assert not state.can_go_back()
+        assert state.can_go_forward()
+
+    def test_go_back_at_beginning(self):
+        """Test going back when already at beginning."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+
+        # Already at beginning
+        result = state.go_back()
+
+        assert result is None
+        assert state.current_nav_index == 0
+        assert not state.can_go_back()
+
+    def test_go_back_empty_history(self):
+        """Test going back with empty history."""
+        state = AppState()
+
+        result = state.go_back()
+
+        assert result is None
+        assert state.current_nav_index == -1
+        assert not state.can_go_back()
+
+    def test_go_forward_single_step(self):
+        """Test going forward one step."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.go_back()
+
+        result = state.go_forward()
+
+        assert result == "0x401010"
+        assert state.current_nav_index == 1
+        assert state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_go_forward_multiple_steps(self):
+        """Test going forward multiple steps."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+        state.go_back()
+        state.go_back()
+
+        result1 = state.go_forward()
+        result2 = state.go_forward()
+
+        assert result1 == "0x401010"
+        assert result2 == "0x401020"
+        assert state.current_nav_index == 2
+        assert state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_go_forward_at_end(self):
+        """Test going forward when already at end."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+
+        # Already at end
+        result = state.go_forward()
+
+        assert result is None
+        assert state.current_nav_index == 1
+        assert not state.can_go_forward()
+
+    def test_go_forward_empty_history(self):
+        """Test going forward with empty history."""
+        state = AppState()
+
+        result = state.go_forward()
+
+        assert result is None
+        assert state.current_nav_index == -1
+        assert not state.can_go_forward()
+
+    def test_navigate_truncates_forward_history(self):
+        """Test that navigating from middle of history truncates forward entries."""
+        state = AppState()
+
+        # Build history
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+        state.navigate_to("0x401030")
+
+        # Go back to middle
+        state.go_back()
+        state.go_back()
+
+        assert state.current_nav_index == 1
+        assert state.navigation_history == ["0x401000", "0x401010", "0x401020", "0x401030"]
+
+        # Navigate to new address - should truncate forward history
+        state.navigate_to("0x402000")
+
+        assert state.navigation_history == ["0x401000", "0x401010", "0x402000"]
+        assert state.current_nav_index == 2
+        assert state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_navigate_after_go_back_multiple_times(self):
+        """Test navigation behavior after multiple back steps."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+
+        # Go all the way back
+        state.go_back()
+        state.go_back()
+
+        # Navigate to new address
+        state.navigate_to("0x403000")
+
+        # Forward history should be cleared
+        assert state.navigation_history == ["0x401000", "0x403000"]
+        assert state.current_nav_index == 1
+        assert not state.can_go_forward()
+
+    def test_can_go_back_after_navigation(self):
+        """Test can_go_back() returns correct values."""
+        state = AppState()
+
+        assert not state.can_go_back()
+
+        state.navigate_to("0x401000")
+        assert not state.can_go_back()
+
+        state.navigate_to("0x401010")
+        assert state.can_go_back()
+
+        state.go_back()
+        assert not state.can_go_back()
+
+    def test_can_go_forward_after_navigation(self):
+        """Test can_go_forward() returns correct values."""
+        state = AppState()
+
+        assert not state.can_go_forward()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        assert not state.can_go_forward()
+
+        state.go_back()
+        assert state.can_go_forward()
+
+        state.go_forward()
+        assert not state.can_go_forward()
+
+    def test_navigation_history_with_duplicates(self):
+        """Test that duplicate addresses are still tracked separately."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401000")  # Navigate back to first address
+
+        assert state.navigation_history == ["0x401000", "0x401010", "0x401000"]
+        assert state.current_nav_index == 2
+
+        # Can go back through history
+        result = state.go_back()
+        assert result == "0x401010"
+
+        result = state.go_back()
+        assert result == "0x401000"
+
+    def test_reset_clears_navigation_history(self):
+        """Test that reset() clears navigation history."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.navigate_to("0x401020")
+
+        state.reset()
+
+        assert state.navigation_history == []
+        assert state.current_nav_index == -1
+        assert not state.can_go_back()
+        assert not state.can_go_forward()
+
+    def test_navigation_fires_callbacks(self):
+        """Test that navigation methods fire appropriate callbacks."""
+        state = AppState()
+        history_updates = []
+        index_updates = []
+
+        state.subscribe("navigation_history", lambda val: history_updates.append(val.copy()))
+        state.subscribe("current_nav_index", lambda val: index_updates.append(val))
+
+        state.navigate_to("0x401000")
+
+        assert len(history_updates) == 1
+        assert history_updates[0] == ["0x401000"]
+        assert len(index_updates) == 1
+        assert index_updates[0] == 0
+
+    def test_go_back_fires_index_callback(self):
+        """Test that go_back() fires callback for index change."""
+        state = AppState()
+        index_updates = []
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+
+        state.subscribe("current_nav_index", lambda val: index_updates.append(val))
+
+        state.go_back()
+
+        assert len(index_updates) == 1
+        assert index_updates[0] == 0
+
+    def test_go_forward_fires_index_callback(self):
+        """Test that go_forward() fires callback for index change."""
+        state = AppState()
+        index_updates = []
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+        state.go_back()
+
+        state.subscribe("current_nav_index", lambda val: index_updates.append(val))
+
+        state.go_forward()
+
+        assert len(index_updates) == 1
+        assert index_updates[0] == 1
+
+    def test_navigation_history_is_readonly_property(self):
+        """Test that navigation_history property returns the list."""
+        state = AppState()
+
+        state.navigate_to("0x401000")
+        state.navigate_to("0x401010")
+
+        # Getting the property should work
+        history = state.navigation_history
+        assert history == ["0x401000", "0x401010"]
+
+        # Note: The property returns the internal list, so modifications
+        # would affect the state. This is acceptable for this implementation.
+
+    def test_current_nav_index_is_readonly_property(self):
+        """Test that current_nav_index property returns the index."""
+        state = AppState()
+
+        assert state.current_nav_index == -1
+
+        state.navigate_to("0x401000")
+        assert state.current_nav_index == 0
+
+        state.navigate_to("0x401010")
+        assert state.current_nav_index == 1
+
+    def test_complex_navigation_scenario(self):
+        """Test a complex navigation scenario combining all operations."""
+        state = AppState()
+
+        # Navigate forward through several addresses
+        state.navigate_to("0x401000")  # history: [0x401000], index: 0
+        state.navigate_to("0x401010")  # history: [0x401000, 0x401010], index: 1
+        state.navigate_to("0x401020")  # history: [0x401000, 0x401010, 0x401020], index: 2
+
+        assert state.current_nav_index == 2
+        assert len(state.navigation_history) == 3
+
+        # Go back twice
+        addr1 = state.go_back()  # index: 1
+        addr2 = state.go_back()  # index: 0
+
+        assert addr1 == "0x401010"
+        assert addr2 == "0x401000"
+        assert state.current_nav_index == 0
+
+        # Go forward once
+        addr3 = state.go_forward()  # index: 1
+        assert addr3 == "0x401010"
+        assert state.current_nav_index == 1
+
+        # Navigate to new address (truncates 0x401020)
+        state.navigate_to("0x402000")  # history: [0x401000, 0x401010, 0x402000], index: 2
+
+        assert state.navigation_history == ["0x401000", "0x401010", "0x402000"]
+        assert state.current_nav_index == 2
+        assert not state.can_go_forward()
+
+        # Go back and verify
+        addr4 = state.go_back()  # index: 1
+        assert addr4 == "0x401010"
+        assert state.can_go_back()
+        assert state.can_go_forward()

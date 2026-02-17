@@ -31,6 +31,8 @@ class AppState:
         analysis_results: Complete analysis data (None if not analyzed)
         ui_state: Current UI state (progress, selections, panel visibility)
         user_prefs: User preferences and settings
+        navigation_history: List of visited addresses for back/forward navigation
+        current_nav_index: Current position in navigation history (-1 if empty)
     """
 
     def __init__(self) -> None:
@@ -40,6 +42,8 @@ class AppState:
         self._ui_state: UIState = UIState()
         self._user_prefs: UserPreferences = UserPreferences()
         self._callbacks: dict[str, list[Callable]] = {}
+        self._navigation_history: list[str] = []
+        self._current_nav_index: int = -1
 
     @property
     def binary_info(self) -> BinaryInfo | None:
@@ -85,6 +89,16 @@ class AppState:
         self._user_prefs = value
         self._notify("user_prefs", value)
 
+    @property
+    def navigation_history(self) -> list[str]:
+        """Get navigation history list."""
+        return self._navigation_history
+
+    @property
+    def current_nav_index(self) -> int:
+        """Get current navigation index."""
+        return self._current_nav_index
+
     def subscribe(self, property_name: str, callback: Callable) -> None:
         """Subscribe to property changes.
 
@@ -124,9 +138,13 @@ class AppState:
         self._binary_info = None
         self._analysis_results = None
         self._ui_state = UIState()
+        self._navigation_history = []
+        self._current_nav_index = -1
         self._notify("binary_info", None)
         self._notify("analysis_results", None)
         self._notify("ui_state", self._ui_state)
+        self._notify("navigation_history", self._navigation_history)
+        self._notify("current_nav_index", self._current_nav_index)
 
     def update_from_report(self, report: "ExecutableReport") -> None:
         """Update state from ExecutableReport.
@@ -177,4 +195,70 @@ class AppState:
             selected_address=None,
             active_tab=self.ui_state.active_tab,
             panels_visible=self.ui_state.panels_visible,
+        )
+
+    def navigate_to(self, address: str) -> None:
+        """Navigate to a new address in the disassembly.
+
+        Adds the address to navigation history. If not at the end of history,
+        truncates forward history before adding.
+
+        Args:
+            address: Memory address as hex string (e.g., "0x401000")
+        """
+        # If we're not at the end of history, truncate forward entries
+        if self._current_nav_index < len(self._navigation_history) - 1:
+            self._navigation_history = self._navigation_history[: self._current_nav_index + 1]
+
+        # Add new address and advance index
+        self._navigation_history.append(address)
+        self._current_nav_index = len(self._navigation_history) - 1
+
+        # Notify subscribers
+        self._notify("navigation_history", self._navigation_history)
+        self._notify("current_nav_index", self._current_nav_index)
+
+    def go_back(self) -> str | None:
+        """Navigate to previous address in history.
+
+        Returns:
+            Previous address string, or None if at beginning of history
+        """
+        if not self.can_go_back():
+            return None
+
+        self._current_nav_index -= 1
+        self._notify("current_nav_index", self._current_nav_index)
+        return self._navigation_history[self._current_nav_index]
+
+    def go_forward(self) -> str | None:
+        """Navigate to next address in history.
+
+        Returns:
+            Next address string, or None if at end of history
+        """
+        if not self.can_go_forward():
+            return None
+
+        self._current_nav_index += 1
+        self._notify("current_nav_index", self._current_nav_index)
+        return self._navigation_history[self._current_nav_index]
+
+    def can_go_back(self) -> bool:
+        """Check if backward navigation is possible.
+
+        Returns:
+            True if there's a previous address in history, False otherwise
+        """
+        return self._current_nav_index > 0
+
+    def can_go_forward(self) -> bool:
+        """Check if forward navigation is possible.
+
+        Returns:
+            True if there's a next address in history, False otherwise
+        """
+        return (
+            self._current_nav_index < len(self._navigation_history) - 1
+            and len(self._navigation_history) > 0
         )

@@ -9,6 +9,7 @@ import pytest
 from caspoon.backends.r2_analyzer import (
     MAX_MAIN_INSTRUCTIONS,
     analyze_with_r2,
+    _extract_xrefs,
 )
 
 
@@ -39,6 +40,10 @@ class TestAnalyzeWithR2:
             {"offset": 0x1000, "opcode": "push rbp"},
             {"offset": 0x1001, "opcode": "mov rbp, rsp"},
         ]
+        callers_main = [{"from": 4198400, "type": "CALL", "fcn_name": "entry0"}]
+        callees_main = [{"to": 8192, "type": "CALL", "fcn_name": "helper"}]
+        callers_helper = [{"from": 4096, "type": "CALL", "fcn_name": "main"}]
+        callees_helper = []
 
         mock_r2.cmd.side_effect = [
             None,  # aa command
@@ -47,6 +52,10 @@ class TestAnalyzeWithR2:
             json.dumps(strings_data),  # izj
             None,  # s main
             json.dumps(main_ops_data),  # pdj
+            json.dumps(callers_main),  # axtj @ 0x1000
+            json.dumps(callees_main),  # axfj @ 0x1000
+            json.dumps(callers_helper),  # axtj @ 0x2000
+            json.dumps(callees_helper),  # axfj @ 0x2000
         ]
 
         # Execute
@@ -57,6 +66,13 @@ class TestAnalyzeWithR2:
         assert result["imports"] == imports_data
         assert result["strings"] == strings_data
         assert result["main_ops"] == main_ops_data
+        assert "xrefs" in result
+        assert "0x1000" in result["xrefs"]
+        assert result["xrefs"]["0x1000"]["callers"] == callers_main
+        assert result["xrefs"]["0x1000"]["callees"] == callees_main
+        assert "0x2000" in result["xrefs"]
+        assert result["xrefs"]["0x2000"]["callers"] == callers_helper
+        assert result["xrefs"]["0x2000"]["callees"] == callees_helper
 
         # Verify r2pipe was called correctly
         mock_r2pipe.open.assert_called_once_with("/path/to/binary", flags=["-2"])
@@ -66,6 +82,10 @@ class TestAnalyzeWithR2:
         mock_r2.cmd.assert_any_call("izj")
         mock_r2.cmd.assert_any_call("s main")
         mock_r2.cmd.assert_any_call(f"pdj {MAX_MAIN_INSTRUCTIONS}")
+        mock_r2.cmd.assert_any_call("axtj @ 4096")
+        mock_r2.cmd.assert_any_call("axfj @ 4096")
+        mock_r2.cmd.assert_any_call("axtj @ 8192")
+        mock_r2.cmd.assert_any_call("axfj @ 8192")
         mock_r2.quit.assert_called_once()
 
     @patch("caspoon.backends.r2_analyzer.r2pipe")
@@ -91,6 +111,7 @@ class TestAnalyzeWithR2:
         assert result["imports"] == []
         assert result["strings"] == []
         assert result["main_ops"] == []
+        assert result["xrefs"] == {}
 
         mock_r2.quit.assert_called_once()
 
@@ -115,6 +136,7 @@ class TestAnalyzeWithR2:
 
         # Verify empty list returned and warning logged
         assert result["functions"] == []
+        assert result["xrefs"] == {}
         assert "Failed to parse functions JSON" in caplog.text
         mock_r2.quit.assert_called_once()
 
@@ -324,12 +346,14 @@ class TestAnalyzeWithR2:
         assert "imports" in result
         assert "strings" in result
         assert "main_ops" in result
+        assert "xrefs" in result
 
-        # Verify they're all lists
+        # Verify they're all correct types
         assert isinstance(result["functions"], list)
         assert isinstance(result["imports"], list)
         assert isinstance(result["strings"], list)
         assert isinstance(result["main_ops"], list)
+        assert isinstance(result["xrefs"], dict)
 
     @patch("caspoon.backends.r2_analyzer.r2pipe")
     def test_r2pipe_open_exception(self, mock_r2pipe):
@@ -357,3 +381,263 @@ class TestAnalyzeWithR2:
         s_main_idx = calls.index("s main")
         pdj_idx = calls.index(f"pdj {MAX_MAIN_INSTRUCTIONS}")
         assert s_main_idx < pdj_idx
+
+
+class TestExtractXrefs:
+    """Tests for the _extract_xrefs function."""
+
+    def test_extract_xrefs_with_both_callers_and_callees(self):
+        """Test extracting xrefs when function has both callers and callees."""
+        mock_r2 = MagicMock()
+        functions = [
+            {"name": "main", "offset": 0x1000},
+        ]
+        callers = [{"from": 0x500, "type": "CALL", "fcn_name": "entry0"}]
+        callees = [{"to": 0x2000, "type": "CALL", "fcn_name": "helper"}]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps(callers),  # axtj
+            json.dumps(callees),  # axfj
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert "0x1000" in result
+        assert result["0x1000"]["callers"] == callers
+        assert result["0x1000"]["callees"] == callees
+        mock_r2.cmd.assert_any_call("axtj @ 4096")
+        mock_r2.cmd.assert_any_call("axfj @ 4096")
+
+    def test_extract_xrefs_only_callers(self):
+        """Test extracting xrefs when function only has callers."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "leaf", "offset": 0x2000}]
+        callers = [{"from": 0x1000, "type": "CALL", "fcn_name": "main"}]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps(callers),  # axtj
+            "[]",  # axfj (no callees)
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert "0x2000" in result
+        assert result["0x2000"]["callers"] == callers
+        assert result["0x2000"]["callees"] == []
+
+    def test_extract_xrefs_only_callees(self):
+        """Test extracting xrefs when function only has callees."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "main", "offset": 0x1000}]
+        callees = [{"to": 0x2000, "type": "CALL", "fcn_name": "helper"}]
+
+        mock_r2.cmd.side_effect = [
+            "[]",  # axtj (no callers)
+            json.dumps(callees),  # axfj
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert "0x1000" in result
+        assert result["0x1000"]["callers"] == []
+        assert result["0x1000"]["callees"] == callees
+
+    def test_extract_xrefs_no_xrefs_for_function(self):
+        """Test that function with no xrefs is not included in result."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "isolated", "offset": 0x3000}]
+
+        mock_r2.cmd.side_effect = [
+            "[]",  # axtj (no callers)
+            "[]",  # axfj (no callees)
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        # Function with no xrefs should not be in result dict
+        assert "0x3000" not in result
+        assert len(result) == 0
+
+    def test_extract_xrefs_multiple_functions(self):
+        """Test extracting xrefs for multiple functions."""
+        mock_r2 = MagicMock()
+        functions = [
+            {"name": "main", "offset": 0x1000},
+            {"name": "helper", "offset": 0x2000},
+            {"name": "isolated", "offset": 0x3000},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps([{"from": 0x500}]),  # main callers
+            json.dumps([{"to": 0x2000}]),  # main callees
+            json.dumps([{"from": 0x1000}]),  # helper callers
+            "[]",  # helper callees
+            "[]",  # isolated callers
+            "[]",  # isolated callees
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert len(result) == 2
+        assert "0x1000" in result
+        assert "0x2000" in result
+        assert "0x3000" not in result  # No xrefs, so not included
+
+    def test_extract_xrefs_empty_function_list(self):
+        """Test extracting xrefs with empty function list."""
+        mock_r2 = MagicMock()
+        functions = []
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert result == {}
+        mock_r2.cmd.assert_not_called()
+
+    def test_extract_xrefs_function_missing_offset(self):
+        """Test handling function without offset field."""
+        mock_r2 = MagicMock()
+        functions = [
+            {"name": "func_without_offset"},  # Missing offset
+            {"name": "good_func", "offset": 0x1000},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps([{"from": 0x500}]),  # good_func callers
+            "[]",  # good_func callees
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        # Only good_func should be processed
+        assert len(result) == 1
+        assert "0x1000" in result
+
+    def test_extract_xrefs_json_decode_error_callers(self, caplog):
+        """Test handling JSON decode error for callers."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "func", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            "invalid json{",  # axtj (invalid)
+            json.dumps([{"to": 0x2000}]),  # axfj (valid)
+        ]
+
+        with caplog.at_level(logging.WARNING):
+            result = _extract_xrefs(mock_r2, functions)
+
+        # Should still have entry with empty callers
+        assert "0x1000" in result
+        assert result["0x1000"]["callers"] == []
+        assert len(result["0x1000"]["callees"]) == 1
+        assert "Failed to parse callers JSON" in caplog.text
+
+    def test_extract_xrefs_json_decode_error_callees(self, caplog):
+        """Test handling JSON decode error for callees."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "func", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps([{"from": 0x500}]),  # axtj (valid)
+            "}{broken",  # axfj (invalid)
+        ]
+
+        with caplog.at_level(logging.WARNING):
+            result = _extract_xrefs(mock_r2, functions)
+
+        assert "0x1000" in result
+        assert len(result["0x1000"]["callers"]) == 1
+        assert result["0x1000"]["callees"] == []
+        assert "Failed to parse callees JSON" in caplog.text
+
+    def test_extract_xrefs_empty_json_strings(self):
+        """Test handling empty JSON strings from r2."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "func", "offset": 0x1000}]
+
+        mock_r2.cmd.side_effect = [
+            "",  # axtj (empty string)
+            "   ",  # axfj (whitespace)
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        # Empty xrefs means function not in result
+        assert "0x1000" not in result
+
+    def test_extract_xrefs_exception_handling(self, caplog):
+        """Test that exceptions for individual functions don't fail entire extraction."""
+        mock_r2 = MagicMock()
+        functions = [
+            {"name": "bad_func", "offset": 0x1000},
+            {"name": "good_func", "offset": 0x2000},
+        ]
+
+        # First function raises exception, second succeeds
+        def cmd_side_effect(cmd):
+            if "4096" in cmd:  # 0x1000
+                raise RuntimeError("r2 command failed")
+            elif "8192" in cmd:  # 0x2000
+                if "axtj" in cmd:
+                    return json.dumps([{"from": 0x100}])
+                else:
+                    return "[]"
+            return "[]"
+
+        mock_r2.cmd.side_effect = cmd_side_effect
+
+        with caplog.at_level(logging.WARNING):
+            result = _extract_xrefs(mock_r2, functions)
+
+        # good_func should still be extracted
+        assert "0x2000" in result
+        assert "0x1000" not in result
+        assert "Failed to extract xrefs for function" in caplog.text
+
+    def test_extract_xrefs_hex_address_format(self):
+        """Test that addresses are formatted as hex strings consistently."""
+        mock_r2 = MagicMock()
+        functions = [
+            {"name": "func1", "offset": 4096},  # Decimal
+            {"name": "func2", "offset": 0x2000},  # Hex literal
+        ]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps([{"from": 0x100}]),  # func1 callers
+            "[]",  # func1 callees
+            "[]",  # func2 callers
+            json.dumps([{"to": 0x3000}]),  # func2 callees
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        # Both should be hex string keys
+        assert "0x1000" in result  # 4096 in hex
+        assert "0x2000" in result
+
+    def test_extract_xrefs_multiple_callers_and_callees(self):
+        """Test function with multiple callers and callees."""
+        mock_r2 = MagicMock()
+        functions = [{"name": "popular", "offset": 0x1000}]
+
+        callers = [
+            {"from": 0x500, "type": "CALL", "fcn_name": "entry0"},
+            {"from": 0x600, "type": "CALL", "fcn_name": "init"},
+            {"from": 0x700, "type": "CALL", "fcn_name": "main"},
+        ]
+        callees = [
+            {"to": 0x2000, "type": "CALL", "fcn_name": "helper1"},
+            {"to": 0x3000, "type": "CALL", "fcn_name": "helper2"},
+        ]
+
+        mock_r2.cmd.side_effect = [
+            json.dumps(callers),
+            json.dumps(callees),
+        ]
+
+        result = _extract_xrefs(mock_r2, functions)
+
+        assert "0x1000" in result
+        assert len(result["0x1000"]["callers"]) == 3
+        assert len(result["0x1000"]["callees"]) == 2
+        assert result["0x1000"]["callers"] == callers
+        assert result["0x1000"]["callees"] == callees
