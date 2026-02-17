@@ -3,6 +3,7 @@
 import pytest
 from textual.app import App, ComposeResult
 
+from caspoon.ui import widget_ids as wid
 from caspoon.tests.fixtures.ui_fixtures import (
     empty_protections_dict,
     full_protections_dict,
@@ -79,7 +80,7 @@ class TestProtectionsViewStateSubscription:
         app.state.subscribe = mock_subscribe
 
         async with app.run_test() as pilot:
-            view = app.query_one("#protections", ProtectionsView)
+            view = app.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView)
 
             # Give time for on_mount to be called
             await pilot.pause()
@@ -95,7 +96,7 @@ class TestProtectionsViewStateSubscription:
         app = CaspoonApp()
 
         async with app.run_test() as pilot:
-            view = app.query_one("#protections", ProtectionsView)
+            view = app.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView)
 
             # Update state - should trigger view update
             app.state.analysis_results = mock_analysis_results
@@ -277,7 +278,7 @@ class TestProtectionsViewEdgeCases:
         app = CaspoonApp()
 
         async with app.run_test() as pilot:
-            view = app.query_one("#protections", ProtectionsView)
+            view = app.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView)
 
             # Set results to None - should clear view data
             app.state.analysis_results = None

@@ -3,6 +3,7 @@
 import pytest
 from textual.widgets import Input
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.app import CaspoonApp
 from caspoon.ui.widgets.command_palette import CommandPalette
 
@@ -17,7 +18,7 @@ class TestCommandPaletteIntegration:
 
         async with app.run_test() as pilot:
             # Initially palette should not be visible
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
             assert not palette.has_class("visible")
 
             # Trigger show command palette action
@@ -39,11 +40,11 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
             assert palette.has_class("visible")
 
             # Search for quit command
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "quit"
 
             await pilot.pause()
@@ -68,16 +69,16 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Search for "overview"
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "overview"
 
             await pilot.pause()
 
             # Should find the "Show Overview" command
-            results = palette.query_one("#results")
+            results = palette.query_one(f"#{wid.COMMAND_RESULTS}")
             assert len(results.children) >= 1
 
     @pytest.mark.asyncio
@@ -91,17 +92,17 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
             assert palette.has_class("visible")
 
             # Type to search
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "help"
 
             await pilot.pause()
 
             # Results should be filtered
-            results = palette.query_one("#results")
+            results = palette.query_one(f"#{wid.COMMAND_RESULTS}")
             assert len(results.children) >= 1
 
             # Close with escape
@@ -123,10 +124,10 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Search for help command
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "help"
 
             await pilot.pause()
@@ -169,15 +170,15 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Search for "view" (should match category)
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "view"
 
             await pilot.pause()
 
-            results = palette.query_one("#results")
+            results = palette.query_one(f"#{wid.COMMAND_RESULTS}")
             # Should find multiple view commands
             assert len(results.children) >= 3
 
@@ -192,15 +193,15 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Search for a command with a keybinding
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "quit"
 
             await pilot.pause()
 
-            results = palette.query_one("#results")
+            results = palette.query_one(f"#{wid.COMMAND_RESULTS}")
             # Should have at least one result
             assert len(results.children) >= 1
 
@@ -215,10 +216,10 @@ class TestCommandPaletteIntegration:
 
             await pilot.pause()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Set some search text
-            search_input = palette.query_one("#search", Input)
+            search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
             search_input.value = "test"
 
             await pilot.pause()
@@ -245,7 +246,7 @@ class TestCommandPaletteIntegration:
             # Get all registered actions
             all_actions = app.action_registry.get_all_actions()
 
-            palette = app.query_one("#command_palette", CommandPalette)
+            palette = app.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
 
             # Test a few key commands
             test_commands = [
@@ -258,12 +259,12 @@ class TestCommandPaletteIntegration:
                 palette.show()
                 await pilot.pause()
 
-                search_input = palette.query_one("#search", Input)
+                search_input = palette.query_one(f"#{wid.COMMAND_SEARCH}", Input)
                 search_input.value = query
 
                 await pilot.pause()
 
-                results = palette.query_one("#results")
+                results = palette.query_one(f"#{wid.COMMAND_RESULTS}")
                 # Should find the command - check the action_id attribute
                 assert any(
                     getattr(child, "action_id", None) == expected_id

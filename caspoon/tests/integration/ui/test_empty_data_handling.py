@@ -45,7 +45,7 @@ class TestEmptyDataHandling:
         # Should show "No strings" or similar message
         rendered = str(view.renderable)
         # The view should indicate no results
-        assert len(view._filtered) == 0
+        assert view.filtered_count == 0
 
     def test_imports_exports_view_empty_imports(self):
         """ImportsExportsView should show 'No imports' when empty."""
@@ -178,9 +178,9 @@ class TestEmptyDataWorkflows:
     @pytest.mark.asyncio
     async def test_empty_analysis_results(self):
         """Test handling of analysis with no interesting data."""
-        import asyncio
         from unittest.mock import patch
 
+        from caspoon.tests.helpers import wait_for_workers
         from caspoon.ui.app import CaspoonApp
 
         app = CaspoonApp()
@@ -215,7 +215,7 @@ class TestEmptyDataWorkflows:
                     temp_path = f.name
 
                 await app.start_analysis(temp_path)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Verify analysis completed
                 assert app.state.binary_info is not None
@@ -223,15 +223,15 @@ class TestEmptyDataWorkflows:
 
                 # Navigate to strings view - should show empty message
                 await pilot.press("3")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 strings_view = app.query_one(StringsView)
-                assert len(strings_view._strings) == 0
+                assert strings_view.total_count == 0
                 # View should handle empty gracefully
 
                 # Navigate to imports/exports view
                 await pilot.press("4")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Should not crash with empty data
                 assert app.state.analysis_results is not None

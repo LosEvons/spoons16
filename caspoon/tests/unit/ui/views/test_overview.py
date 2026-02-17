@@ -4,6 +4,7 @@ import pytest
 from textual.app import App, ComposeResult
 
 from caspoon.core.models import ExecutableReport
+from caspoon.ui import widget_ids as wid
 from caspoon.tests.fixtures.ui_fixtures import (
     mock_app_state,
     mock_binary_info,
@@ -76,7 +77,7 @@ class TestOverviewViewStateSubscription:
         app.state.subscribe = mock_subscribe
 
         async with app.run_test() as pilot:
-            view = app.query_one("#overview", OverviewView)
+            view = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
 
             # Give time for on_mount to be called
             await pilot.pause()
@@ -92,7 +93,7 @@ class TestOverviewViewStateSubscription:
         app = CaspoonApp()
 
         async with app.run_test() as pilot:
-            view = app.query_one("#overview", OverviewView)
+            view = app.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView)
 
             # Verify initial state
             assert view.data is None
