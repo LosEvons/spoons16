@@ -13,6 +13,22 @@ if TYPE_CHECKING:
     from textual.pilot import Pilot
 
 
+def _is_busy(app: App) -> bool:
+    """Check whether the app still has work in progress.
+
+    Checks both Textual's built-in worker set and the custom
+    ``is_analyzing`` flag used by CaspoonApp.
+    """
+    if app.workers:
+        return True
+    state = getattr(app, "state", None)
+    if state is not None:
+        ui_state = getattr(state, "ui_state", None)
+        if ui_state is not None and getattr(ui_state, "is_analyzing", False):
+            return True
+    return False
+
+
 async def wait_for_workers(
     app: App,
     pilot: Pilot,
@@ -22,8 +38,9 @@ async def wait_for_workers(
 ) -> None:
     """Wait for all background workers to complete.
 
-    Polls ``app.workers`` until the set is empty, draining the Textual
-    message queue between polls so the UI can process completion messages.
+    Polls both ``app.workers`` (Textual workers) and
+    ``app.state.ui_state.is_analyzing`` (custom analysis worker) until
+    idle, draining the message queue between polls.
 
     Args:
         app: The Textual application instance.
@@ -35,7 +52,7 @@ async def wait_for_workers(
         TimeoutError: If workers are still running after *timeout* seconds.
     """
     elapsed = 0.0
-    while app.workers:
+    while _is_busy(app):
         await pilot.pause()
         await asyncio.sleep(poll_interval)
         elapsed += poll_interval
@@ -71,14 +88,4 @@ async def start_analysis_and_wait(
     await app.start_analysis(path)
     await pilot.pause()
 
-    elapsed = 0.0
-    poll = 0.05
-    while getattr(app.state.ui_state, "is_analyzing", False) or app.workers:
-        await pilot.pause()
-        await asyncio.sleep(poll)
-        elapsed += poll
-        if elapsed >= timeout:
-            raise TimeoutError(
-                f"Analysis still running after {timeout}s"
-            )
-    await pilot.pause()
+    await wait_for_workers(app, pilot, timeout=timeout)

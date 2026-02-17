@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from caspoon.tests.helpers import wait_for_workers
 from caspoon.ui.app import CaspoonApp
 from caspoon.ui.views.strings_view import StringsView
 from caspoon.ui.widgets.command_palette import CommandPalette
@@ -100,7 +101,7 @@ class TestCompleteAnalysisWorkflow:
             async with app.run_test() as pilot:
                 # Step 1: Load binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)  # Wait for analysis
+                await wait_for_workers(app, pilot)
 
                 # Step 2: Verify analysis completed
                 assert app.state.binary_info is not None
@@ -112,11 +113,11 @@ class TestCompleteAnalysisWorkflow:
 
                 # Step 3: Navigate to strings view (Tab 3)
                 await pilot.press("3")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Step 4: Verify strings view has data
                 strings_view = app.query_one(StringsView)
-                assert len(strings_view._strings) > 0
+                assert strings_view.total_count > 0
 
                 # Step 5: Apply filter to find "password"
                 # In a real UI test, we'd focus the filter input and type
@@ -124,14 +125,14 @@ class TestCompleteAnalysisWorkflow:
                 strings_view.apply_filter("password")
 
                 # Step 6: Verify filtering worked
-                assert any("password" in s.lower() for s in strings_view._filtered)
-                assert len(strings_view._filtered) < len(strings_view._strings)
+                assert any("password" in s.lower() for s in strings_view.filtered_strings)
+                assert strings_view.filtered_count < strings_view.total_count
 
                 # Step 7: Navigate to other views
                 await pilot.press("1")  # Overview
-                await pilot.pause(0.05)
+                await pilot.pause()
                 await pilot.press("2")  # Protections
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Step 8: Verify state persists across view changes
                 assert app.state.binary_info is not None
@@ -161,11 +162,11 @@ class TestCommandPaletteWorkflow:
             async with app.run_test() as pilot:
                 # Load binary first
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Open command palette
                 await pilot.press("ctrl+p")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Verify palette is visible
                 try:
@@ -177,7 +178,7 @@ class TestCommandPaletteWorkflow:
 
                 # Close palette (ESC)
                 await pilot.press("escape")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Test that commands are registered
                 assert len(app.action_registry._actions) > 0
@@ -206,26 +207,26 @@ class TestMultiPanelWorkflow:
             async with app.run_test() as pilot:
                 # Load binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Toggle sidebar (Ctrl+B)
                 initial_sidebar_state = app.state.ui_state.sidebar_visible
                 await pilot.press("ctrl+b")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Verify sidebar state toggled (if toggle action is implemented)
                 # Note: The actual toggle might not change state in test without proper screen
                 # Just verify we can press the key without crashing
                 await pilot.press("ctrl+b")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Toggle details panel (Ctrl+D)
                 await pilot.press("ctrl+d")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Toggle console (Ctrl+J)
                 await pilot.press("ctrl+j")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Verify state persists
                 assert app.state.binary_info is not None
@@ -249,7 +250,7 @@ class TestErrorHandlingWorkflow:
         async with app.run_test() as pilot:
             # Step 1: Try to load non-existent file
             await app.start_analysis("/nonexistent/file.bin")
-            await asyncio.sleep(0.1)
+            await wait_for_workers(app, pilot)
 
             # Step 2: Verify error was handled gracefully
             assert app.state.ui_state.is_analyzing is False
@@ -257,7 +258,7 @@ class TestErrorHandlingWorkflow:
 
             # Step 3: Verify app is still responsive
             await pilot.press("1")  # Should be able to switch tabs
-            await pilot.pause(0.05)
+            await pilot.pause()
 
             # Step 4: Load a valid file (with mocked analysis)
             with patch("caspoon.ui.workers.analysis.ReconRunner") as mock_runner_class:
@@ -281,7 +282,7 @@ class TestErrorHandlingWorkflow:
                     temp_path = f.name
 
                 await app.start_analysis(temp_path)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Step 5: Verify successful analysis after error recovery
                 assert app.state.binary_info is not None
@@ -319,7 +320,7 @@ class TestCancellationWorkflow:
                 async with app.run_test() as pilot:
                     # Step 1: Start analysis
                     await app.start_analysis(temp_binary)
-                    await asyncio.sleep(0.05)
+                    await pilot.pause()  # Drain messages, don't wait for completion
 
                     # Step 2: Verify it's running
                     assert app.state.ui_state.is_analyzing is True
@@ -328,7 +329,7 @@ class TestCancellationWorkflow:
 
                     # Step 3: Cancel analysis
                     await app.cancel_analysis()
-                    await asyncio.sleep(0.05)
+                    await pilot.pause()
 
                     # Step 4: Verify cleanup
                     assert app.state.ui_state.is_analyzing is False
@@ -336,7 +337,7 @@ class TestCancellationWorkflow:
 
                     # Step 5: Start new analysis (should work)
                     await app.start_analysis(temp_binary)
-                    await asyncio.sleep(0.05)
+                    await pilot.pause()
 
                     # Step 6: Verify new analysis started
                     second_worker = app._current_worker
@@ -370,16 +371,16 @@ class TestRapidOperationsWorkflow:
             async with app.run_test() as pilot:
                 # Load binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Rapid tab switching
                 for _ in range(10):
                     await pilot.press("1")
-                    await pilot.pause(0.01)
+                    await pilot.pause()
                     await pilot.press("2")
-                    await pilot.pause(0.01)
+                    await pilot.pause()
                     await pilot.press("3")
-                    await pilot.pause(0.01)
+                    await pilot.pause()
 
                 # Verify app is still stable
                 assert app.state.binary_info is not None
@@ -387,9 +388,9 @@ class TestRapidOperationsWorkflow:
                 # Rapid command palette open/close
                 for _ in range(5):
                     await pilot.press("ctrl+p")
-                    await pilot.pause(0.02)
+                    await pilot.pause()
                     await pilot.press("escape")
-                    await pilot.pause(0.02)
+                    await pilot.pause()
 
                 # Verify no crashes
                 assert app.state.binary_info is not None
@@ -419,13 +420,13 @@ class TestViewSwitchingWorkflow:
             async with app.run_test() as pilot:
                 # Load binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Navigate through all views
                 views = ["1", "2", "3", "4", "5"]
                 for view_key in views:
                     await pilot.press(view_key)
-                    await pilot.pause(0.05)
+                    await pilot.pause()
 
                     # Verify state is still intact
                     assert app.state.binary_info is not None
@@ -433,7 +434,7 @@ class TestViewSwitchingWorkflow:
 
                 # Go back to first view
                 await pilot.press("1")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Verify data is still correct
                 assert app.state.binary_info.architecture == "x86_64"
@@ -463,29 +464,29 @@ class TestFilterWorkflow:
             async with app.run_test() as pilot:
                 # Load binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Go to strings view
                 await pilot.press("3")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Get strings view and test filtering
                 strings_view = app.query_one(StringsView)
 
                 # Test filter: "password"
                 strings_view.apply_filter("password")
-                filtered_count_1 = len(strings_view._filtered)
+                filtered_count_1 = strings_view.filtered_count
                 assert filtered_count_1 > 0
-                assert filtered_count_1 <= len(strings_view._strings)
+                assert filtered_count_1 <= strings_view.total_count
 
                 # Test filter: "admin"
                 strings_view.apply_filter("admin")
-                filtered_count_2 = len(strings_view._filtered)
+                filtered_count_2 = strings_view.filtered_count
                 assert filtered_count_2 >= 0
 
                 # Clear filter
                 strings_view.apply_filter("")
-                assert len(strings_view._filtered) == len(strings_view._strings)
+                assert strings_view.filtered_count == strings_view.total_count
 
                 # Verify state unchanged
                 assert app.state.analysis_results is not None
@@ -536,7 +537,7 @@ class TestMultipleAnalysesWorkflow:
             async with app.run_test() as pilot:
                 # Analyze first binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 assert app.state.binary_info.path == "/test/binary1"
                 assert app.state.binary_info.architecture == "x86_64"
@@ -544,7 +545,7 @@ class TestMultipleAnalysesWorkflow:
 
                 # Analyze second binary
                 await app.start_analysis(temp_binary)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Verify new data replaced old data
                 assert app.state.binary_info.path == "/test/binary2"
