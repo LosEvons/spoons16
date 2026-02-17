@@ -13,6 +13,7 @@ from .core.messages import (
     AnalysisCancelled,
     AnalysisComplete,
     AnalysisError,
+    JumpToAddress,
     ProgressUpdate,
     SelectFunction,
     StartAnalysis,
@@ -376,6 +377,38 @@ class CaspoonApp(App):
             "ctrl+shift+f",
             "Navigation",
         )
+        reg.register(
+            "nav.back",
+            "Navigate Back",
+            self.action_navigate_back,
+            "Navigate to previous address in history",
+            "alt+left",
+            "Navigation",
+        )
+        reg.register(
+            "nav.forward",
+            "Navigate Forward",
+            self.action_navigate_forward,
+            "Navigate to next address in history",
+            "alt+right",
+            "Navigation",
+        )
+        reg.register(
+            "nav.goto_address",
+            "Go to Address",
+            self.action_goto_address,
+            "Jump to a specific memory address",
+            "ctrl+g",
+            "Navigation",
+        )
+        reg.register(
+            "nav.show_xrefs",
+            "Show Cross-References",
+            self.action_show_xrefs,
+            "Show cross-references for current address",
+            "ctrl+x",
+            "Navigation",
+        )
 
         # Help commands
         reg.register(
@@ -481,23 +514,134 @@ class CaspoonApp(App):
         # This is a stub - will be implemented when views support filtering
         self.notify("Filter not yet implemented in current view", severity="information")
 
+    def action_navigate_back(self) -> None:
+        """Navigate to previous address in history."""
+        address = self.state.go_back()
+        if address:
+            logger.info(f"Navigating back to {address}")
+            self.post_message(JumpToAddress(address))
+            self.notify(f"Navigated back to {address}", severity="information")
+        else:
+            self.notify("No previous address in history", severity="warning")
+            logger.debug("Cannot go back - at beginning of history")
+
+    def action_navigate_forward(self) -> None:
+        """Navigate to next address in history."""
+        address = self.state.go_forward()
+        if address:
+            logger.info(f"Navigating forward to {address}")
+            self.post_message(JumpToAddress(address))
+            self.notify(f"Navigated forward to {address}", severity="information")
+        else:
+            self.notify("No next address in history", severity="warning")
+            logger.debug("Cannot go forward - at end of history")
+
+    def action_goto_address(self) -> None:
+        """Show input dialog to jump to a specific address."""
+        # TODO: Implement proper modal dialog for address input
+        # For now, use a notification to guide users
+        self.notify(
+            "Go to Address: Enter address (e.g., 0x401000) in the prompt",
+            severity="information",
+            timeout=5,
+        )
+        self._show_goto_dialog()
+
+    def _show_goto_dialog(self) -> None:
+        """Show goto address input dialog.
+
+        TODO: Create a proper modal dialog widget for address entry.
+        This would show an input field with validation for hex addresses,
+        and post a JumpToAddress message on confirmation.
+        """
+        logger.debug("Goto address dialog requested (not yet implemented)")
+
+
+    def action_show_xrefs(self) -> None:
+        """Show cross-references for the currently selected address.
+
+        Gets the current address from the active R2View and displays
+        cross-references in the details panel.
+        """
+        try:
+            # Get active tab
+            tabs = self.query_one(f"#{wid.TABS}", TabbedContent)
+            if tabs.active != "r2-tab":
+                self.notify(
+                    "Cross-references only available in R2 Analysis view",
+                    severity="warning",
+                )
+                return
+
+            # Get R2View and current address
+            r2_view = self.query_one(f"#{wid.R2_VIEW}", R2View)
+            selected_index = r2_view.selected_index
+
+            # Get address from the selected line
+            address = r2_view._address_map.get(selected_index)
+            if not address:
+                self.notify("No address selected", severity="warning")
+                logger.debug(f"No address at selected index {selected_index}")
+                return
+
+            logger.info(f"Showing xrefs for address {address}")
+
+            # Get xrefs from analysis results
+            if self.state.analysis_results and self.state.analysis_results.disassembly:
+                xrefs_data = self.state.analysis_results.disassembly.get("xrefs", {})
+                xrefs_to = xrefs_data.get(address, {}).get("to", [])
+                xrefs_from = xrefs_data.get(address, {}).get("from", [])
+
+                if not xrefs_to and not xrefs_from:
+                    self.notify(f"No cross-references found for {address}", severity="information")
+                    return
+
+                # Format xrefs for display
+                xref_text = f"Cross-references for {address}:\n\n"
+                if xrefs_to:
+                    xref_text += "References TO:\n"
+                    for xref in xrefs_to[:10]:  # Limit to 10
+                        xref_text += f"  • {xref}\n"
+                if xrefs_from:
+                    xref_text += "\nReferences FROM:\n"
+                    for xref in xrefs_from[:10]:  # Limit to 10
+                        xref_text += f"  • {xref}\n"
+
+                self.notify(xref_text, severity="information", timeout=10)
+                self._log_to_console(
+                    f"Xrefs for {address}: {len(xrefs_to)} to, {len(xrefs_from)} from", "info"
+                )
+            else:
+                self.notify("No analysis data available", severity="warning")
+
+        except Exception as e:
+            logger.error(f"Error showing xrefs: {e}", exc_info=True)
+            self.notify(f"Error showing cross-references: {e}", severity="error")
+
     def action_show_help(self) -> None:
         """Show help documentation."""
         help_text = """
 Caspoon Reverse Engineering Toolkit - Help
 
 Keyboard Shortcuts:
-  Ctrl+P    - Open Command Palette
-  Ctrl+Q    - Quit Application
-  Ctrl+B    - Toggle Sidebar
-  Ctrl+D    - Toggle Details Panel
-  Ctrl+J    - Toggle Console
-  F1        - Show this help
-  1-5       - Switch between tabs
-  Tab       - Next tab
-  Shift+Tab - Previous tab
-  F5        - Start Analysis (focus path input)
-  Escape    - Cancel Analysis (if running)
+  Ctrl+P     - Open Command Palette
+  Ctrl+Q     - Quit Application
+  Ctrl+B     - Toggle Sidebar
+  Ctrl+D     - Toggle Details Panel
+  Ctrl+J     - Toggle Console
+  F1         - Show this help
+  1-5        - Switch between tabs
+  Tab        - Next tab
+  Shift+Tab  - Previous tab
+  F5         - Start Analysis (focus path input)
+  Escape     - Cancel Analysis (if running)
+
+Navigation (in R2 Analysis view):
+  Alt+Left   - Navigate back
+  Alt+Right  - Navigate forward
+  Ctrl+G     - Go to address
+  Ctrl+X     - Show cross-references
+  Enter      - Jump to address on selected line
 
 Command Palette:
   Type to search commands, use Up/Down to navigate,
@@ -514,6 +658,7 @@ For more information, visit the documentation.
         """
         try:
             from .screens.main import MainScreen
+
             main_screen = self.query_one(MainScreen)
             main_screen.action_toggle_sidebar()
         except Exception as e:
@@ -526,6 +671,7 @@ For more information, visit the documentation.
         """
         try:
             from .screens.main import MainScreen
+
             main_screen = self.query_one(MainScreen)
             main_screen.action_toggle_details()
         except Exception as e:
@@ -538,6 +684,7 @@ For more information, visit the documentation.
         """
         try:
             from .screens.main import MainScreen
+
             main_screen = self.query_one(MainScreen)
             main_screen.action_toggle_console()
         except Exception as e:
@@ -560,6 +707,50 @@ For more information, visit the documentation.
         )
 
         logger.info(f"Function selected: {message.function_name} at {message.address}")
+
+    def on_jump_to_address(self, message: JumpToAddress) -> None:
+        """Handle JumpToAddress message.
+
+        When a JumpToAddress message is received (e.g., from navigation commands
+        or clicking on xrefs), switch to R2 tab and scroll to the address.
+
+        Args:
+            message: JumpToAddress message with target address
+        """
+        try:
+            # Convert address to string if it's an int
+            address = message.address if isinstance(message.address, str) else hex(message.address)
+
+            logger.info(f"Jumping to address {address}")
+
+            # Switch to R2 Analysis tab
+            self.action_switch_tab("r2-tab")
+
+            # Get R2View and try to navigate to address
+            r2_view = self.query_one(f"#{wid.R2_VIEW}", R2View)
+
+            # Find the line with this address in the address map
+            target_line = None
+            for line_idx, addr in r2_view._address_map.items():
+                if addr.lower() == address.lower():
+                    target_line = line_idx
+                    break
+
+            if target_line is not None:
+                # Set the selected index to jump to that line
+                r2_view.selected_index = target_line
+                r2_view.refresh()
+                self.notify(f"Jumped to {address}", severity="information")
+                logger.debug(f"Set R2View selected_index to {target_line} for address {address}")
+            else:
+                self.notify(
+                    f"Address {address} not found in current disassembly", severity="warning"
+                )
+                logger.warning(f"Address {address} not found in R2View address map")
+
+        except Exception as e:
+            logger.error(f"Error jumping to address: {e}", exc_info=True)
+            self.notify(f"Error jumping to address: {e}", severity="error")
 
     def _log_to_console(self, message: str, level: str = "info") -> None:
         """Write a message to the console panel.

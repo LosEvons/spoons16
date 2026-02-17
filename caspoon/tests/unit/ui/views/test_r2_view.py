@@ -1384,3 +1384,153 @@ class TestR2ViewInteractiveEdgeCases:
         
         # Should be at top
         assert view.selected_index == 0
+
+
+
+class TestR2ViewXrefsIntegration:
+    """Test xrefs display integration with details panel."""
+
+    def test_show_xrefs_calls_details_panel(self):
+        """Test that show_xrefs attempts to get details panel."""
+        from unittest.mock import Mock, patch, PropertyMock
+        from caspoon.ui.screens.main import MainScreen
+        
+        view = R2View()
+        
+        # Set up r2 data with xrefs
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x401000, "opcode": "call printf"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Mock the app and screen
+        mock_app = Mock()
+        mock_state = Mock()
+        mock_report = Mock()
+        mock_report.raw_backend_data = {
+            "r2": {
+                "xrefs": {
+                    "0x401000": {
+                        "callers": [
+                            {"from": 0x400000, "type": "CALL", "fcn_name": "main"}
+                        ],
+                        "callees": [
+                            {"to": 0x402000, "type": "CALL", "fcn_name": "helper"}
+                        ],
+                    }
+                }
+            }
+        }
+        mock_state.analysis_results = mock_report
+        mock_app.state = mock_state
+        
+        mock_details_panel = Mock()
+        mock_screen = Mock(spec=MainScreen)
+        mock_screen.get_details_panel.return_value = mock_details_panel
+        
+        # Patch the property accessors
+        with patch.object(type(view), 'app', new_callable=PropertyMock, return_value=mock_app):
+            with patch.object(type(view), 'screen', new_callable=PropertyMock, return_value=mock_screen):
+                # Select a line with an address
+                if view._address_map:
+                    view.selected_index = list(view._address_map.keys())[0]
+                    
+                    # Trigger show xrefs
+                    view.action_show_xrefs()
+                    
+                    # Verify details panel's show_xrefs was called
+                    mock_details_panel.show_xrefs.assert_called_once()
+                    call_args = mock_details_panel.show_xrefs.call_args
+                    assert call_args[0][0] == "0x401000"  # address
+                    assert "callers" in call_args[0][1]  # xref_data
+
+    def test_show_xrefs_with_no_xref_data(self):
+        """Test showing xrefs when no xref data is available."""
+        from unittest.mock import Mock, patch, PropertyMock
+        from caspoon.ui.screens.main import MainScreen
+        
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x401000, "opcode": "call printf"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Mock the app and screen with no xrefs
+        mock_app = Mock()
+        mock_state = Mock()
+        mock_report = Mock()
+        mock_report.raw_backend_data = {
+            "r2": {
+                "xrefs": {}  # No xrefs
+            }
+        }
+        mock_state.analysis_results = mock_report
+        mock_app.state = mock_state
+        
+        mock_details_panel = Mock()
+        mock_screen = Mock(spec=MainScreen)
+        mock_screen.get_details_panel.return_value = mock_details_panel
+        
+        with patch.object(type(view), 'app', new_callable=PropertyMock, return_value=mock_app):
+            with patch.object(type(view), 'screen', new_callable=PropertyMock, return_value=mock_screen):
+                if view._address_map:
+                    view.selected_index = list(view._address_map.keys())[0]
+                    
+                    # Should not crash even with no xref data
+                    view.action_show_xrefs()
+                    
+                    # Should still call show_xrefs with empty data
+                    mock_details_panel.show_xrefs.assert_called_once()
+                    call_args = mock_details_panel.show_xrefs.call_args
+                    assert call_args[0][1] == {"callers": [], "callees": []}
+
+    def test_show_xrefs_without_address(self):
+        """Test showing xrefs on a line without an address."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        # Select header line (no address)
+        view.selected_index = 0
+        
+        # Should not crash and should return early (no app access needed)
+        view.action_show_xrefs()
+        
+        # No errors should occur - just returns early
+
+    def test_show_xrefs_without_app_context(self):
+        """Test show_xrefs without app context (shouldn't crash)."""
+        view = R2View()
+        
+        r2_data = {
+            "functions": [],
+            "main_ops": [
+                {"offset": 0x1000, "opcode": "call printf"},
+            ],
+            "strings": [],
+        }
+        view.render_content(r2_data)
+        
+        if view._address_map:
+            view.selected_index = list(view._address_map.keys())[0]
+            
+            # Should not crash even without app context
+            # (will catch exception and log error)
+            try:
+                view.action_show_xrefs()
+            except Exception:
+                pytest.fail("action_show_xrefs should not raise without app context")

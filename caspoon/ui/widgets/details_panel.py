@@ -1,6 +1,7 @@
 """Details panel widget for displaying contextual information."""
 
 from rich.panel import Panel
+from rich.table import Table
 from rich.text import Text
 from textual.containers import ScrollableContainer
 from textual.widgets import Static
@@ -207,6 +208,99 @@ class DetailsPanel(ScrollableContainer):
 
         panel = Panel(content, title="Error", border_style="red")
         self._content_widget.update(panel)
+
+    def show_xrefs(self, address: str, xref_data: dict) -> None:
+        """Display cross-references for a given address.
+
+        Shows callers (who calls this address) and callees (what this calls)
+        in a formatted table.
+
+        Args:
+            address: The hex address string (e.g., "0x401000")
+            xref_data: Dictionary containing xref information:
+                {
+                    "callers": [{"from": int, "type": str, "fcn_name": str}, ...],
+                    "callees": [{"to": int, "type": str, "fcn_name": str}, ...]
+                }
+        """
+        try:
+            # Extract callers and callees
+            callers = xref_data.get("callers", [])
+            callees = xref_data.get("callees", [])
+
+            # If no xrefs, show a message
+            if not callers and not callees:
+                content = Text()
+                content.append(f"No cross-references found for {address}\n\n", style="bold yellow")
+                content.append("This address is not referenced by or from other code.\n", style="dim")
+                panel = Panel(content, title="Cross-References", border_style="blue")
+                self._content_widget.update(panel)
+                return
+
+            # Build the content with tables
+            content_parts = []
+
+            # Title
+            title_text = Text()
+            title_text.append(f"Cross-References for {address}\n", style="bold cyan")
+            content_parts.append(title_text)
+
+            # Callers section (who calls this address)
+            if callers:
+                callers_table = Table(show_header=True, header_style="bold magenta", box=None)
+                callers_table.add_column("From Address", style="cyan")
+                callers_table.add_column("Type", style="yellow")
+                callers_table.add_column("Function", style="green")
+
+                for caller in callers:
+                    from_addr = caller.get("from", 0)
+                    ref_type = caller.get("type", "UNKNOWN")
+                    fcn_name = caller.get("fcn_name", "<unknown>")
+
+                    callers_table.add_row(
+                        f"0x{from_addr:x}",
+                        ref_type,
+                        fcn_name
+                    )
+
+                caller_title = Text(f"\n📥 Called From ({len(callers)}):\n", style="bold yellow")
+                content_parts.append(caller_title)
+                content_parts.append(callers_table)
+
+            # Callees section (what this address calls)
+            if callees:
+                callees_table = Table(show_header=True, header_style="bold magenta", box=None)
+                callees_table.add_column("To Address", style="cyan")
+                callees_table.add_column("Type", style="yellow")
+                callees_table.add_column("Function", style="green")
+
+                for callee in callees:
+                    to_addr = callee.get("to", 0)
+                    ref_type = callee.get("type", "UNKNOWN")
+                    fcn_name = callee.get("fcn_name", "<unknown>")
+
+                    callees_table.add_row(
+                        f"0x{to_addr:x}",
+                        ref_type,
+                        fcn_name
+                    )
+
+                callee_title = Text(f"\n📤 Calls To ({len(callees)}):\n", style="bold yellow")
+                content_parts.append(callee_title)
+                content_parts.append(callees_table)
+
+            # Help text
+            help_text = Text("\nTip: Press Enter on an address to navigate to it.\n", style="dim italic")
+            content_parts.append(help_text)
+
+            # Combine all parts and wrap in panel
+            from rich.console import Group
+            content_group = Group(*content_parts)
+            panel = Panel(content_group, title="Cross-References", border_style="blue")
+            self._content_widget.update(panel)
+
+        except Exception as e:
+            self._show_error(f"Error displaying cross-references: {e}")
 
     def clear(self) -> None:
         """Clear the details panel and show help text."""

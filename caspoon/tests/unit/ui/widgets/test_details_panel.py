@@ -175,3 +175,152 @@ class TestDetailsPanel:
             # Panel should still be functional
             content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_with_callers_and_callees(self, app_with_state):
+        """Test displaying xrefs with both callers and callees."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with both callers and callees
+            xref_data = {
+                "callers": [
+                    {"from": 0x400000, "type": "CALL", "fcn_name": "entry0"},
+                    {"from": 0x401234, "type": "JMP", "fcn_name": "main"},
+                ],
+                "callees": [
+                    {"to": 0x402000, "type": "CALL", "fcn_name": "helper"},
+                    {"to": 0x403000, "type": "CALL", "fcn_name": "printf"},
+                ],
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes and content is updated
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_callers_only(self, app_with_state):
+        """Test displaying xrefs with only callers."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with only callers
+            xref_data = {
+                "callers": [
+                    {"from": 0x400000, "type": "CALL", "fcn_name": "entry0"},
+                ],
+                "callees": [],
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_callees_only(self, app_with_state):
+        """Test displaying xrefs with only callees."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with only callees
+            xref_data = {
+                "callers": [],
+                "callees": [
+                    {"to": 0x402000, "type": "CALL", "fcn_name": "helper"},
+                ],
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_empty(self, app_with_state):
+        """Test displaying xrefs with no callers or callees."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with no data
+            xref_data = {
+                "callers": [],
+                "callees": [],
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes and appropriate message is shown
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_missing_keys(self, app_with_state):
+        """Test displaying xrefs with missing keys in data."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with missing optional keys
+            xref_data = {
+                "callers": [
+                    {"from": 0x400000},  # Missing type and fcn_name
+                ],
+                "callees": [
+                    {"type": "CALL"},  # Missing to and fcn_name
+                ],
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes (should use default values)
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_many_entries(self, app_with_state):
+        """Test displaying xrefs with many entries."""
+        panel = DetailsPanel()
+
+        async with app_with_state.run_test() as pilot:
+            await pilot.app.mount(panel)
+            await pilot.pause()
+
+            # Show xrefs with many entries
+            callers = [
+                {"from": 0x400000 + i * 0x10, "type": "CALL", "fcn_name": f"func_{i}"}
+                for i in range(20)
+            ]
+            callees = [
+                {"to": 0x500000 + i * 0x10, "type": "CALL", "fcn_name": f"helper_{i}"}
+                for i in range(15)
+            ]
+
+            xref_data = {
+                "callers": callers,
+                "callees": callees,
+            }
+            panel.show_xrefs("0x401000", xref_data)
+            await pilot.pause()
+
+            # Verify no crashes with many entries
+            content = panel.query_one(f"#{wid.DETAILS_CONTENT}")
+            assert content is not None

@@ -133,15 +133,48 @@ class R2View(InteractiveView[dict | None]):
         Bound to: x key
 
         If the selected line has an address, shows cross-references to/from
-        that address. This will be implemented in future steps.
+        that address in the details panel.
         """
         address = self._address_map.get(self.selected_index)
-        if address:
-            logger.info(f"R2View: Show xrefs for address {address} (not yet implemented)")
-            # TODO: Implement xref display (Step 4)
-            # For now, just log the request
-        else:
+        if not address:
             logger.debug(f"R2View: No address at line {self.selected_index}")
+            return
+
+        logger.info(f"R2View: Showing xrefs for address {address}")
+
+        try:
+            # Get xref data from app state
+            app = self.app
+            if not hasattr(app, "state") or not app.state.analysis_results:
+                logger.warning("No analysis results available")
+                return
+
+            # Get xrefs from r2 backend data
+            r2_data = app.state.analysis_results.raw_backend_data.get("r2", {})
+            xrefs_data = r2_data.get("xrefs", {})
+
+            # Get xrefs for this specific address
+            xref_info = xrefs_data.get(address)
+            if not xref_info:
+                logger.debug(f"No xrefs found for {address}")
+                # Show empty xrefs (the details panel will handle the message)
+                xref_info = {"callers": [], "callees": []}
+
+            # Get the details panel and show xrefs
+            from caspoon.ui.screens.main import MainScreen
+            main_screen = self.screen
+            if isinstance(main_screen, MainScreen):
+                details_panel = main_screen.get_details_panel()
+                if details_panel:
+                    details_panel.show_xrefs(address, xref_info)
+                    logger.debug(f"Displayed xrefs for {address}")
+                else:
+                    logger.warning("Could not find details panel")
+            else:
+                logger.warning("Not on main screen, cannot show xrefs")
+
+        except Exception as e:
+            logger.error(f"Error showing xrefs: {e}", exc_info=True)
 
     # ========================================================================
     # Address Parsing and Mapping

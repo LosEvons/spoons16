@@ -419,3 +419,225 @@ class TestCommandPalette:
 
             # Search should be cleared
             assert search_input.value == ""
+
+
+class TestNavigationCommands:
+    """Tests for navigation commands in command palette."""
+
+    @pytest.fixture
+    def action_registry_with_nav(self):
+        """Create an ActionRegistry with navigation commands."""
+        registry = ActionRegistry()
+
+        # Create mock handlers
+        nav_back_handler = Mock()
+        nav_forward_handler = Mock()
+        goto_handler = Mock()
+        xrefs_handler = Mock()
+
+        # Register navigation commands
+        registry.register(
+            "nav.back",
+            "Navigate Back",
+            nav_back_handler,
+            "Navigate to previous address in history",
+            "alt+left",
+            "Navigation",
+        )
+        registry.register(
+            "nav.forward",
+            "Navigate Forward",
+            nav_forward_handler,
+            "Navigate to next address in history",
+            "alt+right",
+            "Navigation",
+        )
+        registry.register(
+            "nav.goto_address",
+            "Go to Address",
+            goto_handler,
+            "Jump to a specific memory address",
+            "ctrl+g",
+            "Navigation",
+        )
+        registry.register(
+            "nav.show_xrefs",
+            "Show Cross-References",
+            xrefs_handler,
+            "Show cross-references for current address",
+            "ctrl+x",
+            "Navigation",
+        )
+
+        return registry, {
+            "nav_back": nav_back_handler,
+            "nav_forward": nav_forward_handler,
+            "goto": goto_handler,
+            "xrefs": xrefs_handler,
+        }
+
+    def test_navigation_commands_registered(self, action_registry_with_nav):
+        """Test that all navigation commands are registered."""
+        registry, handlers = action_registry_with_nav
+
+        assert registry.get_action("nav.back") is not None
+        assert registry.get_action("nav.forward") is not None
+        assert registry.get_action("nav.goto_address") is not None
+        assert registry.get_action("nav.show_xrefs") is not None
+
+    def test_navigation_commands_keybindings(self, action_registry_with_nav):
+        """Test that navigation commands have correct keybindings."""
+        registry, handlers = action_registry_with_nav
+
+        back_action = registry.get_by_keybinding("alt+left")
+        assert back_action is not None
+        assert back_action.action_id == "nav.back"
+
+        forward_action = registry.get_by_keybinding("alt+right")
+        assert forward_action is not None
+        assert forward_action.action_id == "nav.forward"
+
+        goto_action = registry.get_by_keybinding("ctrl+g")
+        assert goto_action is not None
+        assert goto_action.action_id == "nav.goto_address"
+
+        xrefs_action = registry.get_by_keybinding("ctrl+x")
+        assert xrefs_action is not None
+        assert xrefs_action.action_id == "nav.show_xrefs"
+
+    def test_navigation_commands_category(self, action_registry_with_nav):
+        """Test that navigation commands are in Navigation category."""
+        registry, handlers = action_registry_with_nav
+
+        nav_actions = registry.get_by_category("Navigation")
+        assert len(nav_actions) == 4
+
+        action_ids = {action.action_id for action in nav_actions}
+        assert "nav.back" in action_ids
+        assert "nav.forward" in action_ids
+        assert "nav.goto_address" in action_ids
+        assert "nav.show_xrefs" in action_ids
+
+    @pytest.mark.asyncio
+    async def test_navigate_back_command_execution(self, action_registry_with_nav):
+        """Test that Navigate Back command executes handler."""
+        registry, handlers = action_registry_with_nav
+
+        # Execute the command
+        success = registry.execute("nav.back")
+
+        assert success is True
+        assert handlers["nav_back"].called
+        handlers["nav_back"].assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_navigate_forward_command_execution(self, action_registry_with_nav):
+        """Test that Navigate Forward command executes handler."""
+        registry, handlers = action_registry_with_nav
+
+        # Execute the command
+        success = registry.execute("nav.forward")
+
+        assert success is True
+        assert handlers["nav_forward"].called
+        handlers["nav_forward"].assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_goto_address_command_execution(self, action_registry_with_nav):
+        """Test that Go to Address command executes handler."""
+        registry, handlers = action_registry_with_nav
+
+        # Execute the command
+        success = registry.execute("nav.goto_address")
+
+        assert success is True
+        assert handlers["goto"].called
+        handlers["goto"].assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_show_xrefs_command_execution(self, action_registry_with_nav):
+        """Test that Show Cross-References command executes handler."""
+        registry, handlers = action_registry_with_nav
+
+        # Execute the command
+        success = registry.execute("nav.show_xrefs")
+
+        assert success is True
+        assert handlers["xrefs"].called
+        handlers["xrefs"].assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_navigation_commands_in_palette(self, action_registry_with_nav):
+        """Test that navigation commands appear in command palette."""
+        from textual.app import App
+
+        registry, handlers = action_registry_with_nav
+
+        class TestApp(App):
+            def compose(self):
+                yield CommandPalette(registry, id="palette")
+
+        app = TestApp()
+        async with app.run_test() as pilot:
+            palette = app.query_one("#palette", CommandPalette)
+            palette.add_class("visible")
+
+            # Search for "navigate"
+            palette._update_results("navigate")
+            await pilot.pause()
+
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
+            # Should show back and forward commands
+            assert len(results_list.children) >= 2
+
+    @pytest.mark.asyncio
+    async def test_navigation_command_filtering(self, action_registry_with_nav):
+        """Test filtering navigation commands by keyword."""
+        from textual.app import App
+
+        registry, handlers = action_registry_with_nav
+
+        class TestApp(App):
+            def compose(self):
+                yield CommandPalette(registry, id="palette")
+
+        app = TestApp()
+        async with app.run_test() as pilot:
+            palette = app.query_one("#palette", CommandPalette)
+            palette.add_class("visible")
+
+            # Search for "back"
+            palette._update_results("back")
+            await pilot.pause()
+
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
+            assert len(results_list.children) >= 1
+
+            # Verify the result is the back command
+            first_item = results_list.children[0]
+            action_id = getattr(first_item, "action_id", None)
+            assert action_id == "nav.back"
+
+    @pytest.mark.asyncio
+    async def test_navigation_command_with_keybinding_display(self, action_registry_with_nav):
+        """Test that navigation commands display keybindings."""
+        from textual.app import App
+
+        registry, handlers = action_registry_with_nav
+
+        class TestApp(App):
+            def compose(self):
+                yield CommandPalette(registry, id="palette")
+
+        app = TestApp()
+        async with app.run_test() as pilot:
+            palette = app.query_one("#palette", CommandPalette)
+            palette.add_class("visible")
+
+            # Show all commands
+            palette._update_results("")
+            await pilot.pause()
+
+            results_list = palette.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
+            # Should have at least 4 navigation commands
+            assert len(results_list.children) >= 4
