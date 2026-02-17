@@ -43,8 +43,8 @@ class TestStringsViewInitialization:
     def test_initializes_with_empty_strings(self):
         """Test that StringsView initializes with empty string lists."""
         view = StringsView()
-        assert view._strings == []
-        assert view._filtered == []
+        assert view.all_strings == []
+        assert view.filtered_strings == []
 
     def test_has_bindings(self):
         """Test that StringsView has keybindings defined."""
@@ -59,7 +59,7 @@ class TestStringsViewSubscription:
     def test_subscribes_on_mount(self):
         """Test that on_mount attempts state subscription."""
         view = StringsView()
-        
+
         # Since on_mount uses self.app which accesses Textual context,
         # we test the key functionality: _on_results_changed
         # This verifies the subscription callback works correctly
@@ -128,7 +128,7 @@ class TestStringsViewRendering:
         strings = ["string1", "string2", "string3"]
         view.render_content(strings)
 
-        assert view._strings == strings
+        assert view.all_strings == strings
 
     def test_render_content_with_empty_list(self):
         """Test that render_content handles empty list."""
@@ -137,8 +137,8 @@ class TestStringsViewRendering:
         # Should not raise
         view.render_content([])
 
-        assert view._strings == []
-        assert view._filtered == []
+        assert view.all_strings == []
+        assert view.filtered_strings == []
 
     def test_render_strings_shows_empty_message(self):
         """Test that empty strings list shows appropriate message."""
@@ -168,22 +168,22 @@ class TestStringsViewFiltering:
         view._strings = ["apple", "banana", "cherry"]
         view.apply_filter("")
 
-        assert view._filtered == ["apple", "banana", "cherry"]
+        assert view.filtered_strings == ["apple", "banana", "cherry"]
 
     def test_apply_filter_case_insensitive(self):
         """Test that apply_filter is case-insensitive."""
         view = StringsView()
 
         view._strings = ["Apple", "BANANA", "cherry", "APPLE PIE"]
-        
+
         # Mock _render_strings to avoid UI operations
         view._render_strings = lambda: None
-        
+
         view.apply_filter("apple")
 
-        assert len(view._filtered) == 2
-        assert "Apple" in view._filtered
-        assert "APPLE PIE" in view._filtered
+        assert view.filtered_count == 2
+        assert "Apple" in view.filtered_strings
+        assert "APPLE PIE" in view.filtered_strings
 
     def test_apply_filter_substring_match(self):
         """Test that apply_filter does substring matching."""
@@ -195,15 +195,15 @@ class TestStringsViewFiltering:
             "/var/log/test.log",
             "/etc/config",
         ]
-        
+
         # Mock _render_strings to avoid UI operations
         view._render_strings = lambda: None
-        
+
         view.apply_filter("test")
 
-        assert len(view._filtered) == 2
-        assert "/usr/bin/test" in view._filtered
-        assert "/var/log/test.log" in view._filtered
+        assert view.filtered_count == 2
+        assert "/usr/bin/test" in view.filtered_strings
+        assert "/var/log/test.log" in view.filtered_strings
 
     def test_apply_filter_resets_selection(self):
         """Test that apply_filter resets selection when needed."""
@@ -219,7 +219,7 @@ class TestStringsViewFiltering:
         view._strings = ["apple", "banana"]
         view._filtered = ["apple", "banana"]
         view.selected_index = 5  # Beyond bounds
-        
+
         view.apply_filter("")
 
         # Selection should be clamped to valid range
@@ -238,7 +238,7 @@ class TestStringsViewFiltering:
         view.filter_text = "ban"
 
         # Should filter strings
-        assert view._filtered == ["banana"]
+        assert view.filtered_strings == ["banana"]
 
     def test_action_clear_filter(self):
         """Test that action_clear_filter clears the filter."""
@@ -339,8 +339,8 @@ class TestStringsViewFilteredCountDisplay:
         # The output is a Panel, need to get title from Rich object
         panel = update_calls[0]
         # Check the filtered counts are correct
-        assert len(view._filtered) == 2
-        assert len(view._strings) == 4
+        assert view.filtered_count == 2
+        assert view.total_count == 4
 
     def test_filtered_count_in_title_no_filter(self):
         """Test that title shows total count when no filter."""
@@ -358,8 +358,8 @@ class TestStringsViewFilteredCountDisplay:
         # Check that title shows total count only
         assert len(update_calls) == 1
         # Check the counts are correct
-        assert len(view._filtered) == 3
-        assert len(view._strings) == 3
+        assert view.filtered_count == 3
+        assert view.total_count == 3
 
 
 class TestStringsViewBackwardCompatibility:
@@ -409,7 +409,7 @@ class TestStringsViewPerformance:
         # Should not raise and should complete reasonably fast
         view.render_content(large_string_list)
 
-        assert view._strings == large_string_list
+        assert view.all_strings == large_string_list
 
     def test_filtering_large_list(self):
         """Test that filtering works on large lists."""
@@ -426,7 +426,7 @@ class TestStringsViewPerformance:
         view.apply_filter("test")
 
         # Should find all test strings
-        assert len(view._filtered) == 5000
+        assert view.filtered_count == 5000
 
     def test_respects_max_display_limit(self):
         """Test that get_item_count respects MAX_DISPLAY_STRINGS."""
@@ -441,7 +441,7 @@ class TestStringsViewPerformance:
 
         # get_item_count should return max limit
         assert view.get_item_count() == MAX_DISPLAY_STRINGS
-        
+
         # Verify that _render_strings doesn't crash with large list
         # (it internally limits to MAX_DISPLAY_STRINGS for display)
         view.update = lambda x: None  # Mock to avoid UI

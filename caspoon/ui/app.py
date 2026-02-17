@@ -5,9 +5,9 @@ import os
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Container, ScrollableContainer
 from textual.widgets import Footer, Input, TabbedContent, TabPane
 
+from . import widget_ids as wid
 from .core.actions import ActionRegistry
 from .core.messages import (
     AnalysisCancelled,
@@ -82,7 +82,7 @@ class CaspoonApp(App):
         yield MainScreen()
 
         # Command palette (overlays on top)
-        yield CommandPalette(self.action_registry, id="command_palette")
+        yield CommandPalette(self.action_registry, id=wid.COMMAND_PALETTE)
 
     def on_input_submitted(self, message: Input.Submitted) -> None:
         """Handle input submission when user enters a file path.
@@ -240,11 +240,11 @@ class CaspoonApp(App):
             report: ExecutableReport to display
         """
         try:
-            self.query_one("#overview", OverviewView).update_data(report)
-            self.query_one("#protections", ProtectionsView).update_data(report)
-            self.query_one("#strings_view", StringsView).update_data(report)
-            self.query_one("#imp_exp", ImportsExportsView).update_data(report)
-            self.query_one("#r2_view", R2View).update_data(report)
+            self.query_one(f"#{wid.OVERVIEW_VIEW}", OverviewView).update_data(report)
+            self.query_one(f"#{wid.PROTECTIONS_VIEW}", ProtectionsView).update_data(report)
+            self.query_one(f"#{wid.STRINGS_VIEW}", StringsView).update_data(report)
+            self.query_one(f"#{wid.IMPORTS_EXPORTS_VIEW}", ImportsExportsView).update_data(report)
+            self.query_one(f"#{wid.R2_VIEW}", R2View).update_data(report)
         except Exception as e:
             logger.error(f"Error updating views: {e}")
             self.set_status(f"Error displaying report: {str(e)}")
@@ -401,7 +401,7 @@ class CaspoonApp(App):
 
     def action_show_command_palette(self) -> None:
         """Show the command palette."""
-        palette = self.query_one("#command_palette", CommandPalette)
+        palette = self.query_one(f"#{wid.COMMAND_PALETTE}", CommandPalette)
         palette.show()
 
     def action_quit(self) -> None:
@@ -411,7 +411,7 @@ class CaspoonApp(App):
     def action_reload_analysis(self) -> None:
         """Reload current binary analysis."""
         # Get current file path from input
-        path_input = self.query_one("#path_input", Input)
+        path_input = self.query_one(f"#{wid.PATH_INPUT}", Input)
         path = path_input.value.strip()
 
         if path and os.path.exists(path):
@@ -426,7 +426,7 @@ class CaspoonApp(App):
             tab_id: ID of the tab to switch to
         """
         try:
-            tabs = self.query_one("#tabs", TabbedContent)
+            tabs = self.query_one(f"#{wid.TABS}", TabbedContent)
             tabs.active = tab_id
         except Exception as e:
             logger.error(f"Error switching tab: {e}")
@@ -434,7 +434,7 @@ class CaspoonApp(App):
     def action_next_tab(self) -> None:
         """Switch to next tab."""
         try:
-            tabs = self.query_one("#tabs", TabbedContent)
+            tabs = self.query_one(f"#{wid.TABS}", TabbedContent)
             # Get current tab index and cycle to next
             tab_panes = list(tabs.query(TabPane))
             if tab_panes:
@@ -450,7 +450,7 @@ class CaspoonApp(App):
     def action_prev_tab(self) -> None:
         """Switch to previous tab."""
         try:
-            tabs = self.query_one("#tabs", TabbedContent)
+            tabs = self.query_one(f"#{wid.TABS}", TabbedContent)
             # Get current tab index and cycle to previous
             tab_panes = list(tabs.query(TabPane))
             if tab_panes:
@@ -466,7 +466,7 @@ class CaspoonApp(App):
     def action_start_analysis_prompt(self) -> None:
         """Focus the path input to start analysis."""
         try:
-            path_input = self.query_one("#path_input", Input)
+            path_input = self.query_one(f"#{wid.PATH_INPUT}", Input)
             path_input.focus()
         except Exception as e:
             logger.error(f"Error focusing path input: {e}")
@@ -509,7 +509,7 @@ For more information, visit the documentation.
 
     def action_toggle_sidebar(self) -> None:
         """Toggle sidebar visibility.
-        
+
         Delegates to MainScreen's action_toggle_sidebar method.
         """
         try:
@@ -521,7 +521,7 @@ For more information, visit the documentation.
 
     def action_toggle_details(self) -> None:
         """Toggle details panel visibility.
-        
+
         Delegates to MainScreen's action_toggle_details method.
         """
         try:
@@ -533,7 +533,7 @@ For more information, visit the documentation.
 
     def action_toggle_console(self) -> None:
         """Toggle console visibility.
-        
+
         Delegates to MainScreen's action_toggle_console method.
         """
         try:
@@ -575,5 +575,4 @@ For more information, visit the documentation.
             if console:
                 console.log(message, level)
         except Exception:
-            # Console not available - silently skip
-            pass
+            logger.debug("Console not available for logging", exc_info=True)

@@ -2,6 +2,7 @@
 
 import pytest
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.widgets.sidebar import Sidebar
 
 
@@ -13,7 +14,7 @@ class TestSidebar:
         """Test sidebar initializes correctly."""
         sidebar = Sidebar()
         assert sidebar is not None
-        assert sidebar._explorer is not None
+        assert sidebar.explorer is not None
 
     @pytest.mark.asyncio
     async def test_sidebar_compose(self, app_with_state):
@@ -29,10 +30,10 @@ class TestSidebar:
             assert title is not None
             assert "Navigation" in str(title.renderable)
 
-            filter_input = sidebar.query_one("#function_filter")
+            filter_input = sidebar.query_one(f"#{wid.FUNCTION_FILTER}")
             assert filter_input is not None
 
-            explorer = sidebar.query_one("#function_explorer")
+            explorer = sidebar.query_one(f"#{wid.FUNCTION_EXPLORER}")
             assert explorer is not None
 
     @pytest.mark.asyncio
@@ -45,7 +46,7 @@ class TestSidebar:
             await pilot.pause()
 
             # Get filter input
-            filter_input = sidebar.query_one("#function_filter")
+            filter_input = sidebar.query_one(f"#{wid.FUNCTION_FILTER}")
             assert filter_input is not None
 
             # Simulate typing in filter
@@ -53,7 +54,7 @@ class TestSidebar:
             await pilot.pause()
 
             # Explorer should have filter applied
-            assert sidebar._explorer._filter_text == "test"
+            assert sidebar.explorer.current_filter == "test"
 
     @pytest.mark.asyncio
     async def test_filter_input_submit(self, app_with_state):
@@ -65,7 +66,7 @@ class TestSidebar:
             await pilot.pause()
 
             # Get filter input
-            filter_input = sidebar.query_one("#function_filter")
+            filter_input = sidebar.query_one(f"#{wid.FUNCTION_FILTER}")
             filter_input.focus()
             await pilot.pause()
 
@@ -84,5 +85,5 @@ class TestSidebar:
             await pilot.pause()
 
             # Explorer should be present
-            explorer = sidebar.query_one("#function_explorer")
+            explorer = sidebar.query_one(f"#{wid.FUNCTION_EXPLORER}")
             assert explorer is not None

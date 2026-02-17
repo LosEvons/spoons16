@@ -37,6 +37,26 @@ class StringsView(InteractiveView[list[str]]):
         self._strings = []
         self._filtered = []
 
+    @property
+    def total_count(self) -> int:
+        """Return total number of strings before filtering."""
+        return len(self._strings)
+
+    @property
+    def filtered_count(self) -> int:
+        """Return number of strings after filtering."""
+        return len(self._filtered)
+
+    @property
+    def all_strings(self) -> list[str]:
+        """Return the full unfiltered string list."""
+        return self._strings
+
+    @property
+    def filtered_strings(self) -> list[str]:
+        """Return the filtered string list."""
+        return self._filtered
+
     def on_mount(self) -> None:
         """Subscribe to analysis results updates from AppState.
 

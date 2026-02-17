@@ -3,6 +3,7 @@
 import pytest
 from textual.app import App
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.core.models import AnalysisResults
 from caspoon.ui.core.state import AppState
 from caspoon.ui.screens import MainScreen
@@ -35,16 +36,16 @@ class TestMultiPanelLayout:
 
             # Check all panels are present
             main_screen = test_app.query_one(MainScreen)
-            sidebar = main_screen.query_one("#sidebar", Sidebar)
+            sidebar = main_screen.query_one(f"#{wid.SIDEBAR}", Sidebar)
             assert sidebar is not None
 
-            details = main_screen.query_one("#details", DetailsPanel)
+            details = main_screen.query_one(f"#{wid.DETAILS}", DetailsPanel)
             assert details is not None
 
-            console = main_screen.query_one("#console", Console)
+            console = main_screen.query_one(f"#{wid.CONSOLE}", Console)
             assert console is not None
 
-            content_area = main_screen.query_one("#content")
+            content_area = main_screen.query_one(f"#{wid.CONTENT}")
             assert content_area is not None
 
     @pytest.mark.asyncio
@@ -133,8 +134,8 @@ class TestMultiPanelLayout:
 
             # Get function explorer from sidebar
             main_screen = test_app.query_one(MainScreen)
-            sidebar = main_screen.query_one("#sidebar", Sidebar)
-            explorer = sidebar._explorer
+            sidebar = main_screen.query_one(f"#{wid.SIDEBAR}", Sidebar)
+            explorer = sidebar.explorer
 
             # Set test data
             results = AnalysisResults(
@@ -163,7 +164,7 @@ class TestMultiPanelLayout:
 
             # Get details panel
             main_screen = test_app.query_one(MainScreen)
-            details = main_screen.query_one("#details", DetailsPanel)
+            details = main_screen.query_one(f"#{wid.DETAILS}", DetailsPanel)
 
             # Show function details
             func_data = {
@@ -175,7 +176,7 @@ class TestMultiPanelLayout:
             await pilot.pause()
 
             # Verify no crashes - content should be updated
-            content_widget = details.query_one("#details_content")
+            content_widget = details.query_one(f"#{wid.DETAILS_CONTENT}")
             assert content_widget is not None
 
     @pytest.mark.asyncio
@@ -195,7 +196,7 @@ class TestMultiPanelLayout:
             await pilot.pause()
 
             # Verify messages were logged
-            rich_log = console.query_one("#console_log")
+            rich_log = console.query_one(f"#{wid.CONSOLE_LOG}")
             assert len(rich_log.lines) >= 2
 
     @pytest.mark.asyncio

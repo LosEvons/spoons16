@@ -72,7 +72,8 @@ def analyze_with_r2(path: str) -> dict[str, Any]:
             main_ops = []
 
         logger.debug(
-            f"Radare2 analysis complete: {len(functions)} functions, {len(imports)} imports, {len(strings)} strings"
+            f"Radare2 analysis complete: {len(functions)} functions, "
+            f"{len(imports)} imports, {len(strings)} strings"
         )
 
         return {

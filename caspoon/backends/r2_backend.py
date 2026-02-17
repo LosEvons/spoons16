@@ -14,10 +14,12 @@ class Radare2Backend(DisassemblyBackend):
 
     @property
     def name(self) -> str:
+        """Return the backend name."""
         return "radare2"
 
     @property
     def capabilities(self) -> BackendCapabilities:
+        """Return the backend capabilities."""
         return BackendCapabilities(
             name="radare2",
             disassembly=True,

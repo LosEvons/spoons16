@@ -1,6 +1,7 @@
 """Reconnaissance runner that orchestrates analysis pipeline."""
 
 import logging
+from typing import Any
 
 from ..backends.r2_recon import R2BackendRecon
 from ..recon.file_info import FileInfoRecon
@@ -21,7 +22,7 @@ class ReconRunner:
 
     def __init__(self) -> None:
         """Initialize the runner with the default pipeline of recon modules."""
-        self.steps: list = [
+        self.steps: list[Any] = [
             FileInfoRecon(),
             ProtectionsRecon(),
             StringsRecon(),
@@ -49,6 +50,8 @@ class ReconRunner:
                 report = step.run(path, report)
             except Exception as e:
                 logger.error(f"Error in step {step.name}: {e}")
-                # Continue with other steps even if one fails
+                report.raw_backend_data.setdefault("failed_steps", []).append(
+                    {"step": step.name, "error": str(e)}
+                )
 
         return report

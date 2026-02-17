@@ -30,7 +30,7 @@ MIPS_INSTRUCTIONS = {
         # Unconditional relative branches
         'b', 'bal',  # pseudo-instructions (b = beq $zero,$zero; bal = bgezal $zero)
     },
-    
+
     InstructionType.CALL: {
         # Jump and link (function calls)
         'jal', 'jalr',  # jump and link, jump and link register
@@ -39,9 +39,9 @@ MIPS_INSTRUCTIONS = {
         'jialc', 'jic',  # jump indexed and link/compact
         'balc',  # branch and link compact
     },
-    
+
     InstructionType.RETURN: set(),  # No explicit return instruction in MIPS
-    
+
     InstructionType.MOVE: {
         # Load operations (data movement from memory)
         'lw', 'lh', 'lb', 'lhu', 'lbu',  # load word/halfword/byte (signed/unsigned)
@@ -72,7 +72,7 @@ MIPS_INSTRUCTIONS = {
         'movn', 'movz',  # move conditional on not zero/zero
         'movf', 'movt',  # move conditional on FP false/true
     },
-    
+
     InstructionType.ARITHMETIC: {
         # Addition
         'add', 'addu',  # add (with/without overflow trap)
@@ -98,7 +98,7 @@ MIPS_INSTRUCTIONS = {
         # Absolute value
         'abs',  # absolute value (pseudo-instruction)
     },
-    
+
     InstructionType.LOGIC: {
         # Logical operations
         'and', 'or', 'xor', 'nor',  # bitwise and/or/xor/nor
@@ -126,9 +126,9 @@ MIPS_INSTRUCTIONS = {
         # Bit field
         'bitswap', 'dbitswap',  # reverse bits in each byte (MIPS R6)
     },
-    
+
     InstructionType.STACK: set(),  # MIPS doesn't have dedicated stack instructions
-    
+
     InstructionType.COMPARE: {
         # Set on less than
         'slt', 'sltu',  # set on less than (signed/unsigned)
@@ -140,7 +140,7 @@ MIPS_INSTRUCTIONS = {
         'sge', 'sgeu',  # set greater or equal
         'sle', 'sleu',  # set less or equal
     },
-    
+
     InstructionType.OTHER: {
         # No operation
         'nop', 'ssnop',  # no operation, superscalar no operation
@@ -240,31 +240,31 @@ MIPS_INSTRUCTIONS = {
 
 def get_instruction_type(mnemonic: str) -> InstructionType:
     """Get the instruction type for a given MIPS mnemonic.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         The InstructionType for this mnemonic.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Check main instruction categories
     for instr_type, instructions in MIPS_INSTRUCTIONS.items():
         if mnemonic in instructions:
             return instr_type
-    
+
     return InstructionType.OTHER
 
 
 def is_branch_likely(mnemonic: str) -> bool:
     """Check if a mnemonic is a branch likely instruction.
-    
+
     Branch likely instructions are deprecated but still used in older code.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a branch likely instruction.
     """
@@ -277,65 +277,69 @@ def is_branch_likely(mnemonic: str) -> bool:
 
 def is_pseudo_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a pseudo-instruction.
-    
+
     Pseudo-instructions are assembler conveniences that map to real instructions.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a pseudo-instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     pseudo_instructions = {
         'move', 'li', 'la', 'b', 'bal', 'not',
         'neg', 'negu', 'abs',
         'seq', 'sne', 'sgt', 'sgtu', 'sge', 'sgeu', 'sle', 'sleu',
         'dslt', 'dsltu',
     }
-    
+
     return mnemonic in pseudo_instructions
 
 
 def is_fp_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a floating-point instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a floating-point instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # FP instructions have format suffixes: .s (single), .d (double), .ps (paired single)
-    return ('.s' in mnemonic or '.d' in mnemonic or '.ps' in mnemonic or
-            'c.f.' in mnemonic or 'c.un.' in mnemonic or 'c.eq.' in mnemonic or
-            'c.ueq.' in mnemonic or 'c.olt.' in mnemonic or 'c.ult.' in mnemonic or
-            'c.ole.' in mnemonic or 'c.ule.' in mnemonic or 'c.sf.' in mnemonic or
-            'c.ngle.' in mnemonic or 'c.seq.' in mnemonic or 'c.ngl.' in mnemonic or
-            'c.lt.' in mnemonic or 'c.nge.' in mnemonic or 'c.le.' in mnemonic or
-            'c.ngt.' in mnemonic)
+    fp_suffixes = ('.s', '.d', '.ps')
+    if any(suffix in mnemonic for suffix in fp_suffixes):
+        return True
+
+    # FP comparison instructions
+    fp_compare_prefixes = (
+        'c.f.', 'c.un.', 'c.eq.', 'c.ueq.', 'c.olt.', 'c.ult.',
+        'c.ole.', 'c.ule.', 'c.sf.', 'c.ngle.', 'c.seq.', 'c.ngl.',
+        'c.lt.', 'c.nge.', 'c.le.', 'c.ngt.'
+    )
+    return any(prefix in mnemonic for prefix in fp_compare_prefixes)
 
 
 def is_coprocessor_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a coprocessor instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a coprocessor instruction.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Coprocessor instructions reference cop0, cop1, cop2, cop3
     # or have specific patterns like mfc0, mtc0, lwc1, etc.
     coprocessor_prefixes = ['cop', 'mfc', 'mtc', 'cfc', 'ctc', 'lwc', 'swc', 'ldc', 'sdc']
-    
+
     for prefix in coprocessor_prefixes:
         if mnemonic.startswith(prefix):
             return True
-    
+
     return False

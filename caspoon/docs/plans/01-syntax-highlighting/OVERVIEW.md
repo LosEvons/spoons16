@@ -1,5 +1,28 @@
 # Implementation Plan: Syntax Highlighting & Code Display Improvements
 
+## Current Status
+
+**Progress**: 3 of 6 subtasks complete (50%)  
+**Last Updated**: 2026-02-16 (reviewed and updated for new TUI architecture)
+
+### ✅ Completed Subtasks
+1. **Subtask 1: Basic Highlighting** - ✅ COMPLETE (2026-02-13)
+2. **Subtask 2: Instruction Classification** - ✅ COMPLETE (2026-02-13)
+3. **Subtask 3: Architecture-Specific Schemes** - ✅ COMPLETE (2026-02-13)
+
+### ⏸️ Remaining Subtasks
+4. **Subtask 4: Interactive Navigation** - ⏸️ NOT STARTED (ready to begin)
+5. **Subtask 5: Cross-Reference Display** - ⏸️ NOT STARTED (may partially overlap with #4)
+6. **Subtask 6: Performance Optimization** - 🔄 PARTIALLY COMPLETE (~40%)
+
+### Key Changes Since Original Plan
+- ✅ **Plan 4 (TUI Redesign) completed** - New reactive architecture with async workers
+- ✅ **Command palette implemented** - Ctrl+P for keyboard-driven workflows
+- ✅ **Multi-panel layout** - Sidebar, main view, details panel, console
+- ✅ **InteractiveView base** - Built-in selection and keyboard navigation support
+- ✅ **Async workers** - Non-blocking analysis with progress reporting
+- 🔄 **Basic performance measures** - Display limits (MAX_DISASM_OPS, etc.)
+
 ## Overview
 
 This plan covers enhancements to the disassembly viewing experience in caspoon, focusing on syntax highlighting, interactive features, and improved code display. These improvements will make it easier for reverse engineers to understand and navigate disassembled code.
@@ -14,16 +37,37 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 ## Architecture Impact
 
 ### Modified Components
-- **UI Views**: Enhance `ui/views/r2_view.py` with new rendering capabilities
-- **Backend**: Extend `backends/r2_analyzer.py` to extract additional metadata
-- **Models**: Potentially add new data structures for highlighted/annotated code
-- **New Modules**: Create syntax highlighting module in `ui/syntax/`
+- **UI Views**: ✅ Enhanced `ui/views/r2_view.py` with syntax highlighting and architecture detection
+- **Backend**: Radare2 integration (`backends/r2_analyzer.py`) - xref extraction pending
+- **Models**: Using existing ExecutableReport structure
+- **New Modules**: ✅ Created syntax highlighting module in `ui/syntax/`
 
-### New Components
-- `ui/syntax/highlighter.py` - Core syntax highlighting engine
-- `ui/syntax/schemes.py` - Architecture-specific color schemes
-- `ui/syntax/annotator.py` - Code annotation system
-- `ui/widgets/disasm_view.py` - Enhanced disassembly widget with interactivity
+### Completed Components
+✅ `ui/syntax/highlighter.py` - Core syntax highlighting engine  
+✅ `ui/syntax/schemes.py` - Architecture-specific color schemes  
+✅ `ui/syntax/instructions.py` - x86/x64 instruction database (354 instructions)  
+✅ `ui/syntax/instructions_arm.py` - ARM/ARM64 instructions (446 instructions)  
+✅ `ui/syntax/instructions_mips.py` - MIPS instructions (381 instructions)  
+✅ `ui/syntax/arch_detector.py` - Architecture detection from reports  
+✅ `ui/syntax/arch_manager.py` - Classifier management  
+✅ `ui/syntax/operand_parser.py` - Operand parsing and classification  
+✅ `ui/views/r2_view.py` - Integrated syntax highlighting with architecture support  
+
+### Components from Plan 4 (TUI Redesign) to Leverage
+✅ `ui/core/state.py` - AppState with reactive properties  
+✅ `ui/core/messages.py` - Message system (includes JumpToAddress)  
+✅ `ui/core/base.py` - BaseView and InteractiveView  
+✅ `ui/widgets/command_palette.py` - Command palette (Ctrl+P)  
+✅ `ui/widgets/details_panel.py` - Details panel for contextual info  
+✅ `ui/widgets/function_explorer.py` - Function tree in sidebar  
+✅ `ui/workers/analysis_worker.py` - Async analysis execution  
+
+### Pending Components (Subtasks 4-6)
+⏸️ Navigation history in AppState  
+⏸️ Xref extraction and display  
+⏸️ Interactive disassembly navigation  
+⏸️ Highlight caching and pagination  
+⏸️ Performance profiling and optimization
 
 ## Technical Dependencies
 
@@ -41,62 +85,141 @@ This plan covers enhancements to the disassembly viewing experience in caspoon, 
 ## Complexity Assessment
 
 ### Difficulty: Medium-High
-- **Syntax Highlighting**: Medium - Rich library provides primitives
-- **Architecture Support**: Medium - Requires instruction classification per architecture
-- **Interactive Features**: High - Requires custom Textual widgets
-- **Performance**: Medium - Need to handle large disassembly outputs efficiently
+- **Syntax Highlighting**: ✅ COMPLETE - Rich library integration successful
+- **Architecture Support**: ✅ COMPLETE - x86/x64, ARM, MIPS all supported
+- **Interactive Features**: ⏸️ MEDIUM - New TUI architecture simplifies (was HIGH)
+- **Performance**: 🔄 MEDIUM - Partial implementation, needs caching and pagination
 
-### Estimated Effort
-- Subtask 1 (Basic Highlighting): 2-3 days
-- Subtask 2 (Architecture-Specific): 2-3 days
-- Subtask 3 (Interactive Features): 3-5 days
-- Subtask 4 (Optimization): 1-2 days
-- **Total**: 8-13 days
+### Estimated Effort (Revised)
+- ✅ Subtask 1 (Basic Highlighting): 2-3 days → DONE
+- ✅ Subtask 2 (Instruction Classification): 2-3 days → DONE
+- ✅ Subtask 3 (Architecture-Specific): 2-3 days → DONE
+- ⏸️ Subtask 4 (Interactive Navigation): 2-3 days → 2 days (simplified by new TUI)
+- ⏸️ Subtask 5 (Cross-Reference Display): 1-2 days → 1 day (may overlap with #4)
+- 🔄 Subtask 6 (Performance Optimization): 2-3 days → 2 days (async workers done)
+- **Completed**: 6-9 days
+- **Remaining**: 5-6 days
+- **Total**: 11-15 days (original estimate: 8-13 days)
 
 ## Success Criteria
 
-1. Assembly instructions are color-coded by type (jumps, calls, data movement, etc.)
-2. Registers, immediate values, and memory addresses are visually distinct
-3. Users can navigate to function calls and jump targets
-4. Cross-references are displayed for functions and addresses
-5. Performance remains acceptable for functions with 500+ instructions
-6. Support for at least x86, x86_64, and ARM architectures
+### Completed Criteria ✅
+1. ✅ Assembly instructions are color-coded by type (jumps, calls, data movement, etc.)
+2. ✅ Registers, immediate values, and memory addresses are visually distinct
+3. ✅ Support for x86, x86_64, ARM, ARM64, MIPS, and MIPS64 architectures
+4. ✅ Architecture is automatically detected from binary metadata
+5. ✅ UI remains responsive during analysis (async workers)
+
+### Remaining Criteria ⏸️
+6. ⏸️ Users can navigate to function calls and jump targets
+7. ⏸️ Cross-references are displayed for functions and addresses
+8. ⏸️ Performance remains acceptable for functions with 500+ instructions
+9. ⏸️ Highlighting is cached to avoid re-computation
+10. ⏸️ Memory usage is bounded for large binaries
 
 ## Implementation Phases
 
-### Phase 1: Foundation (Subtasks 1-2)
+### ✅ Phase 1: Foundation (Subtasks 1-2) - COMPLETE
 Set up basic syntax highlighting infrastructure and implement core highlighting for x86/x64.
 
-### Phase 2: Enhancement (Subtask 3)
+**Status**: ✅ Complete (2026-02-13)  
+**Delivered**:
+- AsmHighlighter class with instruction classification
+- Operand parsing (registers, immediates, memory, symbols)
+- x86/x64 instruction database (354 instructions)
+- Integration with r2_view
+- Comprehensive test suite
+
+### ✅ Phase 2: Enhancement (Subtask 3) - COMPLETE
 Add architecture-specific support and improve highlighting accuracy.
 
-### Phase 3: Interactivity (Subtasks 4-5)
+**Status**: ✅ Complete (2026-02-13)  
+**Delivered**:
+- ARM/ARM64 instruction database (446 instructions)
+- MIPS/MIPS64 instruction database (381 instructions)
+- Architecture detection and automatic classifier selection
+- 163 tests with 100% coverage
+
+### ⏸️ Phase 3: Interactivity (Subtasks 4-5) - NOT STARTED
 Implement interactive navigation and cross-reference features.
 
-### Phase 4: Polish (Subtask 6)
-Optimize performance, add annotations, and refine user experience.
+**Status**: ⏸️ Ready to begin  
+**Dependencies**: ✅ Plan 4 TUI redesign complete  
+**Simplified by**: New reactive architecture, command palette, details panel  
+**To Deliver**:
+- Navigation history in AppState
+- Xref extraction from radare2
+- Interactive R2View with selection
+- Xref display in details panel
+- Navigation commands in command palette
+
+### 🔄 Phase 4: Polish (Subtask 6) - PARTIAL
+Optimize performance, add caching, and refine user experience.
+
+**Status**: 🔄 Partially complete (~40%)  
+**Completed**: Display limits, async workers  
+**Remaining**: Highlight caching, pagination, profiling
 
 ## Risk Assessment
 
 ### Technical Risks
-- **Performance Degradation**: Large binaries may slow down with rich highlighting
-  - *Mitigation*: Implement lazy loading and pagination
-- **Architecture Coverage**: Different architectures have different instruction sets
-  - *Mitigation*: Start with common architectures, use modular design for extensibility
-- **Textual Limitations**: Complex interactive features may be challenging
-  - *Mitigation*: Evaluate Textual capabilities early, have fallback plans
+
+#### ✅ RESOLVED: Performance Degradation
+**Original Risk**: Large binaries may slow down with rich highlighting
+
+**Mitigation Implemented**:
+- ✅ Display limits (MAX_DISASM_OPS = 100)
+- ✅ Async workers keep UI responsive
+- ⏸️ Still needed: Caching and pagination (Subtask 6)
+
+#### ✅ RESOLVED: Architecture Coverage
+**Original Risk**: Different architectures have different instruction sets
+
+**Mitigation Implemented**:
+- ✅ Modular design with architecture-specific databases
+- ✅ x86/x64, ARM, MIPS all supported
+- ✅ Easy to extend with new architectures
+
+#### ✅ RESOLVED: Textual Limitations
+**Original Risk**: Complex interactive features may be challenging
+
+**Mitigation Implemented**:
+- ✅ Plan 4 provided InteractiveView base class
+- ✅ Command palette for keyboard-driven navigation
+- ✅ Details panel for contextual information
+- ✅ Message-based architecture for events
 
 ### Integration Risks
-- **Radare2 API Changes**: r2pipe API may change
-  - *Mitigation*: Abstract r2 interactions, version pin if necessary
-- **Breaking Changes**: UI changes may disrupt existing workflows
-  - *Mitigation*: Maintain backward compatibility, add features incrementally
+
+#### ✅ LOW RISK: Radare2 API Changes
+**Mitigation**: 
+- r2pipe API is stable
+- Backend abstraction layer isolates changes
+- Can add fallbacks if needed
+
+#### ✅ LOW RISK: Breaking Changes
+**Mitigation**:
+- All changes have been backward compatible
+- New features are additive
+- Existing workflows unchanged
 
 ## Dependencies on Other Plans
 
-- **Point 2 (Pattern Detection)**: Pattern highlighting could leverage syntax highlighting infrastructure
-- **Point 3 (Syscall Detection)**: API call highlighting will use similar mechanisms
-- **UI Improvements (Point 9)**: Interactive features align with broader UI enhancements
+### Completed Dependencies ✅
+- ✅ **Plan 4 (TUI Redesign)**: Provides reactive architecture, command palette, multi-panel layout, async workers
+- ✅ **Subtasks 1-3**: Core highlighting infrastructure complete
+
+### Active Dependencies ⏸️
+- ⏸️ **Subtask 4 completion** required before Subtask 5 (xref display may overlap)
+- ⏸️ **r2_analyzer.py enhancements** needed for xref extraction (Subtasks 4-5)
+
+### Future Enhancements 🔮
+After completion of remaining subtasks:
+- **Point 2 (Pattern Detection)**: Could leverage syntax highlighting for pattern visualization
+- **Point 3 (Syscall Detection)**: API call highlighting can use similar classification
+- **Decompiler Support**: Extend to highlight decompiled code (r2's `pdc` output)
+- **Custom Color Schemes**: User-configurable color palettes
+- **Export Features**: HTML/PDF export with highlighting
 
 ## Future Enhancements
 
@@ -116,9 +239,61 @@ After core implementation, consider:
 
 ## Subtasks
 
-1. [Basic Syntax Highlighting](subtask-1-basic-highlighting.md)
-2. [Instruction Classification](subtask-2-instruction-classification.md)
-3. [Architecture-Specific Schemes](subtask-3-architecture-schemes.md)
-4. [Interactive Navigation](subtask-4-interactive-navigation.md)
-5. [Cross-Reference Display](subtask-5-cross-references.md)
-6. [Performance Optimization](subtask-6-performance.md)
+### ✅ Completed
+1. [✅ Basic Syntax Highlighting](subtask-1-basic-highlighting.md) - Complete (2026-02-13)
+2. [✅ Instruction Classification](subtask-2-instruction-classification.md) - Complete (2026-02-13)
+3. [✅ Architecture-Specific Schemes](subtask-3-architecture-schemes.md) - Complete (2026-02-13)
+
+### ⏸️ Remaining
+4. [⏸️ Interactive Navigation](subtask-4-interactive-navigation.md) - Ready to begin (updated for new TUI)
+5. [⏸️ Cross-Reference Display](subtask-5-cross-references.md) - May partially overlap with #4
+6. [🔄 Performance Optimization](subtask-6-performance.md) - ~40% complete, needs caching/pagination
+
+## Recent Changes (2026-02-16)
+
+This plan has been reviewed and updated to reflect:
+
+1. **Completed Work (Subtasks 1-3)**:
+   - All marked as complete with completion dates
+   - Success criteria updated to show what was achieved
+   - Implementation summaries added
+
+2. **New TUI Architecture Integration (Plan 4)**:
+   - Updated subtasks 4-5 to leverage new reactive TUI
+   - Removed references to obsolete custom widgets
+   - Aligned with command palette, details panel, and InteractiveView
+   - Simplified implementation approach using existing infrastructure
+
+3. **Current State Assessment**:
+   - Subtask 6 marked as partially complete (~40%)
+   - Display limits and async workers already implemented
+   - Remaining work: caching, pagination, profiling
+
+4. **Reduced Complexity**:
+   - Interactive features simplified by new TUI (was HIGH, now MEDIUM)
+   - Estimated time reduced for subtasks 4-5 due to available infrastructure
+   - Clear dependencies and integration points identified
+
+## Next Actions
+
+To continue Plan 1 implementation:
+
+1. **Begin Subtask 4** (Interactive Navigation):
+   - Extend AppState with navigation history
+   - Enhance r2_analyzer.py to extract xrefs
+   - Make R2View interactive with selection support
+   - Add navigation commands to command palette
+   - Display xrefs in details panel
+
+2. **Evaluate Subtask 5 Scope**:
+   - Assess overlap with Subtask 4's xref work
+   - Determine if separate subtask needed or merge
+   - Focus on inline annotations and filtering if kept separate
+
+3. **Complete Subtask 6** (Performance):
+   - Add highlight caching with LRU
+   - Implement pagination for large disassembly
+   - Create performance profiling scripts
+   - Optimize identified bottlenecks
+
+## References

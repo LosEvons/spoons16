@@ -4,15 +4,16 @@ Ensures that all views display appropriate messages when no data is available,
 rather than showing blank screens or crashing.
 """
 
-import pytest
 from unittest.mock import MagicMock
 
-from caspoon.ui.views.strings_view import StringsView
+import pytest
+
+from caspoon.ui.core.models import AnalysisResults, BinaryInfo
 from caspoon.ui.views.imports_exports import ImportsExportsView
-from caspoon.ui.views.protections import ProtectionsView
 from caspoon.ui.views.overview import OverviewView
+from caspoon.ui.views.protections import ProtectionsView
 from caspoon.ui.views.r2_view import R2View
-from caspoon.ui.core.models import BinaryInfo, AnalysisResults
+from caspoon.ui.views.strings_view import StringsView
 
 
 class TestEmptyDataHandling:
@@ -21,12 +22,12 @@ class TestEmptyDataHandling:
     def test_strings_view_empty_data(self):
         """StringsView should show 'No strings found' when empty."""
         view = StringsView()
-        
+
         # Set empty string list
         view._strings = []
         view._filtered = []
         view._render_strings()
-        
+
         # Check that view contains "No strings" message
         rendered = str(view.renderable)
         assert "No strings" in rendered or "no strings" in rendered.lower()
@@ -34,22 +35,22 @@ class TestEmptyDataHandling:
     def test_strings_view_empty_after_filter(self):
         """StringsView should show message when filter excludes all strings."""
         view = StringsView()
-        
+
         # Set some strings
         view._strings = ["test1", "test2", "test3"]
-        
+
         # Apply filter that matches nothing
         view.apply_filter("nonexistent_string_xyz")
-        
+
         # Should show "No strings" or similar message
         rendered = str(view.renderable)
         # The view should indicate no results
-        assert len(view._filtered) == 0
+        assert view.filtered_count == 0
 
     def test_imports_exports_view_empty_imports(self):
         """ImportsExportsView should show 'No imports' when empty."""
         view = ImportsExportsView()
-        
+
         # Create analysis results with no imports
         results = AnalysisResults(
             functions=[],
@@ -59,9 +60,9 @@ class TestEmptyDataHandling:
             sections=[],
             protections={}
         )
-        
+
         view.data = results
-        
+
         # Check that view doesn't crash and has renderable
         assert view.renderable is not None
         # The view internally handles empty imports correctly
@@ -69,7 +70,7 @@ class TestEmptyDataHandling:
     def test_imports_exports_view_empty_exports(self):
         """ImportsExportsView should show 'No exports' when empty."""
         view = ImportsExportsView()
-        
+
         # Create analysis results with no exports
         results = AnalysisResults(
             functions=[],
@@ -79,9 +80,9 @@ class TestEmptyDataHandling:
             sections=[],
             protections={}
         )
-        
+
         view.data = results
-        
+
         # Check that view doesn't crash and has renderable
         assert view.renderable is not None
         # The view internally handles empty exports correctly
@@ -89,7 +90,7 @@ class TestEmptyDataHandling:
     def test_imports_exports_view_both_empty(self):
         """ImportsExportsView should handle both empty gracefully."""
         view = ImportsExportsView()
-        
+
         # Create analysis results with nothing
         results = AnalysisResults(
             functions=[],
@@ -99,9 +100,9 @@ class TestEmptyDataHandling:
             sections=[],
             protections={}
         )
-        
+
         view.data = results
-        
+
         # Should not crash, should have renderable
         assert view.renderable is not None
         # The view shows "No imports found" and "No exports found" internally
@@ -109,10 +110,10 @@ class TestEmptyDataHandling:
     def test_protections_view_empty_data(self):
         """ProtectionsView should show message when no protections available."""
         view = ProtectionsView()
-        
+
         # Set empty protections dict
         view.data = {}
-        
+
         # Check that it shows "No protection information"
         rendered = str(view.renderable)
         assert "No protection" in rendered or "no protection" in rendered.lower()
@@ -120,7 +121,7 @@ class TestEmptyDataHandling:
     def test_protections_view_none_data(self):
         """ProtectionsView should handle None protections."""
         view = ProtectionsView()
-        
+
         # Create analysis results with None protections
         results = AnalysisResults(
             functions=[],
@@ -130,20 +131,20 @@ class TestEmptyDataHandling:
             sections=[],
             protections=None  # type: ignore
         )
-        
+
         # This should not crash
         view._on_results_changed(results)
-        
+
         # Should have set data to empty dict
         assert view.data == {} or view.data is None
 
     def test_r2_view_empty_data(self):
         """R2View should show message when no r2 data available."""
         view = R2View()
-        
+
         # Set empty r2 data
         view._r2_data = {}
-        
+
         # Check that it doesn't crash
         assert view.renderable is not None
         # R2View internally handles empty data correctly
@@ -151,7 +152,7 @@ class TestEmptyDataHandling:
     def test_overview_view_with_minimal_data(self):
         """OverviewView should handle minimal binary info."""
         view = OverviewView()
-        
+
         # Create minimal binary info
         binary_info = BinaryInfo(
             path="/test/binary",
@@ -162,10 +163,10 @@ class TestEmptyDataHandling:
             file_size=0,
             entry_point=None
         )
-        
+
         # Should not crash with minimal data
         view.data = binary_info
-        
+
         # Should have valid renderable
         assert view.renderable is not None
         # The view renders the data correctly even if minimal
@@ -177,9 +178,10 @@ class TestEmptyDataWorkflows:
     @pytest.mark.asyncio
     async def test_empty_analysis_results(self):
         """Test handling of analysis with no interesting data."""
-        from caspoon.ui.app import CaspoonApp
         from unittest.mock import patch
-        import asyncio
+
+        from caspoon.tests.helpers import wait_for_workers
+        from caspoon.ui.app import CaspoonApp
 
         app = CaspoonApp()
 
@@ -213,7 +215,7 @@ class TestEmptyDataWorkflows:
                     temp_path = f.name
 
                 await app.start_analysis(temp_path)
-                await asyncio.sleep(0.2)
+                await wait_for_workers(app, pilot)
 
                 # Verify analysis completed
                 assert app.state.binary_info is not None
@@ -221,15 +223,15 @@ class TestEmptyDataWorkflows:
 
                 # Navigate to strings view - should show empty message
                 await pilot.press("3")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 strings_view = app.query_one(StringsView)
-                assert len(strings_view._strings) == 0
+                assert strings_view.total_count == 0
                 # View should handle empty gracefully
 
                 # Navigate to imports/exports view
                 await pilot.press("4")
-                await pilot.pause(0.05)
+                await pilot.pause()
 
                 # Should not crash with empty data
                 assert app.state.analysis_results is not None
@@ -247,7 +249,7 @@ class TestEmptyDataWorkflows:
 
         # All should be created successfully
         assert len(views) == 5
-        
+
         # All should have some initial state
         for view in views:
             assert view is not None

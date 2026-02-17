@@ -6,7 +6,7 @@ from textual.widgets import Static
 
 class AppFooter(Container):
     """Application footer without async mount issues.
-    
+
     Replaces Textual's built-in Footer widget to avoid RuntimeWarning
     about coroutine '_on_mount' not being awaited.
     """
@@ -18,7 +18,7 @@ class AppFooter(Container):
         background: $primary;
         color: $text;
     }
-    
+
     AppFooter Static {
         width: 100%;
         height: 1;
@@ -29,7 +29,7 @@ class AppFooter(Container):
 
     def __init__(self, **kwargs):
         """Initialize the footer.
-        
+
         Args:
             **kwargs: Additional keyword arguments for Container
         """
@@ -37,7 +37,7 @@ class AppFooter(Container):
 
     def compose(self):
         """Compose the footer with keybindings hint.
-        
+
         Yields:
             Static widget containing keybinding information
         """

@@ -42,7 +42,8 @@ class ImportExportRecon:
             file_size = os.path.getsize(path)
             if file_size > MAX_FILE_SIZE:
                 logger.warning(
-                    f"File size ({file_size} bytes) exceeds limit ({MAX_FILE_SIZE} bytes). Skipping."
+                    f"File size ({file_size} bytes) exceeds limit "
+                    f"({MAX_FILE_SIZE} bytes). Skipping."
                 )
                 report.raw_backend_data["imports_exports_error"] = "File too large"
                 return report

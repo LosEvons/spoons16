@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2026-02-16 - Documentation Cleanup and Organization
+
+Cleaned up repository root by removing 20 legacy debug/summary markdown files. Strengthened agent instructions with explicit prohibitions against root-level documentation. Updated documentation index to reflect current structure.
+
+**Details**: [2026-02-16-documentation-cleanup.md](2026-02-16-documentation-cleanup.md)
+
+---
+
 ## 2026-02-16 - TUI Redesign: COMPLETE - Production Ready
 
 Successfully completed all 8 subtasks of the comprehensive TUI redesign. The TUI now features reactive architecture, async workers, command palette, multi-panel layout, and comprehensive testing with 920 passing tests and 88.45% coverage.

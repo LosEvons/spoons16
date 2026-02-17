@@ -9,6 +9,7 @@ from textual.binding import Binding
 from textual.containers import Container, Vertical
 from textual.widgets import Input, Label, ListItem, ListView
 
+from .. import widget_ids as wid
 from ..core.actions import ActionRegistry
 
 
@@ -81,17 +82,17 @@ class CommandPalette(Container):
             ListView for filtered command results
         """
         with Vertical():
-            yield Input(placeholder="Type to search commands...", id="search")
-            yield ListView(id="results")
+            yield Input(placeholder="Type to search commands...", id=wid.COMMAND_SEARCH)
+            yield ListView(id=wid.COMMAND_RESULTS)
 
     def on_mount(self) -> None:
         """Focus search input when mounted."""
-        search_input = self.query_one("#search", Input)
+        search_input = self.query_one(f"#{wid.COMMAND_SEARCH}", Input)
         search_input.focus()
 
     def on_show(self) -> None:
         """Reset and show all commands when palette shown."""
-        search_input = self.query_one("#search", Input)
+        search_input = self.query_one(f"#{wid.COMMAND_SEARCH}", Input)
         search_input.value = ""
         search_input.focus()
         self._update_results("")
@@ -102,7 +103,7 @@ class CommandPalette(Container):
         Args:
             event: Input change event
         """
-        if event.input.id == "search":
+        if event.input.id == wid.COMMAND_SEARCH:
             self._update_results(event.value)
 
     def _update_results(self, query: str) -> None:
@@ -115,7 +116,7 @@ class CommandPalette(Container):
         filtered_actions = self.action_registry.search(query)
 
         # Update ListView
-        results = self.query_one("#results", ListView)
+        results = self.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
         results.clear()
 
         # Show top 15 results
@@ -138,7 +139,7 @@ class CommandPalette(Container):
 
     def action_execute(self) -> None:
         """Execute the currently selected command."""
-        results = self.query_one("#results", ListView)
+        results = self.query_one(f"#{wid.COMMAND_RESULTS}", ListView)
 
         # Get highlighted child
         if results.highlighted_child:

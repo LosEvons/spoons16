@@ -8,6 +8,9 @@ from ..core.models import ExecutableReport
 
 logger = logging.getLogger(__name__)
 
+# Configuration
+FILE_CMD_TIMEOUT = 10  # Timeout for file command in seconds
+
 # Architecture patterns for detection
 ARCH_PATTERNS: dict[str, str] = {
     "x86-64": "x86_64",
@@ -53,7 +56,12 @@ class FileInfoRecon:
             return report
 
         try:
-            result = subprocess.run(["file", path], capture_output=True, text=True, timeout=10)
+            result = subprocess.run(
+                ["file", path],
+                capture_output=True,
+                text=True,
+                timeout=FILE_CMD_TIMEOUT,
+            )
 
             if result.returncode != 0:
                 logger.error(f"'file' command failed with return code {result.returncode}")

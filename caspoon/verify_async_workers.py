@@ -17,8 +17,8 @@ from unittest.mock import MagicMock
 # Add caspoon to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from caspoon.ui.workers.base import Worker, WorkerState
 from caspoon.ui.workers.analysis import AnalysisWorker
+from caspoon.ui.workers.base import WorkerState
 
 
 class MockApp:

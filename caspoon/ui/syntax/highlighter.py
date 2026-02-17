@@ -18,8 +18,8 @@ class AsmHighlighter:
     """
 
     def __init__(
-        self, 
-        color_scheme: ColorScheme | None = None, 
+        self,
+        color_scheme: ColorScheme | None = None,
         enable_operand_parsing: bool = True,
         instruction_classifier: Callable[[str], InstructionType] | None = None
     ):
@@ -86,36 +86,36 @@ class AsmHighlighter:
             # If operand parsing is disabled, use legacy behavior
             if not self.enable_operand_parsing:
                 return self._highlight_instruction_legacy(opcode, address)
-            
+
             # Parse the instruction line
             parsed = self._parse_instruction_line(opcode)
-            
+
             if not parsed:
                 # Failed to parse, fall back to legacy
                 return self._highlight_instruction_legacy(opcode, address)
-            
+
             # Build the highlighted text
             text = Text()
-            
+
             # Add address if provided
             if address:
                 text.append(f"{address}: ", style=self.scheme.address)
-            
+
             # Add the opcode with appropriate color
             mnemonic = parsed['opcode']
             instr_type = self.classify_instruction(mnemonic)
             opcode_color = self.scheme.get_style(instr_type)
             text.append(mnemonic, style=opcode_color)
-            
+
             # Add operands if present
             if parsed['operands']:
                 text.append(" ")  # Space between opcode and operands
                 self._highlight_operands(text, parsed['operands'])
-            
+
             # Add comment if present
             if parsed['comment']:
                 text.append(f"  ; {parsed['comment']}", style=self.scheme.comment)
-            
+
             return text
 
         except Exception:
@@ -125,16 +125,16 @@ class AsmHighlighter:
                 text.append(f"{address}: ")
             text.append(opcode)
             return text
-    
+
     def _highlight_instruction_legacy(self, opcode: str, address: str = "") -> Text:
         """Legacy highlighting: treat entire instruction as a single unit.
-        
+
         This maintains backward compatibility with the original behavior.
-        
+
         Args:
             opcode: The instruction opcode and operands.
             address: Optional address/offset to prepend.
-        
+
         Returns:
             A Rich Text object with syntax highlighting applied.
         """
@@ -155,30 +155,30 @@ class AsmHighlighter:
         text.append(opcode, style=color)
 
         return text
-    
+
     def _parse_instruction_line(self, line: str) -> dict[str, str] | None:
         """Parse an instruction line into components.
-        
+
         Args:
             line: The instruction line to parse.
-        
+
         Returns:
             Dictionary with 'opcode', 'operands', and 'comment' keys, or None if parsing fails.
         """
         match = self._instruction_pattern.match(line)
-        
+
         if not match:
             return None
-        
+
         return {
             'opcode': match.group('opcode') or "",
             'operands': (match.group('operands') or "").strip(),
             'comment': match.group('comment') or "",
         }
-    
+
     def _highlight_operands(self, text: Text, operands_str: str) -> None:
         """Parse and highlight operands, appending to the given Text object.
-        
+
         Args:
             text: The Text object to append to.
             operands_str: String containing comma-separated operands.
@@ -186,27 +186,27 @@ class AsmHighlighter:
         if not operands_str or not self.operand_parser:
             text.append(operands_str)
             return
-        
+
         # Parse the operands
         operands = self.operand_parser.parse_operands(operands_str)
-        
+
         for i, operand_info in enumerate(operands):
             # Add comma separator between operands
             if i > 0:
                 text.append(", ", style=self.scheme.separator)
-            
+
             # Get the appropriate color for this operand type
             color = self._get_operand_color(operand_info.operand_type)
-            
+
             # Highlight the operand
             text.append(operand_info.value, style=color)
-    
+
     def _get_operand_color(self, operand_type: OperandType) -> str:
         """Get the color for a given operand type.
-        
+
         Args:
             operand_type: The type of operand.
-        
+
         Returns:
             The Rich style string for this operand type.
         """

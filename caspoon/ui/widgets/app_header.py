@@ -6,7 +6,7 @@ from textual.widgets import Static
 
 class AppHeader(Container):
     """Application header without async mount issues.
-    
+
     Replaces Textual's built-in Header widget to avoid RuntimeWarning
     about coroutine '_on_mount' not being awaited.
     """
@@ -19,7 +19,7 @@ class AppHeader(Container):
         color: $text;
         content-align: center middle;
     }
-    
+
     AppHeader Static {
         width: 100%;
         height: 1;
@@ -30,7 +30,7 @@ class AppHeader(Container):
 
     def __init__(self, title: str = "Caspoon Reverse Engineering Toolkit", **kwargs):
         """Initialize the header.
-        
+
         Args:
             title: Title to display in header
             **kwargs: Additional keyword arguments for Container
@@ -40,7 +40,7 @@ class AppHeader(Container):
 
     def compose(self):
         """Compose the header with title.
-        
+
         Yields:
             Static widget containing the title
         """

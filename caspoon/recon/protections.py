@@ -7,6 +7,9 @@ from ..core.models import ExecutableReport, ProtectionInfo
 
 logger = logging.getLogger(__name__)
 
+# Configuration
+CHECKSEC_TIMEOUT = 10  # Timeout for checksec command in seconds
+
 
 class ProtectionsRecon:
     """Analyzes security protections using the 'checksec' tool.
@@ -28,7 +31,10 @@ class ProtectionsRecon:
         """
         try:
             result = subprocess.run(
-                ["checksec", f"--file={path}"], capture_output=True, text=True, timeout=10
+                ["checksec", f"--file={path}"],
+                capture_output=True,
+                text=True,
+                timeout=CHECKSEC_TIMEOUT,
             )
 
             if result.returncode != 0:

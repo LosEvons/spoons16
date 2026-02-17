@@ -244,6 +244,116 @@ class TestAppState:
         # Active tab should be preserved
         assert state.ui_state.active_tab == "strings"
 
+    def test_subscribe_binary_info_fires_callback(self):
+        """Test that subscribing to binary_info fires callback on change."""
+        state = AppState()
+        received = []
+
+        state.subscribe("binary_info", lambda val: received.append(val))
+
+        info = BinaryInfo(path="/test", architecture="x86_64")
+        state.binary_info = info
+
+        assert len(received) == 1
+        assert received[0] is info
+
+    def test_subscribe_analysis_results_fires_callback(self):
+        """Test that subscribing to analysis_results fires callback on change."""
+        state = AppState()
+        received = []
+
+        state.subscribe("analysis_results", lambda val: received.append(val))
+
+        results = AnalysisResults(strings=["hello"])
+        state.analysis_results = results
+
+        assert len(received) == 1
+        assert received[0] is results
+
+    def test_subscribe_ui_state_fires_callback(self):
+        """Test that subscribing to ui_state fires callback on change."""
+        state = AppState()
+        received = []
+
+        state.subscribe("ui_state", lambda val: received.append(val))
+
+        new_state = UIState(is_analyzing=True, analysis_progress=50.0)
+        state.ui_state = new_state
+
+        assert len(received) == 1
+        assert received[0].is_analyzing is True
+        assert received[0].analysis_progress == 50.0
+
+    def test_subscribe_multiple_callbacks(self):
+        """Test multiple subscribers all get notified."""
+        state = AppState()
+        received_a = []
+        received_b = []
+
+        state.subscribe("binary_info", lambda val: received_a.append(val))
+        state.subscribe("binary_info", lambda val: received_b.append(val))
+
+        state.binary_info = BinaryInfo(path="/test")
+
+        assert len(received_a) == 1
+        assert len(received_b) == 1
+
+    def test_subscribe_callback_error_does_not_block_others(self):
+        """Test that a failing callback doesn't prevent other callbacks from firing."""
+        state = AppState()
+        received = []
+
+        def bad_callback(val):
+            raise ValueError("callback error")
+
+        state.subscribe("binary_info", bad_callback)
+        state.subscribe("binary_info", lambda val: received.append(val))
+
+        state.binary_info = BinaryInfo(path="/test")
+
+        assert len(received) == 1, "Second callback should still fire after first one fails"
+
+    def test_reset_fires_callbacks(self):
+        """Test that reset() fires callbacks for cleared properties."""
+        state = AppState()
+        binary_updates = []
+        analysis_updates = []
+
+        state.subscribe("binary_info", lambda val: binary_updates.append(val))
+        state.subscribe("analysis_results", lambda val: analysis_updates.append(val))
+
+        state.binary_info = BinaryInfo(path="/test")
+        state.analysis_results = AnalysisResults(strings=["test"])
+
+        state.reset()
+
+        # Should have received set + reset notifications
+        assert len(binary_updates) == 2
+        assert binary_updates[1] is None
+        assert len(analysis_updates) == 2
+        assert analysis_updates[1] is None
+
+    def test_update_from_report_fires_callbacks(self):
+        """Test that update_from_report fires all relevant callbacks."""
+        state = AppState()
+        binary_updates = []
+        analysis_updates = []
+        ui_updates = []
+
+        state.subscribe("binary_info", lambda val: binary_updates.append(val))
+        state.subscribe("analysis_results", lambda val: analysis_updates.append(val))
+        state.subscribe("ui_state", lambda val: ui_updates.append(val))
+
+        report = ExecutableReport(path="/test", strings=["hello"])
+        state.update_from_report(report)
+
+        assert len(binary_updates) == 1
+        assert binary_updates[0].path == "/test"
+        assert len(analysis_updates) == 1
+        assert analysis_updates[0].strings == ["hello"]
+        assert len(ui_updates) == 1
+        assert ui_updates[0].is_analyzing is False
+
     def test_multiple_updates(self):
         """Test multiple sequential updates to state."""
         state = AppState()

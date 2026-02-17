@@ -36,17 +36,17 @@ X86_64_INSTRUCTIONS = {
         # Loop instructions
         'loop', 'loope', 'loopz', 'loopne', 'loopnz',
     },
-    
+
     InstructionType.CALL: {
         'call', 'callq', 'calll', 'callw',
     },
-    
+
     InstructionType.RETURN: {
         'ret', 'retq', 'retl', 'retw', 'retn',
         'retf', 'retfq', 'retfl', 'retfw',
         'iret', 'iretd', 'iretq',
     },
-    
+
     InstructionType.MOVE: {
         # Basic move
         'mov', 'movq', 'movl', 'movw', 'movb',
@@ -71,7 +71,7 @@ X86_64_INSTRUCTIONS = {
         'seto', 'setno', 'sets', 'setns',
         'setp', 'setnp',
     },
-    
+
     InstructionType.ARITHMETIC: {
         # Addition
         'add', 'addq', 'addl', 'addw', 'addb',
@@ -96,7 +96,7 @@ X86_64_INSTRUCTIONS = {
         'cbw', 'cwde', 'cdqe',  # Convert byte/word/dword
         'cwd', 'cdq', 'cqo',  # Convert word/dword/qword to double
     },
-    
+
     InstructionType.LOGIC: {
         # Logical operations
         'and', 'andq', 'andl', 'andw', 'andb',
@@ -122,7 +122,7 @@ X86_64_INSTRUCTIONS = {
         'bsr', 'bsrq', 'bsrl', 'bsrw',  # bit scan reverse
         'bswap', 'bswapq', 'bswapl',  # byte swap
     },
-    
+
     InstructionType.STACK: {
         # Push/Pop
         'push', 'pushq', 'pushl', 'pushw', 'pushb',
@@ -134,12 +134,12 @@ X86_64_INSTRUCTIONS = {
         'enter', 'enterq', 'enterl',
         'leave', 'leaveq', 'leavel',
     },
-    
+
     InstructionType.COMPARE: {
         'cmp', 'cmpq', 'cmpl', 'cmpw', 'cmpb',
         'test', 'testq', 'testl', 'testw', 'testb',
     },
-    
+
     # New instruction types for extended classification
     InstructionType.OTHER: {
         # NOP and variants
@@ -360,45 +360,45 @@ SIMD_INSTRUCTIONS = MMX_INSTRUCTIONS | SSE_INSTRUCTIONS | AVX_INSTRUCTIONS
 
 def get_instruction_type(mnemonic: str) -> InstructionType:
     """Get the instruction type for a given mnemonic.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         The InstructionType for this mnemonic.
     """
     mnemonic = mnemonic.lower().strip()
-    
+
     # Check main instruction categories
     for instr_type, instructions in X86_64_INSTRUCTIONS.items():
         if mnemonic in instructions:
             return instr_type
-    
+
     # Check string operations (classify as MOVE for now)
     if mnemonic in STRING_INSTRUCTIONS:
         return InstructionType.MOVE
-    
+
     # Check system instructions (classify as OTHER)
     if mnemonic in SYSTEM_INSTRUCTIONS:
         return InstructionType.OTHER
-    
+
     # Check SIMD instructions (classify as OTHER)
     if mnemonic in SIMD_INSTRUCTIONS:
         return InstructionType.OTHER
-    
+
     # Check FPU instructions (classify as ARITHMETIC)
     if mnemonic in FPU_INSTRUCTIONS:
         return InstructionType.ARITHMETIC
-    
+
     return InstructionType.OTHER
 
 
 def is_string_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a string operation instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a string operation instruction.
     """
@@ -407,10 +407,10 @@ def is_string_instruction(mnemonic: str) -> bool:
 
 def is_system_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a system/privileged instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a system/privileged instruction.
     """
@@ -419,10 +419,10 @@ def is_system_instruction(mnemonic: str) -> bool:
 
 def is_simd_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is a SIMD instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is a SIMD instruction (MMX/SSE/AVX).
     """
@@ -431,10 +431,10 @@ def is_simd_instruction(mnemonic: str) -> bool:
 
 def is_fpu_instruction(mnemonic: str) -> bool:
     """Check if a mnemonic is an FPU instruction.
-    
+
     Args:
         mnemonic: The instruction mnemonic (lowercase).
-    
+
     Returns:
         True if this is an FPU instruction.
     """

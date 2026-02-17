@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 # Configuration
 MIN_STRING_LENGTH = 4
 MAX_STRINGS = 10000  # Limit to prevent memory issues
+STRINGS_TIMEOUT = 30  # Timeout for strings command in seconds
 
 
 class StringsRecon:
@@ -36,7 +37,7 @@ class StringsRecon:
                 ["strings", "-n", str(MIN_STRING_LENGTH), path],
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=STRINGS_TIMEOUT,
             )
 
             if result.returncode != 0:
@@ -49,12 +50,12 @@ class StringsRecon:
 
             # Limit the number of strings to prevent memory issues
             if len(strings_list) > MAX_STRINGS:
+                truncated_count = len(strings_list) - MAX_STRINGS
                 logger.warning(
                     f"String count ({len(strings_list)}) exceeds limit. Truncating to {MAX_STRINGS}"
                 )
                 strings_list = strings_list[:MAX_STRINGS]
-                # Store count of truncated strings in raw data for reference
-                report.raw_backend_data["strings_truncated"] = len(strings_list) - MAX_STRINGS
+                report.raw_backend_data["strings_truncated"] = truncated_count
 
             report.strings = strings_list
 

@@ -3,6 +3,7 @@
 from textual.binding import Binding
 from textual.containers import Container
 
+from caspoon.ui import widget_ids as wid
 from caspoon.ui.widgets.app_footer import AppFooter
 from caspoon.ui.widgets.app_header import AppHeader
 from caspoon.ui.widgets.console import Console
@@ -65,6 +66,9 @@ class MainScreen(Container):
         row-span: 1;
     }
 
+    /* NOTE: CSS selectors above use literal IDs because Textual CSS does not
+       support Python constants. The canonical ID values live in widget_ids.py. */
+
     /* Adjust grid when panels are hidden - use 0 width instead of display:none */
     MainScreen.sidebar-hidden {
         grid-columns: 0 3fr 1fr;
@@ -97,8 +101,9 @@ class MainScreen(Container):
         Yields:
             AppHeader, Sidebar, Content area with tabs, DetailsPanel, Console, AppFooter
         """
-        from textual.widgets import Input, TabbedContent, TabPane
         from textual.containers import ScrollableContainer
+        from textual.widgets import Input, TabbedContent, TabPane
+
         from caspoon.ui.views.imports_exports import ImportsExportsView
         from caspoon.ui.views.overview import OverviewView
         from caspoon.ui.views.protections import ProtectionsView
@@ -106,30 +111,30 @@ class MainScreen(Container):
         from caspoon.ui.views.strings_view import StringsView
 
         yield AppHeader()
-        yield Sidebar(id="sidebar")
-        
+        yield Sidebar(id=wid.SIDEBAR)
+
         # Content area with input and tabs
-        with Container(id="content"):
-            yield Input(placeholder="Enter path to binary and press Enter...", id="path_input")
-            
-            with TabbedContent(id="tabs"):
-                with TabPane("Overview", id="overview-tab"):
-                    yield ScrollableContainer(OverviewView(id="overview"))
-                
-                with TabPane("Protections", id="protections-tab"):
-                    yield ScrollableContainer(ProtectionsView(id="protections"))
-                
-                with TabPane("Strings", id="strings-tab"):
-                    yield ScrollableContainer(StringsView(id="strings_view"))
-                
-                with TabPane("Imports / Exports", id="imports-tab"):
-                    yield ScrollableContainer(ImportsExportsView(id="imp_exp"))
-                
-                with TabPane("R2 Analysis", id="r2-tab"):
-                    yield ScrollableContainer(R2View(id="r2_view"))
-        
-        yield DetailsPanel(id="details")
-        yield Console(id="console")
+        with Container(id=wid.CONTENT):
+            yield Input(placeholder="Enter path to binary and press Enter...", id=wid.PATH_INPUT)
+
+            with TabbedContent(id=wid.TABS):
+                with TabPane("Overview", id=wid.OVERVIEW_TAB):
+                    yield ScrollableContainer(OverviewView(id=wid.OVERVIEW_VIEW))
+
+                with TabPane("Protections", id=wid.PROTECTIONS_TAB):
+                    yield ScrollableContainer(ProtectionsView(id=wid.PROTECTIONS_VIEW))
+
+                with TabPane("Strings", id=wid.STRINGS_TAB):
+                    yield ScrollableContainer(StringsView(id=wid.STRINGS_VIEW))
+
+                with TabPane("Imports / Exports", id=wid.IMPORTS_TAB):
+                    yield ScrollableContainer(ImportsExportsView(id=wid.IMPORTS_EXPORTS_VIEW))
+
+                with TabPane("R2 Analysis", id=wid.R2_TAB):
+                    yield ScrollableContainer(R2View(id=wid.R2_VIEW))
+
+        yield DetailsPanel(id=wid.DETAILS)
+        yield Console(id=wid.CONSOLE)
         yield AppFooter()
 
     def on_mount(self) -> None:
@@ -173,7 +178,7 @@ class MainScreen(Container):
                 self.app.state.ui_state.sidebar_visible = is_visible
 
                 # Log to console
-                console = self.query_one("#console", Console)
+                console = self.query_one(f"#{wid.CONSOLE}", Console)
                 status = "shown" if is_visible else "hidden"
                 console.log(f"Sidebar {status}", level="info")
 
@@ -198,7 +203,7 @@ class MainScreen(Container):
                 self.app.state.ui_state.details_visible = is_visible
 
                 # Log to console
-                console = self.query_one("#console", Console)
+                console = self.query_one(f"#{wid.CONSOLE}", Console)
                 status = "shown" if is_visible else "hidden"
                 console.log(f"Details panel {status}", level="info")
 
@@ -233,7 +238,7 @@ class MainScreen(Container):
             Console widget or None if not found
         """
         try:
-            return self.query_one("#console", Console)
+            return self.query_one(f"#{wid.CONSOLE}", Console)
         except Exception:
             return None
 
@@ -244,7 +249,7 @@ class MainScreen(Container):
             DetailsPanel widget or None if not found
         """
         try:
-            return self.query_one("#details", DetailsPanel)
+            return self.query_one(f"#{wid.DETAILS}", DetailsPanel)
         except Exception:
             return None
 
@@ -255,6 +260,6 @@ class MainScreen(Container):
             Sidebar widget or None if not found
         """
         try:
-            return self.query_one("#sidebar", Sidebar)
+            return self.query_one(f"#{wid.SIDEBAR}", Sidebar)
         except Exception:
             return None

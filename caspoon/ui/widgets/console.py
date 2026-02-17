@@ -1,8 +1,14 @@
 """Console widget for displaying logs and messages."""
 
+import logging
+
 from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import RichLog
+
+from caspoon.ui import widget_ids as wid
+
+logger = logging.getLogger(__name__)
 
 
 class Console(Container):
@@ -43,7 +49,7 @@ class Console(Container):
         Yields:
             RichLog widget for displaying log messages
         """
-        yield RichLog(id="console_log", wrap=True, highlight=True, markup=True)
+        yield RichLog(id=wid.CONSOLE_LOG, wrap=True, highlight=True, markup=True)
 
     def log(self, message: str, level: str = "info") -> None:
         """Write a log message to the console.
@@ -60,7 +66,7 @@ class Console(Container):
         - info: default (white)
         """
         try:
-            log_widget = self.query_one("#console_log", RichLog)
+            log_widget = self.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
 
             if level == "error":
                 log_widget.write(f"[red]ERROR:[/red] {message}")
@@ -74,16 +80,15 @@ class Console(Container):
                 log_widget.write(message)
 
         except Exception:
-            # Silently fail if widget not found
-            pass
+            logger.debug("Console log widget not available", exc_info=True)
 
     def clear(self) -> None:
         """Clear all messages from the console."""
         try:
-            log_widget = self.query_one("#console_log", RichLog)
+            log_widget = self.query_one(f"#{wid.CONSOLE_LOG}", RichLog)
             log_widget.clear()
         except Exception:
-            pass
+            logger.debug("Console log widget not available for clear", exc_info=True)
 
     def action_clear_console(self) -> None:
         """Action handler to clear the console.

@@ -1,8 +1,9 @@
 """Unit tests for ImportsExportsView migration to BaseView architecture."""
 
+from unittest.mock import PropertyMock, patch
+
 import pytest
 from rich.console import Console
-from unittest.mock import PropertyMock, patch
 
 from caspoon.core.models import ExecutableReport
 from caspoon.ui.core.base import BaseView
@@ -13,10 +14,10 @@ from caspoon.ui.views.imports_exports import ImportsExportsView
 
 def render_rich_object(obj):
     """Render a Rich object to a string for testing.
-    
+
     Args:
         obj: A Rich renderable object
-        
+
     Returns:
         String representation of the rendered object
     """
