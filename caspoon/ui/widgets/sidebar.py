@@ -3,6 +3,7 @@
 from textual.containers import Vertical
 from textual.widgets import Input, Static
 
+from caspoon.ui import widget_ids as wid
 from .function_explorer import FunctionExplorer
 
 
@@ -55,7 +56,12 @@ class Sidebar(Vertical):
             **kwargs: Additional keyword arguments for Vertical
         """
         super().__init__(**kwargs)
-        self._explorer = FunctionExplorer(id="function_explorer")
+        self._explorer = FunctionExplorer(id=wid.FUNCTION_EXPLORER)
+
+    @property
+    def explorer(self) -> FunctionExplorer:
+        """Return the function explorer widget."""
+        return self._explorer
 
     def compose(self):
         """Compose the sidebar components.
@@ -64,7 +70,7 @@ class Sidebar(Vertical):
             Title, filter input, and FunctionExplorer widgets
         """
         yield Static("Navigation", classes="title")
-        yield Input(placeholder="Filter functions...", id="function_filter")
+        yield Input(placeholder="Filter functions...", id=wid.FUNCTION_FILTER)
         yield self._explorer
 
     def on_mount(self) -> None:
@@ -82,7 +88,7 @@ class Sidebar(Vertical):
             event: Input changed event
         """
         # Only handle the filter input
-        if event.input.id == "function_filter":
+        if event.input.id == wid.FUNCTION_FILTER:
             filter_text = event.value
             self._explorer.apply_filter(filter_text)
 
@@ -94,6 +100,6 @@ class Sidebar(Vertical):
         Args:
             event: Input submitted event
         """
-        if event.input.id == "function_filter":
+        if event.input.id == wid.FUNCTION_FILTER:
             # Return focus to explorer
             self._explorer.focus()
