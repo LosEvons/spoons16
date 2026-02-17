@@ -379,11 +379,18 @@ class R2View(InteractiveView[dict | None]):
         """Update the view with new report data.
 
         This method handles both legacy compatibility and architecture detection
-        for syntax highlighting.
+        for syntax highlighting. Clears highlighter cache when switching binaries
+        to prevent memory buildup and stale cache data.
 
         Args:
             report: ExecutableReport containing analysis results
         """
+        # Clear highlighter cache before processing new binary
+        # This prevents stale cache entries from previous binary
+        if self._highlighter:
+            self._highlighter.clear_cache()
+            logger.debug("R2View: Cleared highlighter cache for new binary")
+        
         # Detect architecture and create appropriate highlighter
         arch = detect_architecture(report)
         if arch != self._current_arch:

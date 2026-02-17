@@ -1534,3 +1534,264 @@ class TestR2ViewXrefsIntegration:
                 view.action_show_xrefs()
             except Exception:
                 pytest.fail("action_show_xrefs should not raise without app context")
+
+
+class TestR2ViewCacheClearing:
+    """Tests for highlighter cache clearing in R2View."""
+
+    def test_cache_cleared_on_update_data(self):
+        """Test that highlighter cache is cleared when update_data is called."""
+        view = R2View()
+        
+        # Populate cache with some instructions
+        report1 = ExecutableReport(
+            path="/test/binary1",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report1.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                    {"offset": 0x1001, "opcode": "mov rbp, rsp"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report1)
+        
+        # Verify cache has entries
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] > 0, "Cache should have entries after first update"
+        initial_cache_size = cache_info['size']
+        
+        # Update with new binary data
+        report2 = ExecutableReport(
+            path="/test/binary2",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report2.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x2000, "opcode": "push rbx"},
+                    {"offset": 0x2001, "opcode": "mov rax, rdi"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report2)
+        
+        # Verify cache was cleared and repopulated with new data
+        cache_info = view._highlighter.get_cache_info()
+        # Cache should have entries from the second binary
+        assert cache_info['size'] > 0, "Cache should have entries after second update"
+        # Hits should be 0 because we cleared and started fresh
+        assert cache_info['hits'] == 0, "Cache hits should be 0 after clearing"
+
+    def test_cache_cleared_before_architecture_change(self):
+        """Test that cache is cleared even when architecture changes."""
+        view = R2View()
+        
+        # Load x86_64 binary
+        report1 = ExecutableReport(
+            path="/test/binary_x86",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report1.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report1)
+        
+        # Verify cache has entries
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] > 0
+        
+        # Track the old highlighter instance
+        old_highlighter = view._highlighter
+        
+        # Load ARM binary (architecture change)
+        report2 = ExecutableReport(
+            path="/test/binary_arm",
+            file_type="ELF",
+            arch="arm",
+        )
+        report2.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x2000, "opcode": "push {r7, lr}"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report2)
+        
+        # Verify old highlighter cache was cleared before replacement
+        old_cache_info = old_highlighter.get_cache_info()
+        assert old_cache_info['size'] == 0, "Old highlighter cache should be cleared"
+        
+        # New highlighter should exist
+        assert view._highlighter is not None
+        assert view._highlighter != old_highlighter
+
+    def test_cache_cleared_on_same_architecture(self):
+        """Test that cache is cleared even when loading same architecture."""
+        view = R2View()
+        
+        # Load first x86_64 binary
+        report1 = ExecutableReport(
+            path="/test/binary1",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report1.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                    {"offset": 0x1001, "opcode": "mov rbp, rsp"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report1)
+        
+        # Verify cache has entries
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] > 0
+        first_size = cache_info['size']
+        
+        # Track the highlighter instance
+        first_highlighter = view._highlighter
+        
+        # Load second x86_64 binary (same architecture)
+        report2 = ExecutableReport(
+            path="/test/binary2",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report2.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x2000, "opcode": "sub rsp, 0x20"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report2)
+        
+        # Highlighter should be the same instance (same arch)
+        assert view._highlighter is first_highlighter
+        
+        # But cache should have been cleared and repopulated
+        cache_info = view._highlighter.get_cache_info()
+        # New cache should only have entries from second binary
+        assert cache_info['misses'] > 0, "Should have cache misses from new binary"
+        
+    def test_cache_empty_after_empty_report(self):
+        """Test cache behavior with empty report data."""
+        view = R2View()
+        
+        # Load binary with data
+        report1 = ExecutableReport(
+            path="/test/binary",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report1.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "push rbp"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report1)
+        
+        # Verify cache has entries
+        assert view._highlighter.get_cache_info()['size'] > 0
+        
+        # Load empty report
+        report2 = ExecutableReport(
+            path="/test/empty",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report2.raw_backend_data = {}
+        
+        view.update_data(report2)
+        
+        # Cache should be cleared
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] == 0, "Cache should be empty after empty report"
+
+    def test_no_stale_cache_entries_across_binaries(self):
+        """Test that cache entries from one binary don't affect another."""
+        view = R2View()
+        
+        # Load first binary with unique instruction
+        report1 = ExecutableReport(
+            path="/test/binary1",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report1.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x1000, "opcode": "xor rax, rax"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report1)
+        
+        # Verify cache has the first instruction
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] == 1
+        assert cache_info['misses'] == 1
+        
+        # Load second binary with different instruction
+        report2 = ExecutableReport(
+            path="/test/binary2",
+            file_type="ELF",
+            arch="x86_64",
+        )
+        report2.raw_backend_data = {
+            "r2": {
+                "functions": [],
+                "main_ops": [
+                    {"offset": 0x2000, "opcode": "test rax, rax"},
+                ],
+                "strings": [],
+            }
+        }
+        
+        view.update_data(report2)
+        
+        # Cache should have been cleared and only have second instruction
+        cache_info = view._highlighter.get_cache_info()
+        assert cache_info['size'] == 1, "Should only have one entry from second binary"
+        # After clearing, first instruction from second binary is a miss
+        assert cache_info['misses'] >= 1
+        assert cache_info['hits'] == 0, "Should have no hits after clearing"
