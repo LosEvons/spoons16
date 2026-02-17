@@ -76,9 +76,9 @@ class TestStringsRecon:
             assert result.strings == []
 
     def test_string_truncation(self, recon):
-        """Test that very large string lists are truncated."""
-        # Generate more strings than MAX_STRINGS
-        large_string_list = "\n".join([f"string_{i}" for i in range(MAX_STRINGS + 1000)])
+        """Test that very large string lists are truncated and count is correct."""
+        overflow = 1000
+        large_string_list = "\n".join([f"string_{i}" for i in range(MAX_STRINGS + overflow)])
 
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0, stdout=large_string_list)
@@ -86,11 +86,8 @@ class TestStringsRecon:
             report = ExecutableReport(path="/test/binary")
             result = recon.run("/test/binary", report)
 
-            # Should be truncated to MAX_STRINGS
             assert len(result.strings) == MAX_STRINGS
-            # Should record the truncation in raw data
-            # Note: The current implementation has a bug - it stores the wrong value
-            # This test documents the current behavior
+            assert result.raw_backend_data["strings_truncated"] == overflow
 
     def test_unexpected_error_handling(self, recon):
         """Test handling of unexpected exceptions."""

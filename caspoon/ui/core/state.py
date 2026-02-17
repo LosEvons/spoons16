@@ -4,10 +4,13 @@ This module provides AppState, the single source of truth for all application st
 Views can subscribe to state changes and automatically update when values change.
 """
 
+import logging
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from .models import AnalysisResults, BinaryInfo, UIState, UserPreferences
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from caspoon.core.models import ExecutableReport
@@ -105,8 +108,12 @@ class AppState:
                 try:
                     callback(value)
                 except Exception:
-                    # Silently ignore callback errors to prevent state corruption
-                    pass
+                    logger.debug(
+                        "Callback error in %s for property '%s'",
+                        callback,
+                        property_name,
+                        exc_info=True,
+                    )
 
     def reset(self) -> None:
         """Reset state to initial values.

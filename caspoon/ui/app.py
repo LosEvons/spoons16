@@ -574,5 +574,4 @@ For more information, visit the documentation.
             if console:
                 console.log(message, level)
         except Exception:
-            # Console not available - silently skip
-            pass
+            logger.debug("Console not available for logging", exc_info=True)

@@ -37,19 +37,34 @@ class TestReconRunner:
         assert report.path == sample_binary, "Report path should match input"
 
     def test_runner_executes_all_steps(self, sample_binary: str) -> None:
-        """Test that runner executes all configured recon steps."""
+        """Test that runner executes all configured recon steps by tracking calls."""
         runner = ReconRunner()
+        step_names = [step.name for step in runner.steps]
+        called_steps = []
+
+        # Wrap each step to track execution
+        for step in runner.steps:
+            original_run = step.run
+
+            def make_tracker(name, orig):
+                def tracked_run(path, report):
+                    called_steps.append(name)
+                    return orig(path, report)
+
+                return tracked_run
+
+            step.run = make_tracker(step.name, original_run)
+
         report = runner.run(sample_binary)
 
-        # Each step should have added some data
-        # At minimum, file_info should have populated file_type or arch
-        assert (
-            report.file_type != "" or report.arch != ""
-        ), "Runner should populate at least file_type or arch"
+        assert called_steps == step_names, (
+            f"Expected all steps {step_names} to run, but only {called_steps} ran"
+        )
 
     def test_runner_continues_on_step_failure(self, sample_binary: str) -> None:
         """Test that runner gracefully handles step failures and continues."""
         runner = ReconRunner()
+        failed_step_name = runner.steps[1].name
 
         # Mock one step to fail
         original_run = runner.steps[1].run
@@ -61,6 +76,12 @@ class TestReconRunner:
         # Should still return a valid report
         assert isinstance(report, ExecutableReport), "Should return report even with failures"
         assert report.path == sample_binary, "Report path should be preserved"
+
+        # Should record the failure
+        failed_steps = report.raw_backend_data.get("failed_steps", [])
+        assert len(failed_steps) == 1, "Should record exactly one failed step"
+        assert failed_steps[0]["step"] == failed_step_name
+        assert "Step failed" in failed_steps[0]["error"]
 
         # Restore original for other tests
         runner.steps[1].run = original_run

@@ -1,8 +1,12 @@
 """Console widget for displaying logs and messages."""
 
+import logging
+
 from textual.binding import Binding
 from textual.containers import Container
 from textual.widgets import RichLog
+
+logger = logging.getLogger(__name__)
 
 
 class Console(Container):
@@ -74,8 +78,7 @@ class Console(Container):
                 log_widget.write(message)
 
         except Exception:
-            # Silently fail if widget not found
-            pass
+            logger.debug("Console log widget not available", exc_info=True)
 
     def clear(self) -> None:
         """Clear all messages from the console."""
@@ -83,7 +86,7 @@ class Console(Container):
             log_widget = self.query_one("#console_log", RichLog)
             log_widget.clear()
         except Exception:
-            pass
+            logger.debug("Console log widget not available for clear", exc_info=True)
 
     def action_clear_console(self) -> None:
         """Action handler to clear the console.

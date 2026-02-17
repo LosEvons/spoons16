@@ -1,6 +1,7 @@
 """Detect available optional features."""
 
 import logging
+import threading
 
 logger = logging.getLogger(__name__)
 
@@ -130,15 +131,20 @@ class Capabilities:
 
 # Global singleton instance
 _capabilities = None
+_capabilities_lock = threading.Lock()
 
 
 def get_capabilities() -> Capabilities:
     """Get the global capabilities instance (singleton).
+
+    Thread-safe lazy initialization of the global Capabilities instance.
 
     Returns:
         Capabilities instance
     """
     global _capabilities
     if _capabilities is None:
-        _capabilities = Capabilities()
+        with _capabilities_lock:
+            if _capabilities is None:
+                _capabilities = Capabilities()
     return _capabilities

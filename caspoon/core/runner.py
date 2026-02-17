@@ -50,6 +50,8 @@ class ReconRunner:
                 report = step.run(path, report)
             except Exception as e:
                 logger.error(f"Error in step {step.name}: {e}")
-                # Continue with other steps even if one fails
+                report.raw_backend_data.setdefault("failed_steps", []).append(
+                    {"step": step.name, "error": str(e)}
+                )
 
         return report

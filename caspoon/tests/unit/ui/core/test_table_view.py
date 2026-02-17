@@ -150,7 +150,7 @@ class TestTableView:
         assert isinstance(row_data, list)
 
     def test_build_rich_table_structure(self):
-        """Test _build_rich_table creates table with correct structure."""
+        """Test _build_rich_table creates table with correct columns and rows."""
         rows = [
             {"name": "Row1", "value": "A", "type": "str"},
             {"name": "Row2", "value": "B", "type": "int"},
@@ -159,13 +159,17 @@ class TestTableView:
 
         table = view._build_rich_table()
 
-        # Verify it's a Rich Table
         from rich.table import Table
 
         assert isinstance(table, Table)
+        assert len(table.columns) == 3
+        assert table.columns[0].header == "Name"
+        assert table.columns[1].header == "Value"
+        assert table.columns[2].header == "Type"
+        assert table.row_count == 2
 
     def test_build_rich_table_with_selection(self):
-        """Test _build_rich_table highlights selected row."""
+        """Test _build_rich_table highlights selected row with reverse style."""
         rows = [
             {"name": "Row1", "value": "A", "type": "str"},
             {"name": "Row2", "value": "B", "type": "int"},
@@ -176,25 +180,32 @@ class TestTableView:
 
         table = view._build_rich_table()
 
-        # Can't easily test the actual styling, but verify no errors
-        assert table is not None
+        assert table.row_count == 3
+        # Verify the selected row has 'reverse' style
+        assert table.rows[1].style == "reverse"
+        # Non-selected rows should not have reverse style
+        assert table.rows[0].style != "reverse"
+        assert table.rows[2].style != "reverse"
 
     def test_build_rich_table_with_sort_indicator(self):
         """Test _build_rich_table shows sort indicator in header."""
         rows = [{"name": "Row1", "value": "A", "type": "str"}]
         view = ConcreteTableView(rows)
 
-        # Sort by Name ascending
+        # Sort by Name ascending - should show ↑
         view.sort_column = "Name"
         view.sort_descending = False
 
         table = view._build_rich_table()
-        assert table is not None
+        assert "↑" in str(table.columns[0].header)
+        # Other columns should not have indicators
+        assert "↑" not in str(table.columns[1].header)
+        assert "↓" not in str(table.columns[1].header)
 
-        # Sort descending
+        # Sort descending - should show ↓
         view.sort_descending = True
         table = view._build_rich_table()
-        assert table is not None
+        assert "↓" in str(table.columns[0].header)
 
     def test_abstract_methods_enforced(self):
         """Test abstract methods must be implemented."""
@@ -337,21 +348,25 @@ class TestTableViewEdgeCases:
     """Tests for TableView edge cases."""
 
     def test_build_table_with_no_rows(self):
-        """Test building table with no rows."""
+        """Test building table with no rows still has columns."""
         view = ConcreteTableView([])
 
         table = view._build_rich_table()
 
         assert table is not None
+        assert len(table.columns) == 3
+        assert table.row_count == 0
 
     def test_build_table_with_single_row(self):
-        """Test building table with single row."""
+        """Test building table with single row has correct data."""
         rows = [{"name": "Only", "value": "1", "type": "test"}]
         view = ConcreteTableView(rows)
 
         table = view._build_rich_table()
 
         assert table is not None
+        assert table.row_count == 1
+        assert len(table.columns) == 3
 
     def test_get_row_data_negative_index(self):
         """Test get_row_data with negative index."""
