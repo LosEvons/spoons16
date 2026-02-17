@@ -5,6 +5,8 @@ from rich.text import Text
 from textual.containers import ScrollableContainer
 from textual.widgets import Static
 
+from caspoon.ui import widget_ids
+
 
 class DetailsPanel(ScrollableContainer):
     """Context-sensitive information display panel.
@@ -39,7 +41,7 @@ class DetailsPanel(ScrollableContainer):
             **kwargs: Additional keyword arguments for Container
         """
         super().__init__(**kwargs)
-        self._content_widget = Static(id="details_content")
+        self._content_widget = Static(id=widget_ids.DETAILS_CONTENT)
 
     def compose(self):
         """Compose the details panel with content widget.

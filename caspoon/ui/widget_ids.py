@@ -40,3 +40,6 @@ CONSOLE_LOG = "console_log"
 # Sidebar internals
 FUNCTION_EXPLORER = "function_explorer"
 FUNCTION_FILTER = "function_filter"
+
+# Details panel internals
+DETAILS_CONTENT = "details_content"
