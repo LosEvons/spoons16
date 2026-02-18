@@ -44,7 +44,7 @@ class ExecutableReport:
         path: Path to the analyzed executable
         arch: Architecture (e.g., x86_64, ARM)
         bits: Bit width (32 or 64), or None if unknown
-        file_type: File type description from 'file' command
+        file_type: File type description
         stripped: Whether debug symbols are stripped
         protections: Security protection information
         strings: List of extracted strings

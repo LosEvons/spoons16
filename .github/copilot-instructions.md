@@ -25,9 +25,7 @@ This file provides context and conventions for GitHub Copilot when working in th
 
 ### External Tool Integration
 
-- `file` - File type detection
 - `strings` - String extraction (with fallback implementation)
-- `checksec` - Security feature detection
 - `radare2` - Advanced binary analysis and disassembly
 
 *Note*: Caspoon gracefully handles missing external tools with fallback implementations.
@@ -192,7 +190,6 @@ caspoon/
 @pytest.mark.slow           # Tests taking >1 second
 @pytest.mark.golden         # Regression/golden tests
 @pytest.mark.requires_r2    # Requires radare2 installed
-@pytest.mark.requires_checksec  # Requires checksec installed
 @pytest.mark.requires_strings   # Requires strings command
 ```
 

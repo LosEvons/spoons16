@@ -97,7 +97,7 @@ pip install -e ".[dev]"
 ### Optional
 - radare2 (for binary analysis)
 - GCC (for building test fixtures)
-- checksec (for protection detection)
+- checksec (no longer required; protections detected via pyelftools)
 
 ### Installation (Ubuntu/Debian)
 ```bash

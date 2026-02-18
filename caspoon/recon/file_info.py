@@ -2,32 +2,31 @@
 
 import logging
 import os
-import subprocess
+
+from elftools.elf.elffile import ELFFile
 
 from ..core.models import ExecutableReport
 
 logger = logging.getLogger(__name__)
 
-# Configuration
-FILE_CMD_TIMEOUT = 10  # Timeout for file command in seconds
-
-# Architecture patterns for detection
-ARCH_PATTERNS: dict[str, str] = {
-    "x86-64": "x86_64",
-    "x86_64": "x86_64",
-    "amd64": "x86_64",
-    "x86": "x86",
-    "i386": "x86",
-    "i686": "x86",
-    "ARM": "ARM",
-    "aarch64": "ARM64",
-    "MIPS": "MIPS",
-    "PowerPC": "PowerPC",
+# Architecture mapping from ELF e_machine values to human-readable names
+ARCH_MAP: dict[int, str] = {
+    0x3E: "x86_64",      # EM_X86_64
+    0x03: "x86",         # EM_386
+    0x28: "ARM",         # EM_ARM
+    0xB7: "ARM64",       # EM_AARCH64
+    0x08: "MIPS",        # EM_MIPS
+    0x14: "PowerPC",     # EM_PPC
+    0x15: "PowerPC64",   # EM_PPC64
+    0xF3: "RISC-V",      # EM_RISCV
+    0x16: "S390",        # EM_S390
+    0x2A: "SuperH",      # EM_SH
+    0x32: "IA-64",       # EM_IA_64
 }
 
 
 class FileInfoRecon:
-    """Extracts basic file information using the 'file' command.
+    """Extracts basic file information using pyelftools.
 
     Analyzes the executable to determine architecture, bit width,
     file type, and whether debug symbols are stripped.
@@ -56,61 +55,47 @@ class FileInfoRecon:
             return report
 
         try:
-            result = subprocess.run(
-                ["file", path],
-                capture_output=True,
-                text=True,
-                timeout=FILE_CMD_TIMEOUT,
-            )
+            with open(path, "rb") as f:
+                try:
+                    elffile = ELFFile(f)
+                except Exception as e:
+                    logger.warning(f"Not an ELF file or invalid ELF: {path} - {e}")
+                    report.file_type = "Not an ELF file"
+                    return report
 
-            if result.returncode != 0:
-                logger.error(f"'file' command failed with return code {result.returncode}")
-                report.file_type = "Error: file command failed"
-                return report
+                # Detect architecture
+                e_machine = elffile.header["e_machine"]
+                report.arch = ARCH_MAP.get(e_machine, "Unknown")
 
-            output = result.stdout.strip()
-            report.file_type = output
+                # Detect bit width
+                elfclass = elffile.elfclass
+                report.bits = 64 if elfclass == 64 else 32 if elfclass == 32 else None
 
-            # Detect architecture more robustly
-            report.arch = self._detect_architecture(output)
+                # Detect endianness
+                endian_str = "LSB" if elffile.little_endian else "MSB"
 
-            # Detect bit width
-            if "64-bit" in output:
-                report.bits = 64
-            elif "32-bit" in output:
-                report.bits = 32
-            else:
-                report.bits = None  # Unknown bit width
+                # Detect file type
+                e_type = elffile.header["e_type"]
+                if e_type == "ET_EXEC":
+                    type_str = "executable"
+                elif e_type == "ET_DYN":
+                    type_str = "shared object"
+                elif e_type == "ET_REL":
+                    type_str = "relocatable"
+                elif e_type == "ET_CORE":
+                    type_str = "core dump"
+                else:
+                    type_str = "unknown type"
 
-            # Check if stripped
-            report.stripped = "not stripped" not in output.lower()
+                # Build descriptive file_type string
+                arch_str = report.arch if report.arch != "Unknown" else f"machine {e_machine}"
+                report.file_type = f"ELF {report.bits}-bit {endian_str} {type_str}, {arch_str}"
 
-        except FileNotFoundError:
-            logger.error("'file' command not found. Please install it.")
-            report.file_type = "Error: 'file' command not available"
-        except subprocess.TimeoutExpired:
-            logger.error(f"'file' command timed out on {path}")
-            report.file_type = "Error: Timeout"
+                # Check if stripped (no symbol table)
+                report.stripped = elffile.get_section_by_name(".symtab") is None
+
         except Exception as e:
             logger.error(f"Unexpected error in FileInfoRecon: {e}")
             report.file_type = f"Error: {str(e)}"
 
         return report
-
-    def _detect_architecture(self, file_output: str) -> str:
-        """Detect architecture from file command output.
-
-        Args:
-            file_output: Output from the 'file' command
-
-        Returns:
-            Detected architecture name or "Unknown"
-        """
-        file_lower = file_output.lower()
-
-        for pattern, arch in ARCH_PATTERNS.items():
-            if pattern.lower() in file_lower:
-                return arch
-
-        logger.warning(f"Could not detect architecture from: {file_output}")
-        return "Unknown"

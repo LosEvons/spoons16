@@ -137,7 +137,7 @@ Mark your tests appropriately:
 @pytest.mark.slow          # Slow test (>1s)
 @pytest.mark.golden        # Golden/regression test
 @pytest.mark.requires_r2   # Requires radare2
-@pytest.mark.requires_checksec  # Requires checksec
+
 ```
 
 Run specific markers:

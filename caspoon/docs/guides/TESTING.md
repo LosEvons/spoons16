@@ -191,7 +191,6 @@ Tests are marked with categories for easy filtering:
 @pytest.mark.slow              # Takes >1 second
 @pytest.mark.golden            # Golden/regression test
 @pytest.mark.requires_r2       # Requires radare2
-@pytest.mark.requires_checksec # Requires checksec tool
 ```
 
 Run tests by marker:
@@ -462,7 +461,7 @@ Be descriptive:
 
 ✅ **Good names:**
 - `test_detects_full_pie_protection`
-- `test_handles_missing_checksec_gracefully`
+- `test_handles_non_elf_file_gracefully`
 - `test_extracts_strings_from_stripped_binary`
 
 ❌ **Avoid:**
@@ -691,8 +690,8 @@ git commit -m "Add golden test for my_binary"
    ```python
    # Good: Focused test
    def test_detects_pie_enabled(self):
-       result = parse_checksec("PIE enabled")
-       assert result.pie == "full"
+       report = run_protections(elf_path)
+       assert report.protections.pie is True
    
    # Avoid: Testing multiple things
    def test_everything(self):
@@ -936,16 +935,16 @@ make clean && make
 pip install -e .
 ```
 
-#### "Tool not available" (checksec, radare2, etc.)
+#### "Tool not available" (radare2, etc.)
 
 Tests should skip gracefully, but if you want full coverage:
 
 ```bash
 # Ubuntu/Debian
-sudo apt install checksec radare2
+sudo apt install radare2
 
 # macOS
-brew install checksec radare2
+brew install radare2
 ```
 
 #### "Coverage doesn't match expected"

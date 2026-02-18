@@ -89,8 +89,8 @@ class TestFullPipeline:
             report.stripped == expected_stripped
         ), f"Stripped status should be {expected_stripped} for {binary_name}"
 
-        # Verify PIE (if protections were detected and checksec is available)
-        if report.protections and report.protections.relro != "checksec_not_found":
+        # Verify PIE (if protections were detected)
+        if report.protections and report.protections.relro not in ("not_elf", "Unknown"):
             assert (
                 report.protections.pie == expected_pie
             ), f"PIE should be {expected_pie} for {binary_name}"
