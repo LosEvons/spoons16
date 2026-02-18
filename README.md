@@ -17,14 +17,13 @@ A modular, defensive binary analysis toolkit for reverse engineers and security 
 
 ## Overview
 
-**Caspoon** is a reconnaissance and analysis tool designed for analyzing executable files safely and efficiently. It provides both a command-line interface for automation and an interactive terminal UI for manual exploration.
+**Caspoon** is a reconnaissance and analysis tool designed for analyzing executable files safely and efficiently. It provides a command-line interface for automation and programmatic use.
 
 ### Key Features
 
 - 🔍 **Multi-Backend Analysis**: Integrates file, checksec, strings, and radare2
 - 🛡️ **Security-First**: Designed for analyzing potentially malicious binaries safely
 - 📊 **Comprehensive Reports**: Extract metadata, protections, strings, imports, exports, and disassembly
-- 🖥️ **Dual Interface**: CLI for automation, TUI for interactive exploration
 - 🧩 **Modular Architecture**: Easy to extend with new analysis modules
 - ✅ **Well-Tested**: 107 tests with 84% coverage
 
@@ -56,42 +55,6 @@ caspoon --help
 
 ### Basic Usage
 
-#### Interactive TUI Mode
-
-```bash
-# Launch interactive terminal UI
-caspoon --ui
-
-# Or start with a binary loaded
-caspoon --ui /path/to/binary
-```
-
-The TUI provides a powerful, keyboard-driven interface for binary analysis:
-
-- **📑 Tabbed Views**: Navigate between Overview, Protections, Strings, Imports/Exports, and R2 Analysis
-- **⌨️ Keyboard Shortcuts**: Efficient navigation with number keys (1-5), arrow keys, and Ctrl combos
-- **🔍 Interactive Filtering**: Real-time search and filter in strings and other views
-- **🎯 Command Palette** (Ctrl+P): Fuzzy search for any command or action
-- **📊 Multi-Panel Layout**: Optional sidebar, details panel, and console for advanced workflows
-- **🔄 Live Analysis**: Watch analysis progress in real-time with responsive UI
-
-**Key Features:**
-- Switch views instantly with number keys (`1` = Overview, `2` = Protections, etc.)
-- Filter strings with `/` key for fast searches
-- Toggle panels: `Ctrl+B` (sidebar), `Ctrl+D` (details), `Ctrl+J` (console)
-- Command palette: `Ctrl+P` for fuzzy command search
-- Help: Press `F1` for in-app help
-
-**Example Workflow:**
-```bash
-caspoon --ui /bin/ls          # Load binary in TUI
-# Press 3 → /password → Enter  # Jump to strings, search, view results
-# Press Ctrl+P → "imports"     # Command palette to find import-related actions
-# Press Ctrl+B                 # Open function explorer sidebar
-```
-
-For detailed TUI documentation, see **[TUI User Guide](caspoon/docs/guides/tui-user-guide.md)**.
-
 #### Command-Line Mode (JSON output)
 
 ```bash
@@ -100,15 +63,6 @@ caspoon /bin/ls
 
 # Save output to file
 caspoon /bin/ls > report.json
-```
-
-#### Interactive TUI Mode
-
-```bash
-# Launch interactive terminal UI
-caspoon --ui
-
-# Then enter path to binary in the input field
 ```
 
 #### Programmatic Use
@@ -155,7 +109,6 @@ print(f"Imports: {len(report.imports)}")
 
 - **Python 3.10+**
 - **pyelftools** - ELF file parsing
-- **textual** - Terminal UI framework
 - **rich** - Rich text formatting
 - **r2pipe** - Radare2 integration
 
@@ -178,7 +131,7 @@ Caspoon follows a **pipeline-based modular design**:
 
 ```
 ┌──────────────────────────────────────┐
-│    CLI or TUI Entry Point            │
+│    CLI Entry Point                   │
 └────────────────┬─────────────────────┘
                  │
          ┌───────▼───────┐
@@ -207,7 +160,6 @@ Each **recon module** enriches the report with its findings. See [docs/reference
 ### User Documentation
 
 - **[Quick Start](#quick-start)** - Get up and running quickly
-- **[TUI User Guide](caspoon/docs/guides/tui-user-guide.md)** - Complete guide to the Terminal UI
 - **[OVERVIEW.md](caspoon/docs/reference/OVERVIEW.md)** - Comprehensive architecture and usage guide
 - **[TESTING.md](caspoon/docs/guides/TESTING.md)** - How to run tests and understand test coverage
 
@@ -279,7 +231,7 @@ Caspoon is actively developed and maintained. Current status:
 
 - ✅ Core analysis pipeline complete
 - ✅ Comprehensive test coverage (84%)
-- ✅ CLI and TUI interfaces functional
+- ✅ CLI interface functional
 - ✅ Multi-backend integration (file, checksec, strings, radare2)
 - 🚧 Additional backends planned (Ghidra, Binary Ninja)
 - 🚧 Advanced visualizations in development
@@ -295,7 +247,6 @@ See [LICENSE](LICENSE) file for details.
 ## Acknowledgments
 
 Built with:
-- [Textual](https://textual.textualize.io/) - Modern TUI framework
 - [radare2](https://rada.re/) - Reverse engineering framework
 - [pyelftools](https://github.com/eliben/pyelftools) - ELF parsing library
 - [pytest](https://pytest.org/) - Testing framework

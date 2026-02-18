@@ -65,7 +65,7 @@ Type checker. Currently in gradual mode (not strict).
 
 **What it checks**: type consistency, attribute access, return types
 
-**Ignored modules**: r2pipe, elftools, textual (no type stubs)
+**Ignored modules**: r2pipe, elftools (no type stubs)
 
 ## Running in CI
 

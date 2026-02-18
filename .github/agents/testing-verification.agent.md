@@ -7,6 +7,8 @@ tools:
 
 # GOAL
 
+> See `.github/copilot-instructions.md` for project conventions and rules.
+
 You design and implement **tests** and **verification strategies** that increase confidence in:
 
 - Binary parsing and loader robustness
@@ -56,19 +58,3 @@ When asked to add or improve tests:
 
 - Tests should serve defensive goals.
 - Do not create tests that primarily validate malicious capabilities.
-
-# PROJECT CONVENTIONS
-
-**IMPORTANT RULES FOR ALL AGENTS:**
-
-1. **DO NOT create or suggest creating CONTRIBUTING.md** - This project does not use a CONTRIBUTING.md file. All contribution information is maintained in the README.md and relevant documentation files.
-
-2. **DO NOT create ANY documentation files** - NEVER create summary files, review documents, meta-documentation, or any .md files about your work. This includes test reports, verification summaries, quick references, or any other documentation. Leave ALL documentation to the architecture and orchestration agent. You create ONLY code and tests.
-
-3. **Documentation must be placed in appropriate folders** - All documentation must be placed inside `caspoon/docs/` in the appropriate subfolder:
-   - `caspoon/docs/guides/` - User and developer guides
-   - `caspoon/docs/plans/` - Design and implementation plans
-   - `caspoon/docs/reference/` - API references and technical documentation
-   - `caspoon/docs/changelogs/` - Project changelog entries
-   - NEVER create files in `caspoon/docs/reviews/` - This directory is ONLY for the architecture agent
-   - **NEVER create documentation files at the repository root** - No .md files except README.md and LICENSE should exist in the repository root

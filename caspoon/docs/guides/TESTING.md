@@ -555,7 +555,6 @@ omit = [
     "*/tests/*",      # Don't measure test code
     "*/__main__.py",  # Entry points excluded
     "*/main.py",      # CLI entry excluded
-    "*/ui/*",         # UI excluded (tested manually)
 ]
 
 [tool.coverage.report]

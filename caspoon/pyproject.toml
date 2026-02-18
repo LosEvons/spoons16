@@ -10,7 +10,6 @@ authors = [
 ]
 
 dependencies = [
-  "textual>=0.40.0,<1.0.0",     # TUI framework
   "pyelftools>=0.29,<1.0",       # ELF file parsing
   "r2pipe>=1.7.0,<2.0.0",        # radare2 interface
   "rich>=13.0.0,<15.0.0",        # Text rendering (CLI output)
@@ -115,14 +114,12 @@ omit = [
     "*/tests/*",
     "*/__main__.py",
     "*/main.py",
-    "*/ui/*",
     "*/gui/*",
 ]
 
 [tool.coverage.report]
 omit = [
     "*/gui/*",
-    "*/ui/*",
     "*/tests/*",
     "*/main.py",
     "*/__main__.py",
@@ -211,7 +208,6 @@ strict_optional = true
 module = [
     "r2pipe.*",
     "elftools.*",
-    "textual.*",
     "PySide6.*",
 ]
 ignore_missing_imports = true

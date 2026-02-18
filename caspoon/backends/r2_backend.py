@@ -1,6 +1,7 @@
 """Radare2 backend implementation."""
 
 import logging
+import shutil
 from typing import Any
 
 from .base import BackendCapabilities, DisassemblyBackend
@@ -31,17 +32,12 @@ class Radare2Backend(DisassemblyBackend):
         )
 
     def is_available(self) -> bool:
-        """Check if radare2 is available."""
+        """Check if radare2 and r2pipe are available."""
         try:
-            import r2pipe
-
-            # Try to open a test connection
-            r2 = r2pipe.open("-")
-            r2.quit()
-            return True
-        except Exception as e:
-            logger.debug(f"radare2 not available: {e}")
+            import r2pipe  # noqa: F401
+        except ImportError:
             return False
+        return shutil.which("r2") is not None or shutil.which("radare2") is not None
 
     def analyze(self, path: str) -> dict[str, Any]:
         """Analyze binary with radare2."""

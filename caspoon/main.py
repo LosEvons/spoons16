@@ -9,41 +9,23 @@ logger = logging.getLogger(__name__)
 
 
 def _check_dependencies() -> None:
-    """Check if required dependencies are installed.
-
-    Raises:
-        SystemExit: If required dependencies are missing, with a helpful error message.
-    """
+    """Check if required dependencies are installed."""
     missing_deps = []
-
-    # Check core dependencies
-    try:
-        import r2pipe  # noqa: F401
-    except ImportError:
-        missing_deps.append("r2pipe")
-
-    try:
-        import textual  # noqa: F401
-    except ImportError:
-        missing_deps.append("textual")
-
     try:
         import elftools  # noqa: F401
     except ImportError:
         missing_deps.append("pyelftools")
-
     try:
         import rich  # noqa: F401
     except ImportError:
         missing_deps.append("rich")
-
     if missing_deps:
         print("\nError: Missing required dependencies:", file=sys.stderr)
         print(f"  {', '.join(missing_deps)}", file=sys.stderr)
         print("\nPlease install caspoon with:", file=sys.stderr)
-        print("    pip install -e .", file=sys.stderr)
+        print("    pip install caspoon", file=sys.stderr)
         print("\nOr with development dependencies:", file=sys.stderr)
-        print('    pip install -e ".[dev]"', file=sys.stderr)
+        print('    pip install "caspoon[dev]"', file=sys.stderr)
         print(file=sys.stderr)
         sys.exit(1)
 
@@ -119,28 +101,12 @@ def main() -> None:
         except ImportError:
             print(
                 "\nError: PySide6 is not installed. Install the GUI extra:\n"
-                '    pip install -e ".[gui]"',
+                '    pip install "caspoon[gui]"',
                 file=sys.stderr,
             )
             sys.exit(1)
 
         run_gui()
-        return
-
-    if "--ui" in sys.argv:
-        # Disable logging output for TUI mode to avoid interfering with the UI
-        logging.basicConfig(
-            level=logging.CRITICAL + 1,  # Effectively disable all logging output
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        )
-
-        from caspoon.ui.app import CaspoonApp
-
-        try:
-            CaspoonApp().run()
-        except Exception as e:
-            logger.error(f"Error running UI: {e}")
-            sys.exit(1)
         return
 
     # Configure logging for CLI mode
@@ -152,7 +118,6 @@ def main() -> None:
         print("Usage:")
         print("  python -m caspoon <binary>         # Analyze a binary (CLI/JSON output)")
         print("  python -m caspoon --gui            # Launch Qt GUI interface")
-        print("  python -m caspoon --ui             # Launch TUI interface")
         print("  python -m caspoon --capabilities   # Show available optional features")
         sys.exit(1)
 

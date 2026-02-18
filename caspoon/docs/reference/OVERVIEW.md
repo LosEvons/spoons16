@@ -2,7 +2,7 @@
 
 ## Overview
 
-Caspoon is a modular toolkit for analyzing and reverse engineering executable files. It provides both a command-line interface for automated analysis and a terminal user interface (TUI) for interactive exploration of binary files.
+Caspoon is a modular toolkit for analyzing and reverse engineering executable files. It provides a command-line interface for automated analysis of binary files.
 
 ## Purpose
 
@@ -30,17 +30,17 @@ The architecture follows a **pipeline-based modular design** where multiple reco
 ```
 ┌─────────────────────────────────────┐
 │        Entry Points                  │
-│  main.py (CLI / UI launcher)        │
+│  main.py (CLI launcher)             │
 └─────────────────┬───────────────────┘
                   │
         ┌─────────┴─────────┐
         │                   │
-┌───────▼────────┐  ┌──────▼─────────┐
-│   CLI Mode     │  │   UI Mode      │
-│ (JSON output)  │  │ (Textual TUI)  │
-└───────┬────────┘  └──────┬─────────┘
-        │                  │
-        └──────────┬───────┘
+┌───────▼────────┐          │
+│   CLI Mode     │          │
+│ (JSON output)  │          │
+└───────┬────────┘          │
+        │                   │
+        └──────────┬────────┘
                    │
         ┌──────────▼──────────┐
         │   ReconRunner       │
@@ -80,15 +80,6 @@ caspoon/
 ├── backends/            # Analysis backend integrations
 │   ├── r2_analyzer.py   # Core radare2 analysis functions
 │   └── r2_recon.py      # Radare2 recon module wrapper
-├── ui/                  # Terminal User Interface
-│   ├── app.py           # Main Textual application
-│   ├── screens.py       # UI screen definitions
-│   └── views/           # View components for different analysis types
-│       ├── overview.py
-│       ├── protections.py
-│       ├── strings_view.py
-│       ├── imports_exports.py
-│       └── r2_view.py
 └── docs/                # Documentation
 ```
 
@@ -177,23 +168,10 @@ Backends provide deeper analysis through external tools:
 - Executes ReconRunner and outputs JSON report
 - Suitable for automation and scripting
 
-**TUI Mode** (`ui/app.py`):
-- Run: `python -m caspoon --ui`
-- Built with Textual framework
-- Interactive tabbed interface with views:
-  - Overview: Summary of file metadata
-  - Protections: Security features visualization
-  - Strings: Extracted strings list
-  - Imports/Exports: Function imports and exports
-  - R2 Analysis: Radare2 analysis results
-- Input field for loading binaries dynamically
-- Footer status messages
-
 ## Dependencies
 
 Defined in `pyproject.toml`:
 
-- **textual**: Modern TUI framework for the interactive interface
 - **pyelftools**: ELF file parsing and analysis
 - **r2pipe**: Python interface to radare2 for disassembly and binary analysis
 - **rich**: Rich text and formatting for terminal output
@@ -213,18 +191,6 @@ python -m caspoon /path/to/binary
 
 # Or using the installed script
 caspoon /path/to/binary
-```
-
-### As an Interactive TUI
-
-```bash
-# Launch the TUI
-python -m caspoon --ui
-
-# Or using the installed script
-caspoon --ui
-
-# Then enter path to binary in the input field
 ```
 
 ### Programmatic Usage
@@ -283,24 +249,6 @@ class ReconRunner:
 2. Create a recon wrapper in `backends/` (e.g., `ghidra_recon.py`) following the recon interface
 3. Store backend-specific data in `report.raw_backend_data["backend_name"]`
 4. Register the backend recon module in `ReconRunner`
-
-### Adding a New UI View
-
-1. Create view in `ui/views/` extending Textual widgets
-2. Implement `update_data(report)` method to receive ExecutableReport
-3. Add TabPane in `ui/app.py`:
-
-```python
-with TabPane("My View"):
-    with ScrollableContainer():
-        yield MyView(id="my_view")
-```
-
-4. Update in `display_report()` method:
-
-```python
-self.query_one("#my_view", MyView).update_data(report)
-```
 
 ## Development Guidelines
 

@@ -4,6 +4,14 @@ Quick reference to major project changes. Each entry links to a detailed changel
 
 ---
 
+## 2025-06-18 - Tech Debt Reduction - TUI Removal & Complexity Reduction
+
+Major technical debt reduction focusing on removing the Textual TUI, consolidating agent definitions, and simplifying the dependency surface.
+
+**Details**: [2025-06-18-tech-debt-reduction.md](2025-06-18-tech-debt-reduction.md)
+
+---
+
 ## 2026-02-16 - Documentation Cleanup and Organization
 
 Cleaned up repository root by removing 20 legacy debug/summary markdown files. Strengthened agent instructions with explicit prohibitions against root-level documentation. Updated documentation index to reflect current structure.
