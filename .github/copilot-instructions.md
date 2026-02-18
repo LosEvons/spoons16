@@ -6,7 +6,7 @@ This file provides context and conventions for GitHub Copilot when working in th
 
 ## Project Overview
 
-**Caspoon** is a modular, defensive binary analysis toolkit designed for reverse engineers and security researchers. It provides safe reconnaissance and analysis of executable files (primarily ELF binaries) without execution, featuring both CLI and interactive TUI interfaces.
+**Caspoon** is a modular, defensive binary analysis toolkit designed for reverse engineers and security researchers. It provides safe reconnaissance and analysis of executable files (primarily ELF binaries) without execution, featuring CLI and optional GUI interfaces.
 
 **Purpose**: Extract metadata, security features, strings, symbols, and disassembly from potentially malicious binaries in an isolated, safe environment.
 
@@ -17,10 +17,10 @@ This file provides context and conventions for GitHub Copilot when working in th
 ## Key Technologies
 
 - **Python 3.10+** (target versions: 3.10, 3.11, 3.12)
-- **Textual** (`>=0.40.0`) - Modern TUI framework for interactive mode
 - **pyelftools** - ELF file parsing and manipulation
 - **r2pipe** - Integration with radare2 for advanced disassembly
 - **rich** - Terminal text formatting and rendering
+- **PySide6** - Optional GUI framework (via `--gui` flag)
 - **pytest** - Testing framework with extensive plugin ecosystem
 
 ### External Tool Integration
@@ -39,7 +39,7 @@ This file provides context and conventions for GitHub Copilot when working in th
 Caspoon follows a **pipeline-based modular design**:
 
 ```
-Entry Point (CLI/TUI)
+Entry Point (CLI)
         ↓
   ReconRunner ← Orchestrates all analysis
         ↓
@@ -57,14 +57,14 @@ FileInfo  Protections Strings  Imports/Exports
 2. **ExecutableReport** (`caspoon/core/models.py`): Central data model holding all analysis results
 3. **Recon Modules** (`caspoon/recon/`): Independent analysis modules that enrich the report
 4. **Backends** (`caspoon/backends/`): Integrations with external tools (radare2, etc.)
-5. **UI Layer** (`caspoon/ui/`): Textual-based TUI interface
+5. **GUI Layer** (`caspoon/gui/`): Optional PySide6-based GUI (via `--gui` flag)
 
 ### Data Flow
 
-1. User provides binary path via CLI or TUI
+1. User provides binary path via CLI or GUI
 2. `ReconRunner` creates empty `ExecutableReport`
 3. Each recon module runs and enriches the report
-4. Final report is returned as JSON (CLI) or displayed (TUI)
+4. Final report is returned as JSON (CLI) or displayed in GUI
 
 ---
 
@@ -88,9 +88,6 @@ caspoon/
 │   ├── protections.py # Security features detection
 │   ├── strings_mod.py # String extraction
 │   └── imports_exports.py # Symbol analysis
-│
-├── ui/               # Terminal UI (Textual-based)
-│   └── app.py        # Main TUI application
 │
 ├── docs/             # All documentation
 │   ├── guides/       # User and developer guides
@@ -138,7 +135,7 @@ caspoon/
 - Use type hints for function signatures (mypy compatible)
 - Gradually typed codebase (not yet fully strict)
 - Check types with: `mypy caspoon/`
-- External libraries (r2pipe, elftools, textual) have `ignore_missing_imports = true`
+- External libraries (r2pipe, elftools) have `ignore_missing_imports = true`
 
 ### Code Quality Standards
 
@@ -414,7 +411,7 @@ pytest -m "not slow" --cov=caspoon
 
 ---
 
-## CLI and UI Entry Points
+## CLI Entry Point
 
 ### CLI Mode (`main.py`)
 
@@ -428,17 +425,6 @@ from caspoon.core.runner import ReconRunner
 runner = ReconRunner()
 report = runner.run(binary_path)
 print(report.to_json())
-```
-
-### TUI Mode (`ui/app.py`)
-
-```python
-# Usage: caspoon --ui
-# Interactive Textual application
-# Navigation: Tab, Arrow keys, Enter
-
-from textual.app import App
-# See caspoon/ui/app.py for implementation
 ```
 
 ---
@@ -477,13 +463,12 @@ class ExecutableReport:
 - Use `pytest -vv -s` to see print statements in tests
 - Use `breakpoint()` for interactive debugging (Python 3.7+)
 - Check `htmlcov/index.html` after coverage runs for line-by-line coverage
-- TUI debugging: Run with `textual console` for live logging
+- GUI debugging: Use PySide6 debug tools when running with `--gui` flag
 
 ---
 
 ## External Resources
 
-- **Textual Docs**: https://textual.textualize.io/
 - **pyelftools Docs**: https://github.com/eliben/pyelftools
 - **radare2 Docs**: https://book.rada.re/
 - **pytest Docs**: https://docs.pytest.org/
