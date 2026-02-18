@@ -180,7 +180,6 @@ Use markers to categorize tests:
 @pytest.mark.slow              # Slow test (>1s)
 @pytest.mark.golden            # Golden/regression test
 @pytest.mark.requires_r2       # Requires radare2
-@pytest.mark.requires_checksec # Requires checksec tool
 ```
 
 Run by marker:
@@ -265,9 +264,7 @@ make
 
 ### Tool Dependencies
 Some tests require external tools:
-- `file` - File type detection (usually pre-installed)
 - `strings` - String extraction (usually pre-installed)
-- `checksec` - Security feature detection (optional, tests skip if missing)
 - `radare2` - Advanced analysis (optional, tests skip if missing)
 
 Tests gracefully skip if tools are missing.

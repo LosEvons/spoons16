@@ -137,9 +137,9 @@ class SomeRecon:
 
 **Current Modules:**
 
-- **FileInfoRecon** (`recon/file_info.py`): Uses Unix `file` command to extract basic metadata (architecture, bit-width, stripped status)
+- **FileInfoRecon** (`recon/file_info.py`): Uses pyelftools to extract basic metadata (architecture, bit-width, stripped status)
 
-- **ProtectionsRecon** (`recon/protections.py`): Uses `checksec` tool to identify security features (PIE, NX, canary, RELRO)
+- **ProtectionsRecon** (`recon/protections.py`): Uses pyelftools to identify security features (PIE, NX, canary, RELRO)
 
 - **StringsRecon** (`recon/strings_mod.py`): Extracts printable strings from the binary
 
@@ -177,8 +177,6 @@ Defined in `pyproject.toml`:
 - **rich**: Rich text and formatting for terminal output
 
 External tools used via subprocess:
-- **file**: File type identification (standard Unix tool)
-- **checksec**: Security features detection
 - **radare2**: Binary analysis backend (via r2pipe)
 
 ## Usage Patterns
@@ -256,8 +254,8 @@ class ReconRunner:
 - Use dataclasses for data models
 - Follow the recon module interface pattern
 - Store backend-specific data in `raw_backend_data` dictionary
-- Use subprocess for external tool integration
-- Handle missing tools gracefully (e.g., checksec fallback)
+- Use pyelftools for ELF parsing and analysis
+- Handle non-ELF files gracefully
 
 ### Error Handling
 - Recon modules should handle errors internally and return report

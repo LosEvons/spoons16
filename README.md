@@ -21,7 +21,7 @@ A modular, defensive binary analysis toolkit for reverse engineers and security 
 
 ### Key Features
 
-- 🔍 **Multi-Backend Analysis**: Integrates file, checksec, strings, and radare2
+- 🔍 **Multi-Backend Analysis**: Integrates pyelftools (ELF parsing), strings, and radare2
 - 🛡️ **Security-First**: Designed for analyzing potentially malicious binaries safely
 - 📊 **Comprehensive Reports**: Extract metadata, protections, strings, imports, exports, and disassembly
 - 🧩 **Modular Architecture**: Easy to extend with new analysis modules
@@ -116,9 +116,7 @@ print(f"Imports: {len(report.imports)}")
 
 Most features work without external tools, but some enhanced analysis requires:
 
-- **file** - File type detection (usually pre-installed on Unix systems)
 - **strings** - String extraction (usually pre-installed)
-- **checksec** - Security features detection (install: `apt install checksec` or from [GitHub](https://github.com/slimm609/checksec.sh))
 - **radare2** - Advanced disassembly and analysis (install: `apt install radare2` or from [radare.org](https://rada.re/))
 
 Caspoon gracefully handles missing tools and provides fallback implementations where possible.
@@ -173,8 +171,8 @@ Each **recon module** enriches the report with its findings. See [docs/reference
 ```bash
 # Example: Find all binaries with full RELRO in a directory
 for bin in /usr/bin/*; do
-  if file "$bin" | grep -q "ELF"; then
-    result=$(caspoon "$bin" 2>/dev/null)
+  result=$(caspoon "$bin" 2>/dev/null || echo "")
+  if echo "$result" | jq -e '.file_type | test("ELF")' >/dev/null 2>&1; then
     if echo "$result" | jq -e '.protections.relro == "full"' >/dev/null 2>&1; then
       echo "$bin: Full RELRO"
     fi
@@ -232,7 +230,7 @@ Caspoon is actively developed and maintained. Current status:
 - ✅ Core analysis pipeline complete
 - ✅ Comprehensive test coverage (84%)
 - ✅ CLI interface functional
-- ✅ Multi-backend integration (file, checksec, strings, radare2)
+- ✅ Multi-backend integration (pyelftools, strings, radare2)
 - 🚧 Additional backends planned (Ghidra, Binary Ninja)
 - 🚧 Advanced visualizations in development
 

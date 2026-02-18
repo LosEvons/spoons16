@@ -4,14 +4,13 @@ Tests the FileInfoRecon recon module which extracts basic file information
 including architecture, bit width, file type, and stripped status.
 """
 
-import subprocess
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
 
 from caspoon.core.models import ExecutableReport
-from caspoon.recon.file_info import ARCH_PATTERNS, FileInfoRecon
+from caspoon.recon.file_info import ARCH_MAP, FileInfoRecon
 
 
 class TestFileInfoRecon:
@@ -79,142 +78,146 @@ class TestFileInfoRecon:
         test_file = tmp_path / "test_binary"
         test_file.write_bytes(b"test")
 
-        mock_output = f"{test_file}: ELF 64-bit LSB executable, x86-64, version 1"
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}  # x86_64, executable
+        mock_elffile.elfclass = 64
+        mock_elffile.little_endian = True
+        mock_elffile.get_section_by_name.return_value = Mock()  # not stripped
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=0, stdout=mock_output)
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
-
-            assert result.bits == 64
-            assert result.arch == "x86_64"
+                assert result.bits == 64
+                assert result.arch == "x86_64"
 
     def test_32bit_detection(self, recon, tmp_path):
         """Test detection of 32-bit binary."""
         test_file = tmp_path / "test_binary"
         test_file.write_bytes(b"test")
 
-        mock_output = f"{test_file}: ELF 32-bit LSB executable, i386, version 1"
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": "EM_386", "e_type": "ET_EXEC"}  # x86, executable
+        mock_elffile.elfclass = 32
+        mock_elffile.little_endian = True
+        mock_elffile.get_section_by_name.return_value = Mock()  # not stripped
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=0, stdout=mock_output)
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
+                assert result.bits == 32
+                assert result.arch == "x86"
 
-            assert result.bits == 32
-            assert result.arch == "x86"
-
-    def test_unknown_bit_width(self, recon):
+    def test_unknown_bit_width(self, recon, tmp_path):
         """Test handling of unknown bit width."""
-        mock_output = "/test/binary: data"
+        test_file = tmp_path / "test_binary"
+        test_file.write_bytes(b"test")
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=0, stdout=mock_output)
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
+        mock_elffile.elfclass = 0  # Unknown
+        mock_elffile.little_endian = True
 
-            report = ExecutableReport(path="/test/binary")
-            result = recon.run("/test/binary", report)
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            assert result.bits is None
+                assert result.bits is None
 
     def test_stripped_detection(self, recon, tmp_path):
         """Test detection of stripped binary."""
         test_file = tmp_path / "test_binary"
         test_file.write_bytes(b"test")
 
-        mock_output = f"{test_file}: ELF 64-bit LSB executable, x86-64, stripped"
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
+        mock_elffile.elfclass = 64
+        mock_elffile.little_endian = True
+        mock_elffile.get_section_by_name.return_value = None  # No .symtab = stripped
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=0, stdout=mock_output)
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
-
-            assert result.stripped is True
+                assert result.stripped is True
 
     def test_not_stripped_detection(self, recon, tmp_path):
         """Test detection of non-stripped binary."""
         test_file = tmp_path / "test_binary"
         test_file.write_bytes(b"test")
 
-        mock_output = f"{test_file}: ELF 64-bit LSB executable, x86-64, not stripped"
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
+        mock_elffile.elfclass = 64
+        mock_elffile.little_endian = True
+        mock_elffile.get_section_by_name.return_value = Mock()  # .symtab exists = not stripped
 
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=0, stdout=mock_output)
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
+                assert result.stripped is False
 
-            assert result.stripped is False
-
-    def test_file_command_not_found(self, recon, tmp_path):
-        """Test handling when 'file' command is not available."""
+    def test_non_elf_file(self, recon, tmp_path):
+        """Test handling when file is not an ELF file."""
         test_file = tmp_path / "test_binary"
-        test_file.write_text("test")
+        test_file.write_text("not an elf file")
 
-        with patch("subprocess.run", side_effect=FileNotFoundError):
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
+        with patch("builtins.open", mock_open(read_data=b"not elf")):
+            with patch("caspoon.recon.file_info.ELFFile", side_effect=Exception("Not ELF")):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
 
-            assert "Error: 'file' command not available" in result.file_type
-
-    def test_file_command_timeout(self, recon, tmp_path):
-        """Test handling when 'file' command times out."""
-        test_file = tmp_path / "test_binary"
-        test_file.write_text("test")
-
-        import subprocess
-
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("file", 10)):
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
-
-            assert "Error: Timeout" in result.file_type
-
-    def test_file_command_nonzero_return(self, recon, tmp_path):
-        """Test handling when 'file' command fails."""
-        test_file = tmp_path / "test_binary"
-        test_file.write_text("test")
-
-        with patch("subprocess.run") as mock_run:
-            mock_run.return_value = Mock(returncode=1, stdout="")
-
-            report = ExecutableReport(path=str(test_file))
-            result = recon.run(str(test_file), report)
-
-            assert "Error: file command failed" in result.file_type
+                assert "Not an ELF file" in result.file_type
 
     def test_unexpected_error(self, recon, tmp_path):
         """Test handling of unexpected exception."""
         test_file = tmp_path / "test_binary"
         test_file.write_text("test")
 
-        with patch("subprocess.run", side_effect=RuntimeError("Unexpected")):
+        with patch("builtins.open", side_effect=RuntimeError("Unexpected")):
             report = ExecutableReport(path=str(test_file))
             result = recon.run(str(test_file), report)
 
             assert "Error:" in result.file_type
 
     @pytest.mark.parametrize(
-        "arch_string,expected_arch",
+        "e_machine,expected_arch",
         [
-            ("x86-64", "x86_64"),
-            ("x86_64", "x86_64"),
-            ("amd64", "x86_64"),
-            ("i386", "x86"),
-            ("i686", "x86"),
-            ("ARM", "ARM"),
-            ("aarch64", "ARM64"),
-            ("MIPS", "MIPS"),
-            ("PowerPC", "PowerPC"),
-            ("unknown architecture", "Unknown"),
+            ("EM_X86_64", "x86_64"),
+            ("EM_386", "x86"),
+            ("EM_ARM", "ARM"),
+            ("EM_AARCH64", "ARM64"),
+            ("EM_MIPS", "MIPS"),
+            ("EM_PPC", "PowerPC"),
+            ("EM_PPC64", "PowerPC64"),
+            ("EM_RISCV", "RISC-V"),
+            ("EM_UNKNOWN_9999", "Unknown"),   # Unknown architecture
         ],
     )
-    def test_architecture_detection(self, recon, arch_string, expected_arch):
+    def test_architecture_detection(self, recon, tmp_path, e_machine, expected_arch):
         """Test architecture detection for various architectures."""
-        result = recon._detect_architecture(f"ELF 64-bit LSB executable, {arch_string}")
-        assert result == expected_arch
+        test_file = tmp_path / "test_binary"
+        test_file.write_bytes(b"test")
+
+        mock_elffile = MagicMock()
+        mock_elffile.header = {"e_machine": e_machine, "e_type": "ET_EXEC"}
+        mock_elffile.elfclass = 64
+        mock_elffile.little_endian = True
+        mock_elffile.get_section_by_name.return_value = None
+
+        with patch("builtins.open", mock_open(read_data=b"fake elf")):
+            with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
+                report = ExecutableReport(path=str(test_file))
+                result = recon.run(str(test_file), report)
+
+                assert result.arch == expected_arch
 
     @pytest.mark.integration
     def test_real_test_binary_x64(self, recon, test_binaries_dir):
