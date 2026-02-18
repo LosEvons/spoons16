@@ -116,9 +116,17 @@ omit = [
     "*/__main__.py",
     "*/main.py",
     "*/ui/*",
+    "*/gui/*",
 ]
 
 [tool.coverage.report]
+omit = [
+    "*/gui/*",
+    "*/ui/*",
+    "*/tests/*",
+    "*/main.py",
+    "*/__main__.py",
+]
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",

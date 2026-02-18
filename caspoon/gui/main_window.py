@@ -78,12 +78,15 @@ class CaspoonMainWindow(QMainWindow):
 
     def _build_docks(self) -> None:
         self._func_explorer = FunctionExplorerPanel(self)
+        self._func_explorer.setObjectName("FunctionExplorerDock")
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self._func_explorer)
 
         self._details = DetailsPanel(self)
+        self._details.setObjectName("DetailsDock")
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self._details)
 
         self._console = ConsolePanel(self)
+        self._console.setObjectName("ConsoleDock")
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self._console)
 
         self._func_explorer.function_selected.connect(self._on_function_selected)
