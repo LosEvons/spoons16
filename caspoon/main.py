@@ -54,7 +54,7 @@ def _radare2_install_hint() -> str:
     if sys.platform == "win32":
         return (
             "Install radare2 with:\n"
-            "    winget install radare2   (or)   choco install radare2\n"
+            "    scoop install radare2\n"
             "    Download: https://rada.re/n/radare2.html"
         )
     elif sys.platform == "darwin":

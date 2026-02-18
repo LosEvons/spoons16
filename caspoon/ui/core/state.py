@@ -165,7 +165,7 @@ class AppState:
             exports=report.exports or [],
             sections=[],  # Not currently available in ExecutableReport
             protections=protections_dict,
-            disassembly=report.raw_backend_data.get("disassembly"),
+            disassembly=report.raw_backend_data.get("r2"),
         )
 
         # Update UI state to reflect analysis complete

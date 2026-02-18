@@ -16,7 +16,7 @@ def _radare2_install_hint() -> str:
     if sys.platform == "win32":
         return (
             "Install radare2 with:\n"
-            "    winget install radare2   (or)   choco install radare2\n"
+            "    scoop install radare2\n"
             "    Download: https://rada.re/n/radare2.html"
         )
     elif sys.platform == "darwin":
@@ -64,28 +64,22 @@ class Radare2Backend(DisassemblyBackend):
             )
             return False
 
-        # Allow radare2 to be available under either 'radare2' or 'r2' executable name.
-        r2_bin = shutil.which("radare2") or shutil.which("r2")
-        if r2_bin is None:
-            logger.warning(
-                "radare2 binary not found in PATH. Analysis unavailable.\n"
-                + _radare2_install_hint()
-            )
-            return False
-
-        # Ensure r2pipe uses the detected binary (if not configured)
+        # Optionally hint r2pipe toward the binary; don't gate on this.
         import os
 
-        os.environ.setdefault("R2PIPE_EXECUTABLE", r2_bin)
+        r2_bin = shutil.which("radare2") or shutil.which("r2")
+        if r2_bin:
+            os.environ.setdefault("R2PIPE_EXECUTABLE", r2_bin)
 
         try:
-            import r2pipe
-
             r2 = r2pipe.open("-")
             r2.quit()
             return True
         except Exception as e:
-            logger.warning(f"radare2 could not be started: {e}")
+            logger.warning(
+                f"radare2 not available ({e}). "
+                + _radare2_install_hint()
+            )
             return False
 
     def analyze(self, path: str) -> dict[str, Any]:
