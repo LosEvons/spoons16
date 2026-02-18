@@ -221,6 +221,55 @@ class TestR2BackendFunctionality:
         result = backend.is_available()
         assert isinstance(result, bool)
 
+    def test_r2_backend_available_even_when_which_fails(self):
+        """Test is_available returns True when shutil.which misses the binary but r2pipe works.
+
+        On Windows, importing PySide6 can modify PATH so shutil.which fails to
+        locate radare2 even when r2pipe itself would find it. is_available() must
+        not use shutil.which as a hard gate.
+        """
+        backend = Radare2Backend()
+
+        mock_r2 = MagicMock()
+
+        # r2pipe is imported locally inside is_available(), so patch at the source module.
+        with patch("caspoon.backends.r2_backend.shutil.which", return_value=None), \
+             patch("r2pipe.open", return_value=mock_r2):
+
+            result = backend.is_available()
+
+            assert result is True
+            mock_r2.quit.assert_called_once()
+
+    def test_r2_backend_unavailable_when_r2pipe_open_fails(self):
+        """Test is_available returns False when r2pipe.open("-") raises."""
+        backend = Radare2Backend()
+
+        with patch("caspoon.backends.r2_backend.shutil.which", return_value=None), \
+             patch("r2pipe.open", side_effect=Exception("binary not found")):
+
+            result = backend.is_available()
+
+            assert result is False
+
+    def test_r2_backend_sets_r2pipe_executable_hint_when_which_succeeds(self):
+        """Test is_available sets R2PIPE_EXECUTABLE when shutil.which finds the binary."""
+        import os
+
+        backend = Radare2Backend()
+        mock_r2 = MagicMock()
+
+        env = os.environ.copy()
+        env.pop("R2PIPE_EXECUTABLE", None)
+
+        with patch("caspoon.backends.r2_backend.shutil.which", return_value="/usr/bin/radare2"), \
+             patch("r2pipe.open", return_value=mock_r2), \
+             patch.dict("os.environ", env, clear=True):
+
+            backend.is_available()
+
+            assert os.environ.get("R2PIPE_EXECUTABLE") == "/usr/bin/radare2"
+
     def test_r2_backend_analyze_signature(self):
         """Test analyze method has correct signature."""
         backend = Radare2Backend()

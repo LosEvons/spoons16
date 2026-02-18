@@ -198,13 +198,14 @@ class TestAppState:
         assert state.analysis_results.protections == {}
 
     def test_update_from_report_with_raw_backend_data(self):
-        """Test update_from_report extracts disassembly from raw_backend_data."""
+        """Test update_from_report extracts disassembly from raw_backend_data["r2"]."""
         state = AppState()
 
+        r2_data = {"functions": [{"name": "main", "offset": 0x1000}], "imports": ["printf"]}
         report = ExecutableReport(
             path="/test",
             raw_backend_data={
-                "disassembly": {"main": "0x401000: push rbp"},
+                "r2": r2_data,
                 "other_data": "ignored",
             },
         )
@@ -212,7 +213,22 @@ class TestAppState:
         state.update_from_report(report)
 
         assert state.analysis_results is not None
-        assert state.analysis_results.disassembly == {"main": "0x401000: push rbp"}
+        assert state.analysis_results.disassembly == r2_data
+
+    def test_update_from_report_wrong_key_yields_no_disassembly(self):
+        """Test that data stored under wrong key does not populate disassembly."""
+        state = AppState()
+
+        report = ExecutableReport(
+            path="/test",
+            raw_backend_data={"disassembly": {"main": "0x401000: push rbp"}},
+        )
+
+        state.update_from_report(report)
+
+        # "disassembly" is not the key r2_recon.py uses; result should be None
+        assert state.analysis_results is not None
+        assert state.analysis_results.disassembly is None
 
     def test_state_preserves_ui_state_panels(self):
         """Test that update_from_report preserves panel visibility."""
