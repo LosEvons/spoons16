@@ -8,7 +8,6 @@ Start here to understand what Caspoon is and how to use it:
 
 - **[README.md](../../../README.md)** - Project overview, quick start, and basic usage
 - **[OVERVIEW.md](OVERVIEW.md)** - Detailed architecture and usage guide
-- **[TUI User Guide](../guides/tui-user-guide.md)** - Interactive UI usage and features
 
 ## 🛠️ For Developers
 
@@ -49,7 +48,6 @@ Deep dives into how Caspoon works:
   - [01-syntax-highlighting](../plans/01-syntax-highlighting/) - Assembly syntax highlighting
   - [02-pattern-detection](../plans/02-pattern-detection/) - Pattern detection engine
   - [03-syscall-api-detection](../plans/03-syscall-api-detection/) - System call and API analysis
-  - [04-tui-redesign](../plans/04-tui-redesign/) - Terminal UI architecture
 
 ## 📝 Changelogs
 
@@ -65,9 +63,6 @@ pip install -e ".[dev]"
 
 # Run analysis
 caspoon /path/to/binary
-
-# Run interactive UI
-caspoon --ui
 
 # Run tests
 pytest -m "not slow"
@@ -90,8 +85,7 @@ spoons16/
     │   │
     │   ├── guides/                    # User and developer guides
     │   │   ├── TESTING.md            # 👈 Complete testing guide
-    │   │   ├── TESTING_GUIDE.md      # Quick test reference
-    │   │   └── tui-user-guide.md     # TUI usage guide
+    │   │   └── TESTING_GUIDE.md      # Quick test reference
     │   │
     │   ├── reference/                 # Technical reference
     │   │   ├── DOCUMENTATION_INDEX.md # 👈 This file
@@ -102,8 +96,7 @@ spoons16/
     │   ├── plans/                     # Design documents
     │   │   ├── 01-syntax-highlighting/
     │   │   ├── 02-pattern-detection/
-    │   │   ├── 03-syscall-api-detection/
-    │   │   └── 04-tui-redesign/
+    │   │   └── 03-syscall-api-detection/
     │   │
     │   └── changelogs/                # Project changelog
     │       └── INDEX.md
@@ -118,7 +111,7 @@ spoons16/
 ## 🎯 Where Should I Look?
 
 ### "I want to use Caspoon"
-→ Start with **[README.md](../../../README.md)** then **[TUI User Guide](../guides/tui-user-guide.md)**
+→ Start with **[README.md](../../../README.md)**
 
 ### "I want to understand how Caspoon works"
 → Read **[OVERVIEW.md](OVERVIEW.md)**

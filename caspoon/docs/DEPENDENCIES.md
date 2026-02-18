@@ -2,12 +2,6 @@
 
 ## Core Dependencies
 
-### textual (>=0.40.0, <1.0.0)
-- **Purpose**: Terminal User Interface framework
-- **Usage**: Main UI for interactive mode
-- **Why**: Modern TUI with good widget support
-- **Alternatives**: urwid (older), asciimatics (limited)
-
 ### pyelftools (>=0.29, <1.0)
 - **Purpose**: ELF file parsing
 - **Usage**: Parse Linux binaries, extract sections/symbols
@@ -24,7 +18,7 @@
 ### rich (>=13.0.0, <14.0.0)
 - **Purpose**: Text rendering and formatting
 - **Usage**: Syntax highlighting, tables, formatting
-- **Why**: Excellent formatting, used by Textual
+- **Why**: Excellent formatting for terminal output
 - **Alternatives**: colorama (basic), termcolor (limited)
 
 ## Optional Dependencies

@@ -106,26 +106,6 @@ class TestMain:
                 assert exc_info.value.code == 1
                 assert "Error checking capabilities" in caplog.text
 
-    def test_main_ui_flag(self):
-        """Test main with --ui flag."""
-        with patch.object(sys, "argv", ["caspoon", "--ui"]):
-            mock_app = MagicMock()
-            with patch("caspoon.ui.app.CaspoonApp", return_value=mock_app):
-                main()
-                mock_app.run.assert_called_once()
-
-    def test_main_ui_flag_error(self, caplog):
-        """Test main with --ui flag when error occurs."""
-        with patch.object(sys, "argv", ["caspoon", "--ui"]):
-            mock_app = MagicMock()
-            mock_app.run.side_effect = RuntimeError("UI error")
-            with patch("caspoon.ui.app.CaspoonApp", return_value=mock_app):
-                with pytest.raises(SystemExit) as exc_info:
-                    main()
-
-                assert exc_info.value.code == 1
-                assert "Error running UI" in caplog.text
-
     def test_main_invalid_file(self, caplog):
         """Test main with invalid file path."""
         with patch.object(sys, "argv", ["caspoon", "/nonexistent/file"]):
