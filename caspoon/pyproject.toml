@@ -13,10 +13,15 @@ dependencies = [
   "textual>=0.40.0,<1.0.0",     # TUI framework
   "pyelftools>=0.29,<1.0",       # ELF file parsing
   "r2pipe>=1.7.0,<2.0.0",        # radare2 interface
-  "rich>=13.0.0,<15.0.0",        # Text rendering
+  "rich>=13.0.0,<15.0.0",        # Text rendering (CLI output)
 ]
 
 [project.optional-dependencies]
+# Qt6 GUI interface
+gui = [
+  "pyside6>=6.6.0",
+]
+
 # Windows PE file support
 windows = [
   "pefile>=2023.2.7,<2024.0.0",
@@ -199,6 +204,7 @@ module = [
     "r2pipe.*",
     "elftools.*",
     "textual.*",
+    "PySide6.*",
 ]
 ignore_missing_imports = true
 

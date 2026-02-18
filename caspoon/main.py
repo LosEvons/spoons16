@@ -107,6 +107,26 @@ def main() -> None:
             sys.exit(1)
         return
 
+    if "--gui" in sys.argv:
+        # Qt GUI — logging to stderr is fine (doesn't conflict with Qt)
+        logging.basicConfig(
+            level=logging.WARNING,
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        )
+
+        try:
+            from caspoon.gui.app import run_gui  # noqa: PLC0415
+        except ImportError:
+            print(
+                "\nError: PySide6 is not installed. Install the GUI extra:\n"
+                '    pip install -e ".[gui]"',
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        run_gui()
+        return
+
     if "--ui" in sys.argv:
         # Disable logging output for TUI mode to avoid interfering with the UI
         logging.basicConfig(
@@ -130,7 +150,8 @@ def main() -> None:
 
     if len(sys.argv) < 2:
         print("Usage:")
-        print("  python -m caspoon <binary>         # Analyze a binary")
+        print("  python -m caspoon <binary>         # Analyze a binary (CLI/JSON output)")
+        print("  python -m caspoon --gui            # Launch Qt GUI interface")
         print("  python -m caspoon --ui             # Launch TUI interface")
         print("  python -m caspoon --capabilities   # Show available optional features")
         sys.exit(1)
