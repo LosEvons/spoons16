@@ -192,10 +192,11 @@ class TestCapabilities:
         """Test that _detect_all populates all expected capabilities."""
         caps = Capabilities()
 
+        assert "radare2" in caps._capabilities
         assert "windows_pe" in caps._capabilities
         assert "capstone" in caps._capabilities
         assert "yara" in caps._capabilities
         assert "advanced_math" in caps._capabilities
         assert "graphs" in caps._capabilities
         assert "reports" in caps._capabilities
-        assert len(caps._capabilities) == 6
+        assert len(caps._capabilities) == 7
