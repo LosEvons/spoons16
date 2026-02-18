@@ -23,9 +23,9 @@ def _check_dependencies() -> None:
         print("\nError: Missing required dependencies:", file=sys.stderr)
         print(f"  {', '.join(missing_deps)}", file=sys.stderr)
         print("\nPlease install caspoon with:", file=sys.stderr)
-        print("    pip install -e .", file=sys.stderr)
+        print("    pip install caspoon", file=sys.stderr)
         print("\nOr with development dependencies:", file=sys.stderr)
-        print('    pip install -e ".[dev]"', file=sys.stderr)
+        print('    pip install "caspoon[dev]"', file=sys.stderr)
         print(file=sys.stderr)
         sys.exit(1)
 
@@ -101,7 +101,7 @@ def main() -> None:
         except ImportError:
             print(
                 "\nError: PySide6 is not installed. Install the GUI extra:\n"
-                '    pip install -e ".[gui]"',
+                '    pip install "caspoon[gui]"',
                 file=sys.stderr,
             )
             sys.exit(1)
