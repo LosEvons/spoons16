@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 
 logger = logging.getLogger(__name__)
@@ -46,6 +47,38 @@ def _check_dependencies() -> None:
         print('    pip install -e ".[dev]"', file=sys.stderr)
         print(file=sys.stderr)
         sys.exit(1)
+
+
+def _radare2_install_hint() -> str:
+    """Return a platform-specific install hint for the radare2 binary."""
+    if sys.platform == "win32":
+        return (
+            "Install radare2 with:\n"
+            "    winget install radare2   (or)   choco install radare2\n"
+            "    Download: https://rada.re/n/radare2.html"
+        )
+    elif sys.platform == "darwin":
+        return "Install radare2 with:\n    brew install radare2"
+    else:
+        return (
+            "Install radare2 with:\n"
+            "    apt install radare2   (or)   snap install radare2"
+        )
+
+
+def _check_system_tools() -> None:
+    """Warn about missing system-level tools that are not pip-installable.
+
+    Prints a warning to stderr for each missing tool with platform-specific
+    install instructions. This is non-fatal — the application continues.
+    """
+    if shutil.which("radare2") is None and shutil.which("r2") is None:
+        print(
+            "\nWarning: radare2 binary not found in PATH. "
+            "Disassembly and deep analysis will be unavailable.\n"
+            + _radare2_install_hint(),
+            file=sys.stderr,
+        )
 
 
 def validate_file_path(path: str) -> bool:
@@ -119,11 +152,12 @@ def main() -> None:
         except ImportError:
             print(
                 "\nError: PySide6 is not installed. Install the GUI extra:\n"
-                '    pip install -e ".[gui]"',
+                '    pip install ".[gui]"',
                 file=sys.stderr,
             )
             sys.exit(1)
 
+        _check_system_tools()
         run_gui()
         return
 
@@ -136,6 +170,7 @@ def main() -> None:
 
         from caspoon.ui.app import CaspoonApp
 
+        _check_system_tools()
         try:
             CaspoonApp().run()
         except Exception as e:

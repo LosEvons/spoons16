@@ -1,9 +1,24 @@
 """Detect available optional features."""
 
 import logging
+import shutil
+import sys
 import threading
 
 logger = logging.getLogger(__name__)
+
+
+def _radare2_install_hint() -> str:
+    """Return a platform-specific install hint for the radare2 binary."""
+    if sys.platform == "win32":
+        return (
+            "winget install radare2   (or)   choco install radare2\n"
+            "    Download: https://rada.re/n/radare2.html"
+        )
+    elif sys.platform == "darwin":
+        return "brew install radare2"
+    else:
+        return "apt install radare2   (or)   snap install radare2"
 
 
 class Capabilities:
@@ -17,6 +32,7 @@ class Capabilities:
     def _detect_all(self):
         """Detect all optional capabilities."""
         self._capabilities = {
+            "radare2": self._check_radare2(),
             "windows_pe": self._check_pefile(),
             "capstone": self._check_capstone(),
             "yara": self._check_yara(),
@@ -24,6 +40,15 @@ class Capabilities:
             "graphs": self._check_networkx(),
             "reports": self._check_jinja2(),
         }
+
+    def _check_radare2(self) -> bool:
+        """Check if both the r2pipe package and radare2 binary are available."""
+        try:
+            import r2pipe  # noqa: F401
+        except ImportError:
+            return False
+        # Accept either 'radare2' or the legacy 'r2' executable name
+        return (shutil.which("radare2") is not None) or (shutil.which("r2") is not None)
 
     def _check_pefile(self) -> bool:
         """Check if pefile is available for Windows PE analysis."""
@@ -118,13 +143,21 @@ class Capabilities:
         missing = self.get_missing()
         if missing:
             print("\nTo install missing features:")
-            print("  pip install caspoon[all]")
-            print("\nOr install specific features:")
-            print("  pip install caspoon[windows]   # Windows PE support")
-            print("  pip install caspoon[patterns]  # capstone + yara")
-            print("  pip install caspoon[advanced]  # scipy")
-            print("  pip install caspoon[graphs]    # networkx")
-            print("  pip install caspoon[reports]   # jinja2")
+
+            if "radare2" in missing:
+                print("\n  radare2 (system binary — not pip-installable):")
+                print(f"    {_radare2_install_hint()}")
+
+            pip_missing = [m for m in missing if m != "radare2"]
+            if pip_missing:
+                print("\n  Python packages:")
+                print("    pip install caspoon[all]")
+                print("\n  Or install specific features:")
+                print("    pip install caspoon[windows]   # Windows PE support")
+                print("    pip install caspoon[patterns]  # capstone + yara")
+                print("    pip install caspoon[advanced]  # scipy")
+                print("    pip install caspoon[graphs]    # networkx")
+                print("    pip install caspoon[reports]   # jinja2")
         else:
             print("\n✓ All optional features are installed!")
 
