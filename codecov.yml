@@ -13,6 +13,7 @@ ignore:
   - "caspoon/tests/"
   - "caspoon/**/__main__.py"
   - "caspoon/ui/"
+  - "caspoon/gui/"
   - "setup.py"
 
 # Configure PR comments

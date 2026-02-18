@@ -1,0 +1,1 @@
+"""GUI panels (dock widgets)."""
