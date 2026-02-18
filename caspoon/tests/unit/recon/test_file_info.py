@@ -79,7 +79,7 @@ class TestFileInfoRecon:
         test_file.write_bytes(b"test")
 
         mock_elffile = MagicMock()
-        mock_elffile.header = {"e_machine": 0x3E, "e_type": "ET_EXEC"}  # x86_64, executable
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}  # x86_64, executable
         mock_elffile.elfclass = 64
         mock_elffile.little_endian = True
         mock_elffile.get_section_by_name.return_value = Mock()  # not stripped
@@ -98,7 +98,7 @@ class TestFileInfoRecon:
         test_file.write_bytes(b"test")
 
         mock_elffile = MagicMock()
-        mock_elffile.header = {"e_machine": 0x03, "e_type": "ET_EXEC"}  # x86, executable
+        mock_elffile.header = {"e_machine": "EM_386", "e_type": "ET_EXEC"}  # x86, executable
         mock_elffile.elfclass = 32
         mock_elffile.little_endian = True
         mock_elffile.get_section_by_name.return_value = Mock()  # not stripped
@@ -117,10 +117,9 @@ class TestFileInfoRecon:
         test_file.write_bytes(b"test")
 
         mock_elffile = MagicMock()
-        mock_elffile.header = {"e_machine": 0x3E, "e_type": "ET_EXEC"}
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
         mock_elffile.elfclass = 0  # Unknown
         mock_elffile.little_endian = True
-        mock_elffile.get_section_by_name.return_value = None
 
         with patch("builtins.open", mock_open(read_data=b"fake elf")):
             with patch("caspoon.recon.file_info.ELFFile", return_value=mock_elffile):
@@ -135,7 +134,7 @@ class TestFileInfoRecon:
         test_file.write_bytes(b"test")
 
         mock_elffile = MagicMock()
-        mock_elffile.header = {"e_machine": 0x3E, "e_type": "ET_EXEC"}
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
         mock_elffile.elfclass = 64
         mock_elffile.little_endian = True
         mock_elffile.get_section_by_name.return_value = None  # No .symtab = stripped
@@ -153,7 +152,7 @@ class TestFileInfoRecon:
         test_file.write_bytes(b"test")
 
         mock_elffile = MagicMock()
-        mock_elffile.header = {"e_machine": 0x3E, "e_type": "ET_EXEC"}
+        mock_elffile.header = {"e_machine": "EM_X86_64", "e_type": "ET_EXEC"}
         mock_elffile.elfclass = 64
         mock_elffile.little_endian = True
         mock_elffile.get_section_by_name.return_value = Mock()  # .symtab exists = not stripped
@@ -191,15 +190,15 @@ class TestFileInfoRecon:
     @pytest.mark.parametrize(
         "e_machine,expected_arch",
         [
-            (0x3E, "x86_64"),      # EM_X86_64
-            (0x03, "x86"),         # EM_386
-            (0x28, "ARM"),         # EM_ARM
-            (0xB7, "ARM64"),       # EM_AARCH64
-            (0x08, "MIPS"),        # EM_MIPS
-            (0x14, "PowerPC"),     # EM_PPC
-            (0x15, "PowerPC64"),   # EM_PPC64
-            (0xF3, "RISC-V"),      # EM_RISCV
-            (0x9999, "Unknown"),   # Unknown architecture
+            ("EM_X86_64", "x86_64"),
+            ("EM_386", "x86"),
+            ("EM_ARM", "ARM"),
+            ("EM_AARCH64", "ARM64"),
+            ("EM_MIPS", "MIPS"),
+            ("EM_PPC", "PowerPC"),
+            ("EM_PPC64", "PowerPC64"),
+            ("EM_RISCV", "RISC-V"),
+            ("EM_UNKNOWN_9999", "Unknown"),   # Unknown architecture
         ],
     )
     def test_architecture_detection(self, recon, tmp_path, e_machine, expected_arch):

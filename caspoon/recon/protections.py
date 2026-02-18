@@ -115,11 +115,15 @@ class ProtectionsRecon:
                 has_gnu_relro = True
                 break
 
-        # Check for DT_BIND_NOW in .dynamic section
+        # Check for DT_BIND_NOW or DT_FLAGS with DF_BIND_NOW bit in .dynamic section
+        DF_BIND_NOW = 0x8
         for section in elffile.iter_sections():
             if isinstance(section, DynamicSection):
                 for tag in section.iter_tags():
                     if tag.entry.d_tag == "DT_BIND_NOW":
+                        has_bind_now = True
+                        break
+                    if tag.entry.d_tag == "DT_FLAGS" and (tag.entry.d_val & DF_BIND_NOW):
                         has_bind_now = True
                         break
                 if has_bind_now:

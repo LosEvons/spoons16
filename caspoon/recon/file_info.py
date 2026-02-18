@@ -9,19 +9,19 @@ from ..core.models import ExecutableReport
 
 logger = logging.getLogger(__name__)
 
-# Architecture mapping from ELF e_machine values to human-readable names
-ARCH_MAP: dict[int, str] = {
-    0x3E: "x86_64",      # EM_X86_64
-    0x03: "x86",         # EM_386
-    0x28: "ARM",         # EM_ARM
-    0xB7: "ARM64",       # EM_AARCH64
-    0x08: "MIPS",        # EM_MIPS
-    0x14: "PowerPC",     # EM_PPC
-    0x15: "PowerPC64",   # EM_PPC64
-    0xF3: "RISC-V",      # EM_RISCV
-    0x16: "S390",        # EM_S390
-    0x2A: "SuperH",      # EM_SH
-    0x32: "IA-64",       # EM_IA_64
+# Architecture mapping from ELF e_machine string values (as returned by pyelftools) to human-readable names
+ARCH_MAP: dict[str, str] = {
+    "EM_X86_64": "x86_64",
+    "EM_386": "x86",
+    "EM_ARM": "ARM",
+    "EM_AARCH64": "ARM64",
+    "EM_MIPS": "MIPS",
+    "EM_PPC": "PowerPC",
+    "EM_PPC64": "PowerPC64",
+    "EM_RISCV": "RISC-V",
+    "EM_S390": "S390",
+    "EM_SH": "SuperH",
+    "EM_IA_64": "IA-64",
 }
 
 
