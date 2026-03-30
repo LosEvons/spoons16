@@ -71,7 +71,7 @@ jobs:
     - name: Upload coverage to Codecov
       # Only upload coverage once (from Python 3.10 on ubuntu-latest)
       if: matrix.python-version == '3.10' && matrix.os == 'ubuntu-latest'
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         files: ./caspoon/coverage.xml
         flags: unittests
