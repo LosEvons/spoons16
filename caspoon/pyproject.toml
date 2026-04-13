@@ -12,7 +12,7 @@ authors = [
 dependencies = [
   "pyelftools>=0.29,<1.0",       # ELF file parsing
   "r2pipe>=1.7.0,<2.0.0",        # radare2 interface
-  "rich>=13.0.0,<15.0.0",        # Text rendering (CLI output)
+  "rich>=15.0.0,<16.0.0",        # Text rendering (CLI output)
 ]
 
 [project.optional-dependencies]
