@@ -18,7 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 # Qt6 GUI interface
 gui = [
-  "pyside6>=6.6.0",
+  "pyside6>=6.11.0",
 ]
 
 # Windows PE file support
